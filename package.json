@@ -1,0 +1,51 @@
+{
+  "name": "market-quilla",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "npx tsx src/database/scripts/reset-db.ts",
+    "db:seed": "npx tsx src/database/scripts/seed.ts"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.5.0",
+    "@faker-js/faker": "^10.4.0",
+    "@hugeicons/core-free-icons": "^4.1.4",
+    "@hugeicons/react": "^1.1.6",
+    "bcrypt": "^6.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "lucide-react": "^1.16.0",
+    "next": "16.2.6",
+    "next-auth": "5.0.0-beta.31",
+    "pg": "^8.21.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "shadcn": "^4.8.0",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^20",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "drizzle-kit": "^0.31.10",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

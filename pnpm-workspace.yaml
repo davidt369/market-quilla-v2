@@ -1,0 +1,8 @@
+allowBuilds:
+  bcrypt: true
+  esbuild: set this to true or false
+  msw: true
+  sharp: true
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
