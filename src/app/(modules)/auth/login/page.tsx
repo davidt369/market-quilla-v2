@@ -1,7 +1,21 @@
 import { Package } from "lucide-react"
 import { LoginForm } from "./components/login-form"
+import { redirect } from "next/navigation"
+import { auth } from "@/lib/auth"
 
-export default function LoginPage() {
+export default async function LoginPage() {
+
+
+  // Verificación de sesión del lado del servidor (Súper seguro para producción)
+  const session = await auth()
+
+  // Si no hay sesión, Next.js aborta el renderizado y redirige inmediatamente
+  if (session ) {
+    redirect("/dashboard")
+  }
+
+
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2 bg-background/50">
   
@@ -20,12 +34,12 @@ export default function LoginPage() {
         />
         
         <div className="absolute bottom-16 left-16 right-16 z-20">
-          <blockquote className="space-y-5 text-white/90 max-w-xl">
-            <Package className="size-10 text-primary/80 mb-6" />
+          <blockquote className="space-y-5 text-slate/120 max-w-xl dark:text-primary/90">
+            <Package className="size-10 text-slate/80 mb-6 dark:text-primary/80"  />
             <p className="text-3xl font-medium tracking-tight leading-snug">
               &ldquo;Una solución robusta y rápida para la gestión de envíos, sucursales y finanzas. Todo en un solo lugar.&rdquo;
             </p>
-            <footer className="text-base text-zinc-400 font-medium tracking-wide uppercase">Market Quilla Team</footer>
+            <footer className="text-base text-zinc-400 font-medium tracking-wide uppercase">Market Quilla</footer>
           </blockquote>
         </div>
       </div>

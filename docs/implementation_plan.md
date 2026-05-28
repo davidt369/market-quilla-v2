@@ -1,63 +1,64 @@
-# Plan de Implementación: MVP Market Quilla
+# Plan de Implementación: Evolución a SaaS Multi-Tenant (MVP Single-Branch)
 
-Este documento detalla la hoja de ruta para desarrollar los módulos principales necesarios para que el MVP (Producto Mínimo Viable) funcione correctamente en producción. La estructura está basada en el esquema de la base de datos actual.
+Este documento detalla la hoja de ruta para desarrollar los módulos principales necesarios para que el MVP funcione correctamente en producción, pero adaptado para ser un **Software as a Service (SaaS)** desde el día 1. 
 
 ## User Review Required
 
-Por favor revisa el orden de prioridad de los módulos. El orden actual asume que no podemos registrar paquetes sin clientes, y no podemos registrar transacciones sin una caja abierta. ¿Estás de acuerdo con este flujo?
+> [!WARNING]
+> **Cambio Estructural Mayor**: Al convertir el sistema a SaaS, debemos añadir la tabla `tbempresas` (Tenants) y relacionar todo a ella. Todas las consultas deberán filtrar siempre por `empresaId` para garantizar que los datos de diferentes clientes nunca se mezclen. ¿Estás de acuerdo con añadir la tabla `tbempresas` y propagar la clave foránea en todo el sistema?
 
 ## Open Questions
 
 > [!IMPORTANT]
-> 1. **Autenticación**: Veo que tienes `next-auth` y `bcrypt` en tus dependencias. ¿Usaremos NextAuth (Auth.js) v5 con un proveedor de credenciales personalizadas?
-> 2. **Impresión de Tickets**: La base de datos guarda configuración de impresoras (ej: `EPSON_TM_T20`). ¿La impresión de tickets se hará desde el navegador hacia una impresora térmica conectada al cliente?
-> 3. **Roles**: ¿El MVP debe restringir la visibilidad de los módulos según el rol desde el inicio, o primero armamos todos los CRUDs funcionales y luego aplicamos los candados de seguridad?
+> 1. **Gestión del MVP**: Para este MVP enfocado en una sola sucursal, ¿deseas que la "Empresa" inicial se genere automáticamente mediante un script de Seed (base de datos) o hacemos un pequeño onboarding de registro de empresa en la UI?
+> 2. **Planes SaaS**: A futuro, en un SaaS se manejan suscripciones. ¿Quieres que dejemos una columna `plan` o `fechaVencimiento` en la tabla de empresas desde ahora, o lo omitimos para el MVP?
+
+## Proposed Changes (SaaS Architecture)
+
+### 1. Database Schema (`src/database/schema/schema.ts`)
+
+Para lograr la separación de inquilinos (Tenants), crearemos la tabla base `empresas` y vincularemos el resto de la jerarquía.
+
+- **[NEW] `tbempresas`**: `id`, `nombre`, `subdominio` (opcional), `estado`, timestamps.
+- **[MODIFY] `tbsucursales`**: Añadir `empresaId`. Una empresa tiene muchas sucursales. (El MVP usará solo 1 sucursal por empresa).
+- **[MODIFY] `tbusuarios`**: Añadir `empresaId`. Un usuario pertenece a una empresa.
+- **[MODIFY] Todas las entidades Core** (`tbclientes`, `tbpaquetes`, `caja_turno`, `tbconfiguracion`): 
+  Añadir `empresaId`. Esto es crucial en arquitectura SaaS (Patrón *Tenant-per-row*). Modificaremos los índices únicos para que sean únicos **por empresa** (ej. `codigoPaquete` + `empresaId`).
+
+### 2. Auth & Middleware (`src/lib/auth.ts`)
+
+- La sesión JWT ahora deberá consultar la base de datos y almacenar el `empresaId` del usuario autenticado. 
+- La aplicación utilizará este `empresaId` proveniente de la sesión en todas las operaciones CRUD (`where(eq(tabla.empresaId, session.user.empresaId))`).
 
 ---
 
-## Fases de Desarrollo Propuestas
+## Fases de Desarrollo Propuestas (Adaptadas a SaaS)
 
-### Fase 1: Core de Seguridad y Autenticación
-Esta es la base de la pirámide. No podemos registrar qué usuario hizo qué acción si no hay sesión.
+### Fase 1: Core SaaS y Autenticación
+- [ ] **Esquema de BD**: Agregar tabla de Empresas y propagar `empresaId` en el schema.
+- [ ] **Configuración de NextAuth**: Guardar y retornar `empresaId` en el token JWT.
+- [ ] **Seed**: Actualizar scripts para generar un tenant de prueba.
+- [ ] **Página de Login**: Autenticación con verificación de estado activo del tenant.
 
-- [ ] **Configuración de NextAuth**: Integrar Auth.js con Drizzle.
-- [ ] **Página de Login**: UI de inicio de sesión con validación de credenciales (usando `bcrypt` contra la tabla `tbusuarios`).
-- [ ] **Layout Protegido**: Middleware para redirigir a `/login` si no hay sesión. Sidebar base.
-- [ ] **Gestión de Configuración**: Vista sencilla para que el Administrador edite datos básicos de la empresa.
+### Fase 2: Gestión de Catálogos (Aislados por Tenant)
+- [ ] **Módulo de Sucursales**: CRUD de sucursales filtrado por empresa. (En el MVP, el administrador gestionará 1 sucursal).
+- [ ] **Módulo de Usuarios**: CRUD de empleados.
+- [ ] **Módulo de Clientes**: CRUD de clientes compartidos a nivel empresa.
 
-### Fase 2: Gestión de Catálogos Base
-Los datos necesarios antes de poder realizar operaciones transaccionales.
+### Fase 3: Operaciones de Paquetería
+- [ ] **Registro de Paquetes**: Formulario y listado aislando datos por `empresaId` y `sucursalId`.
+- [ ] **Tracking Historial**: Gestión de estados.
 
-- [ ] **Módulo de Sucursales**: CRUD de sucursales.
-- [ ] **Módulo de Usuarios**: CRUD para registrar empleados y asignarles roles.
-- [ ] **Módulo de Clientes**: CRUD de clientes con búsqueda rápida (remitentes/destinatarios).
-
-### Fase 3: Operaciones de Paquetería (Core del Negocio)
-El flujo principal de envío y recepción.
-
-- [ ] **Registro de Paquetes**: Formulario de creación (Remitente, Destinatario, tipo, costo, estado).
-- [ ] **Listado y Seguimiento**: Tabla interactiva con filtros.
-- [ ] **Tracking Historial**: Interfaz para actualizar el estado del paquete, alimentando `PaqueteHistorial`.
-
-### Fase 4: Control de Caja y Finanzas
-Indispensable para el control del dinero en producción.
-
-- [ ] **Apertura de Caja**: Iniciar turno ingresando montos y billetes base.
-- [ ] **Registro de Gastos**: Módulo de egresos en caja.
-- [ ] **Cierre de Caja (Arqueo)**: Pantalla de conciliación final del turno.
-- [ ] **Historial de Transacciones**: Tabla con flujo de ingresos/egresos.
-
-### Fase 5: Reportes y Pulido Final
-- [ ] **Dashboard Principal**: Tarjetas resumen (Paquetes de hoy, Ingresos).
-- [ ] **Tickets de Recibo**: Vista optimizada para impresión térmica.
-
----
+### Fase 4: Control de Caja
+- [ ] **Apertura y Cierre de Caja**: Flujo vinculado al cajero y la sucursal activa.
+- [ ] **Gastos y Transacciones**: Egresos aislados por caja y empresa.
 
 ## Verification Plan
 
 ### Automated Tests
-- Ejecutar validaciones `tsc` y `biome check`.
-- Verificar consistencia de base de datos usando `pnpm db:seed`.
+- Validar la generación de las nuevas migraciones con Drizzle (`pnpm db:push`).
+- Verificar el aislamiento: un usuario de Empresa A no puede ver datos de Empresa B en base de datos.
 
 ### Manual Verification
-- Pruebas E2E manuales del flujo: *Login -> Abrir Caja -> Registrar Cliente -> Registrar Paquete -> Cerrar Caja*.
+- Iniciar sesión y comprobar que el JWT contiene el `empresaId`.
+- Crear un paquete y verificar en BD que se guardó con el `empresaId` correcto.
