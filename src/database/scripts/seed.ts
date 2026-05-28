@@ -20,31 +20,48 @@ async function resetDatabase() {
       tbtransacciones,
       tbgastos_caja,
       caja_turno,
+      tbpaquete_historial,
       tbpaquetes,
       tbusuarios_roles,
       tbroles_permisos,
       tbclientes,
+      tbconfiguracion,
       tbusuarios,
       tbroles,
       tbpermisos,
-      tbsucursales
+      tbsucursales,
+      tbempresas
     RESTART IDENTITY CASCADE;
   `);
 }
 
-async function seedSucursales() {
+async function seedEmpresas() {
   const values = [
     {
+      nombre: 'Quilla Logistics MVP',
+      subdominio: 'mvp',
+    },
+  ];
+  return db.insert(schema.empresas).values(values).returning();
+}
+
+async function seedSucursales(empresas: Array<{ id: number }>) {
+  const empresaId = empresas[0].id;
+  const values = [
+    {
+      empresaId,
       nombre: 'Sucursal Central',
       direccion: 'Av. Ayacucho #123, Centro',
       telefono: '7123456701',
     },
     {
+      empresaId,
       nombre: 'Sucursal Norte',
       direccion: 'Calle Murillo #456, Zona Norte',
       telefono: '7123456702',
     },
     {
+      empresaId,
       nombre: 'Sucursal Sur',
       direccion: 'Av. 6 de Agosto #789, Zona Sur',
       telefono: '7123456703',
@@ -81,11 +98,13 @@ async function seedPermisos() {
   return db.insert(schema.permisos).values(values).returning();
 }
 
-async function seedUsuarios(sucursales: Array<{ id: number }>) {
+async function seedUsuarios(empresas: Array<{ id: number }>, sucursales: Array<{ id: number }>) {
   const hashedPassword = await bcrypt.hash('Password123!', 10);
+  const empresaId = empresas[0].id;
 
   const values = [
     {
+      empresaId,
       sucursalId: sucursales[0]?.id,
       nombreCompleto: 'Admin Central',
       nombreUsuario: 'admin',
@@ -93,6 +112,7 @@ async function seedUsuarios(sucursales: Array<{ id: number }>) {
       rolBase: 'administrador',
     },
     {
+      empresaId,
       sucursalId: sucursales[0]?.id,
       nombreCompleto: 'Laura Perez',
       nombreUsuario: 'laura.perez',
@@ -100,6 +120,7 @@ async function seedUsuarios(sucursales: Array<{ id: number }>) {
       rolBase: 'recepcionista',
     },
     {
+      empresaId,
       sucursalId: sucursales[1]?.id,
       nombreCompleto: 'Carlos Vega',
       nombreUsuario: 'carlos.vega',
@@ -107,6 +128,7 @@ async function seedUsuarios(sucursales: Array<{ id: number }>) {
       rolBase: 'cajero',
     },
     {
+      empresaId,
       sucursalId: sucursales[2]?.id,
       nombreCompleto: 'Marta Salinas',
       nombreUsuario: 'marta.salinas',
@@ -114,6 +136,7 @@ async function seedUsuarios(sucursales: Array<{ id: number }>) {
       rolBase: 'supervisor',
     },
     {
+      empresaId,
       sucursalId: sucursales[1]?.id,
       nombreCompleto: 'Jorge Mamani',
       nombreUsuario: 'jorge.mamani',
@@ -121,6 +144,7 @@ async function seedUsuarios(sucursales: Array<{ id: number }>) {
       rolBase: 'recepcionista',
     },
     {
+      empresaId,
       sucursalId: sucursales[2]?.id,
       nombreCompleto: 'Sofia Rojas',
       nombreUsuario: 'sofia.rojas',
@@ -129,7 +153,7 @@ async function seedUsuarios(sucursales: Array<{ id: number }>) {
     },
   ];
 
-  return db.insert(schema.usuarios).values(values as any).returning();
+  return db.insert(schema.usuarios).values(values as schema.NewUsuario[]).returning();
 }
 
 async function seedUsuariosRoles(usuarios: Array<{ id: number }>, roles: Array<{ id: number; nombreRol: string }>) {
@@ -168,12 +192,14 @@ async function seedRolesPermisos(roles: Array<{ id: number; nombreRol: string }>
   return db.insert(schema.rolesPermisos).values(values).returning();
 }
 
-async function seedClientes() {
+async function seedClientes(empresas: Array<{ id: number }>) {
+  const empresaId = empresas[0].id;
   const values = Array.from({ length: 24 }, (_, index) => {
     const phone = String(7000000000 + index + 1);
     const ci = String(1000000000 + index + 1);
 
     return {
+      empresaId,
       nombreCompleto: faker.person.fullName(),
       empresa: index % 4 === 0 ? faker.company.name() : undefined,
       celular: phone,
@@ -186,10 +212,12 @@ async function seedClientes() {
 }
 
 async function seedPaquetes(
+  empresas: Array<{ id: number }>,
   sucursales: Array<{ id: number }>,
   usuarios: Array<{ id: number }>,
   clientes: Array<{ id: number }>,
 ) {
+  const empresaId = empresas[0].id;
   const tipos = ['documentos', 'ropa', 'electronicos', 'regalos'];
   const estadosPago = ['pendiente', 'pagado', 'parcial'];
   const estadosPaquete = ['en almacen', 'en ruta', 'entregado'];
@@ -199,6 +227,7 @@ async function seedPaquetes(
     const destinatario = clientes[(index * 2 + 1) % clientes.length];
 
     return {
+      empresaId,
       sucursalId: sucursales[index % sucursales.length].id,
       remitenteId: remitente.id,
       destinatarioId: destinatario.id,
@@ -216,17 +245,20 @@ async function seedPaquetes(
     };
   });
 
-  return db.insert(schema.paquetes).values(values as any).returning();
+  return db.insert(schema.paquetes).values(values as schema.NewPaquete[]).returning();
 }
 
 async function seedPaqueteHistorial(
+  empresas: Array<{ id: number }>,
   sucursales: Array<{ id: number }>,
   usuarios: Array<{ id: number }>,
   paquetes: Array<{ id: number; estadoPaquete: string }>,
 ) {
+  const empresaId = empresas[0].id;
   const estadosPrevios = ['registrado', 'en almacen', 'en viaje', 'en sucursal'];
 
   const values = paquetes.slice(0, 12).map((paquete, index) => ({
+    empresaId,
     paqueteId: paquete.id,
     estadoAnterior: estadosPrevios[index % estadosPrevios.length],
     estadoNuevo: paquete.estadoPaquete,
@@ -236,14 +268,16 @@ async function seedPaqueteHistorial(
     fecha: faker.date.recent({ days: 30 }),
   }));
 
-  return db.insert(schema.paqueteHistorial).values(values as any).returning();
+  return db.insert(schema.paqueteHistorial).values(values as schema.NewPaqueteHistorial[]).returning();
 }
 
-async function seedCajaTurno(sucursales: Array<{ id: number }>, usuarios: Array<{ id: number }>) {
+async function seedCajaTurno(empresas: Array<{ id: number }>, sucursales: Array<{ id: number }>, usuarios: Array<{ id: number }>) {
+  const empresaId = empresas[0].id;
   const values = Array.from({ length: 5 }, (_, index) => {
     const fecha = faker.date.recent({ days: 12 }).toISOString().slice(0, 10);
 
     return {
+      empresaId,
       sucursalId: sucursales[index % sucursales.length].id,
       fecha,
       horaApertura: faker.date.recent({ days: 12 }),
@@ -272,8 +306,10 @@ async function seedCajaTurno(sucursales: Array<{ id: number }>, usuarios: Array<
   return db.insert(schema.cajaTurno).values(values).returning();
 }
 
-async function seedConfiguracion(sucursal: { id: number }) {
+async function seedConfiguracion(empresas: Array<{ id: number }>, sucursal: { id: number }) {
+  const empresaId = empresas[0].id;
   return db.insert(schema.configuracion).values({
+    empresaId,
     nombreEmpresa: 'Market Quilla',
     logoUrl: faker.image.urlLoremFlickr({ category: 'business' }),
     qrUrl: faker.image.urlLoremFlickr({ category: 'qr' }),
@@ -284,16 +320,19 @@ async function seedConfiguracion(sucursal: { id: number }) {
     ticketFooter: 'Gracias por confiar en Market Quilla',
     createdSucursalId: sucursal.id,
     updatedSucursalId: sucursal.id,
-  } as any).returning();
+  } as schema.NewConfiguracion).returning();
 }
 
 async function seedGastosCaja(
+  empresas: Array<{ id: number }>,
   cajas: Array<{ id: number }>,
   usuarios: Array<{ id: number }>,
 ) {
+  const empresaId = empresas[0].id;
   const metodosPago = ['efectivo', 'qr'];
 
   const values = Array.from({ length: 10 }, (_, index) => ({
+    empresaId,
     cajaId: cajas[index % cajas.length].id,
     usuarioId: usuarios[index % usuarios.length].id,
     descripcion: faker.commerce.productDescription(),
@@ -301,17 +340,20 @@ async function seedGastosCaja(
     monto: faker.number.float({ min: 5, max: 180, fractionDigits: 2 }).toFixed(2),
   }));
 
-  return db.insert(schema.gastosCaja).values(values as any).returning();
+  return db.insert(schema.gastosCaja).values(values as schema.NewGastoCaja[]).returning();
 }
 
 async function seedTransacciones(
+  empresas: Array<{ id: number }>,
   cajas: Array<{ id: number }>,
   usuarios: Array<{ id: number }>,
   paquetes: Array<{ id: number }>,
 ) {
+  const empresaId = empresas[0].id;
   const tipos = ['ingreso', 'egreso', 'servicio'];
 
   const values = Array.from({ length: 20 }, (_, index) => ({
+    empresaId,
     cajaId: cajas[index % cajas.length].id,
     usuarioId: usuarios[index % usuarios.length].id,
     paqueteId: index % 2 === 0 ? paquetes[index % paquetes.length].id : null,
@@ -320,7 +362,7 @@ async function seedTransacciones(
     descripcion: faker.commerce.productDescription(),
   }));
 
-  return db.insert(schema.transacciones).values(values as any).returning();
+  return db.insert(schema.transacciones).values(values as schema.NewTransaccion[]).returning();
 }
 
 async function main() {
@@ -328,28 +370,31 @@ async function main() {
     console.log('Limpiando tablas...');
     await resetDatabase();
 
+    console.log('Creando empresa (Tenant) MVP...');
+    const empresas = (await seedEmpresas()) as Array<{ id: number }>;
+
     console.log('Creando sucursales, roles y permisos...');
-    const sucursales = (await seedSucursales()) as Array<{ id: number }>;
+    const sucursales = (await seedSucursales(empresas)) as Array<{ id: number }>;
     const roles = (await seedRoles()) as Array<{ id: number; nombreRol: string }>;
     const permisos = (await seedPermisos()) as Array<{ id: number; nombrePermiso: string }>;
 
     console.log('Creando usuarios y relaciones de seguridad...');
-    const usuarios = (await seedUsuarios(sucursales)) as Array<{ id: number }>;
+    const usuarios = (await seedUsuarios(empresas, sucursales)) as Array<{ id: number }>;
     await seedUsuariosRoles(usuarios, roles);
     await seedRolesPermisos(roles, permisos);
 
     console.log('Creando clientes y paquetes...');
-    const clientes = (await seedClientes()) as Array<{ id: number }>;
-    const paquetes = (await seedPaquetes(sucursales, usuarios, clientes)) as Array<{ id: number; estadoPaquete: string }>;
-    await seedPaqueteHistorial(sucursales, usuarios, paquetes);
+    const clientes = (await seedClientes(empresas)) as Array<{ id: number }>;
+    const paquetes = (await seedPaquetes(empresas, sucursales, usuarios, clientes)) as Array<{ id: number; estadoPaquete: string }>;
+    await seedPaqueteHistorial(empresas, sucursales, usuarios, paquetes);
 
     console.log('Creando cajas, gastos y transacciones...');
-    const cajas = (await seedCajaTurno(sucursales, usuarios)) as Array<{ id: number }>;
-    await seedGastosCaja(cajas, usuarios);
-    await seedTransacciones(cajas, usuarios, paquetes);
+    const cajas = (await seedCajaTurno(empresas, sucursales, usuarios)) as Array<{ id: number }>;
+    await seedGastosCaja(empresas, cajas, usuarios);
+    await seedTransacciones(empresas, cajas, usuarios, paquetes);
 
     console.log('Creando configuración base...');
-    await seedConfiguracion(sucursales[0]);
+    await seedConfiguracion(empresas, sucursales[0]);
 
     console.log('Seeder completado con datos de prueba.');
   } catch (error) {

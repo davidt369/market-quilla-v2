@@ -1,9 +1,35 @@
-import NextAuth from "next-auth"
+import NextAuth, { type DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { eq } from "drizzle-orm"
 import bcrypt from "bcrypt"
 import { db } from "@/database/index"
-import { usuarios } from "@/database/schema/schema"
+import { usuarios, empresas } from "@/database/schema/schema"
+
+declare module "next-auth" {
+  interface User {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    rolBase?: string | null;
+    sucursalId?: number | null;
+    empresaId?: number | null;
+  }
+  interface Session {
+    user: {
+      rolBase?: string | null;
+      sucursalId?: number | null;
+      empresaId?: number | null;
+    } & DefaultSession["user"]
+  }
+}
+
+interface CustomToken {
+  rolBase?: string | null;
+  sucursalId?: number | null;
+  empresaId?: number | null;
+  sub?: string;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -30,6 +56,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             throw new Error("Usuario inactivo")
         }
 
+        // Si la empresa (tenant) está inactiva, no permitir login
+        const empresaResult = await db.select().from(empresas).where(eq(empresas.id, userRecord.empresaId)).limit(1);
+        if (!empresaResult[0] || empresaResult[0].estado === false) {
+            throw new Error("La empresa se encuentra inactiva")
+        }
+
         const passwordsMatch = await bcrypt.compare(
           credentials.password as string,
           userRecord.password
@@ -41,7 +73,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: userRecord.nombreCompleto,
             email: userRecord.nombreUsuario, // NextAuth por defecto usa 'email', mapeamos 'nombreUsuario' aquí
             rolBase: userRecord.rolBase,
-            sucursalId: userRecord.sucursalId
+            sucursalId: userRecord.sucursalId,
+            empresaId: userRecord.empresaId,
           }
         }
 
@@ -51,19 +84,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
+      const customToken = token as CustomToken;
       if (user) {
-        token.rolBase = (user as any).rolBase;
-        token.sucursalId = (user as any).sucursalId;
+        customToken.rolBase = user.rolBase;
+        customToken.sucursalId = user.sucursalId;
+        customToken.empresaId = user.empresaId;
       }
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        (session.user as any).rolBase = token.rolBase;
-        (session.user as any).sucursalId = token.sucursalId;
+      const customToken = token as CustomToken;
+      if (customToken) {
+        session.user.rolBase = customToken.rolBase;
+        session.user.sucursalId = customToken.sucursalId;
+        session.user.empresaId = customToken.empresaId;
         // El id se guarda en sub por defecto en el JWT de NextAuth
-        if (token.sub) {
-          session.user.id = token.sub;
+        if (customToken.sub) {
+          session.user.id = customToken.sub;
         }
       }
       return session

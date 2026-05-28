@@ -102,27 +102,51 @@ function auditColumns(includeSucursalAudit = true): Record<string, any> {
 }
 
 // ============================================
+// TABLA: EMPRESAS (SaaS Tenants)
+// ============================================
+export const empresas = pgTable('tbempresas', {
+  id: integer('pk_empresa').primaryKey().generatedAlwaysAsIdentity(),
+  nombre: varchar('nombre', { length: 150 }).notNull(),
+  subdominio: varchar('subdominio', { length: 50 }),
+  estado: boolean('estado').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+}, (table) => [
+  uniqueIndex('idx_empresas_subdominio').on(table.subdominio),
+]);
+
+// ============================================
 // TABLA: SUCURSALES
 // ============================================
 export const sucursales = pgTable('tbsucursales', {
   id: integer('pk_sucursal').primaryKey().generatedAlwaysAsIdentity(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   nombre: varchar('nombre', { length: 100 }).notNull(),
   direccion: text('direccion').notNull(),
   telefono: varchar('telefono', { length: 10 }).notNull(),
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(false),
 }, (table) => [
-
-  uniqueIndex('idx_sucursales_nombre').on(table.nombre),
-]
- 
-);
+  uniqueIndex('idx_sucursales_empresa_nombre').on(table.empresaId, table.nombre),
+  index('idx_sucursales_empresa').on(table.empresaId),
+]);
 
 // ============================================
 // TABLA: USUARIOS
 // ============================================
 export const usuarios = pgTable('tbusuarios', {
   id: integer('pk_usuario').primaryKey().generatedAlwaysAsIdentity(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   sucursalId: integer('fk_sucursal_id').references(() => sucursales.id, {
     onDelete: 'set null',
     onUpdate: 'cascade',
@@ -133,9 +157,10 @@ export const usuarios = pgTable('tbusuarios', {
   rolBase: rolBaseEnum('rol_base').notNull().default('recepcionista'),
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(true),
-}, (table) => ([uniqueIndex('idx_usuarios_nombre_usuario').on(table.nombreUsuario),]
-   
-));
+}, (table) => [
+  uniqueIndex('idx_usuarios_empresa_nombre_usuario').on(table.empresaId, table.nombreUsuario),
+  index('idx_usuarios_empresa').on(table.empresaId),
+]);
 
 // ============================================
 // TABLA: ROLES
@@ -207,6 +232,10 @@ export const usuariosRoles = pgTable('tbusuarios_roles', {
 // ============================================
 export const clientes = pgTable('tbclientes', {
   id: integer('pk_cliente').primaryKey().generatedAlwaysAsIdentity(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   nombreCompleto: varchar('nombre_completo', { length: 150 }).notNull(),
   empresa: varchar('empresa', { length: 100 }),
   celular: varchar('celular', { length: 10 }).notNull(),
@@ -215,8 +244,9 @@ export const clientes = pgTable('tbclientes', {
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(true),
 }, (table) => [
-    index('idx_clientes_celular').on(table.celular),
-    uniqueIndex('idx_clientes_ci').on(table.ci),
+    index('idx_clientes_empresa_celular').on(table.empresaId, table.celular),
+    uniqueIndex('idx_clientes_empresa_ci').on(table.empresaId, table.ci),
+    index('idx_clientes_empresa').on(table.empresaId),
 ]);
 
 // ============================================
@@ -224,6 +254,10 @@ export const clientes = pgTable('tbclientes', {
 // ============================================
 export const paquetes = pgTable('tbpaquetes', {
   id: integer('pk_paquete').primaryKey().generatedAlwaysAsIdentity(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   sucursalId: integer('fk_sucursal_id')
     .notNull()
     .references(() => sucursales.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
@@ -255,7 +289,8 @@ export const paquetes = pgTable('tbpaquetes', {
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(true),
 }, (table) => [
-   uniqueIndex('idx_paquetes_codigo').on(table.codigoPaquete),
+   uniqueIndex('idx_paquetes_empresa_codigo').on(table.empresaId, table.codigoPaquete),
+   index('idx_paquetes_empresa').on(table.empresaId),
    index('idx_paquetes_sucursal').on(table.sucursalId),
    index('idx_paquetes_estado_pago').on(table.estadoPago),
    index('idx_paquetes_estado').on(table.estadoPaquete),
@@ -267,6 +302,10 @@ export const paquetes = pgTable('tbpaquetes', {
 // ============================================
 export const cajaTurno = pgTable('caja_turno', {
   id: serial('id').primaryKey(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   sucursalId: integer('sucursal_id')
     .notNull()
     .references(() => sucursales.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
@@ -313,6 +352,7 @@ export const cajaTurno = pgTable('caja_turno', {
   cierreObs: text('cierre_obs'),
   ...auditColumns(true),
 }, (table) => [
+   index('idx_caja_turno_empresa').on(table.empresaId),
    index('idx_caja_turno_fecha').on(table.fecha),
    index('idx_caja_turno_sucursal').on(table.sucursalId),
    index('idx_caja_turno_usuario').on(table.usuarioId),
@@ -324,6 +364,10 @@ export const cajaTurno = pgTable('caja_turno', {
 // ============================================
 export const gastosCaja = pgTable('tbgastos_caja', {
   id: serial('id').primaryKey(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   cajaId: integer('fk_caja_id')
     .notNull()
     .references(() => cajaTurno.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
@@ -337,6 +381,7 @@ export const gastosCaja = pgTable('tbgastos_caja', {
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(true),
 }, (table) => [
+    index('idx_gastos_caja_empresa').on(table.empresaId),
     index('idx_gastos_caja_caja').on(table.cajaId),
 ]);
 
@@ -345,6 +390,10 @@ export const gastosCaja = pgTable('tbgastos_caja', {
 // ============================================
 export const transacciones = pgTable('tbtransacciones', {
   id: serial('id').primaryKey(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   cajaId: integer('fk_caja_id')
     .notNull()
     .references(() => cajaTurno.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
@@ -360,6 +409,7 @@ export const transacciones = pgTable('tbtransacciones', {
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(true),
 }, (table) => [
+  index('idx_transacciones_empresa').on(table.empresaId),
   index('idx_transacciones_caja').on(table.cajaId),
   index('idx_transacciones_tipo').on(table.tipoTransaccion),
 ]);
@@ -369,6 +419,10 @@ export const transacciones = pgTable('tbtransacciones', {
 // ============================================
 export const paqueteHistorial = pgTable('tbpaquete_historial', {
   id: serial('id').primaryKey(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
   paqueteId: integer('paquete_id')
     .notNull()
     .references(() => paquetes.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
@@ -386,6 +440,7 @@ export const paqueteHistorial = pgTable('tbpaquete_historial', {
   fecha: timestamp('fecha', { withTimezone: true }).defaultNow().notNull(),
   ...auditColumns(true),
 }, (table) => [
+  index('idx_paquete_historial_empresa').on(table.empresaId),
   index('idx_paquete_historial_paquete').on(table.paqueteId),
   index('idx_paquete_historial_fecha').on(table.fecha),
 ]);
@@ -395,6 +450,10 @@ export const paqueteHistorial = pgTable('tbpaquete_historial', {
 // ============================================
 export const configuracion = pgTable('tbconfiguracion', {
   id: serial('id').primaryKey(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'cascade',
+    onUpdate: 'cascade',
+  }),
   nombreEmpresa: varchar('nombre_empresa', { length: 150 }).notNull(),
   logoUrl: text('logo_url'),
   qrUrl: text('qr_url'),
@@ -406,12 +465,15 @@ export const configuracion = pgTable('tbconfiguracion', {
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(true),
 }, (table) => [
+  uniqueIndex('idx_configuracion_empresa').on(table.empresaId),
   index('idx_configuracion_estado').on(table.estado),
 ]);
 
 // ============================================
 // EXPORTAR TIPOS
 // ============================================
+export type Empresa = typeof empresas.$inferSelect;
+export type NewEmpresa = typeof empresas.$inferInsert;
 export type Sucursal = typeof sucursales.$inferSelect;
 export type NewSucursal = typeof sucursales.$inferInsert;
 

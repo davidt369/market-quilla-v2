@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Insertar el nuevo usuario en la base de datos
     const [newUser] = await db.insert(usuarios).values({
+      empresaId: 1, // Empresa base para MVP
       nombreCompleto,
       nombreUsuario,
       password: hashedPassword,
