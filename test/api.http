@@ -1,0 +1,47 @@
+### Variables globales
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+---
+
+### 1. REGISTRO - Crear un usuario nuevo (Éxito esperado: 201)
+POST {{baseUrl}}/api/auth/register HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "nombreCompleto": "Juan Perez",
+  "nombreUsuario": "jperez",
+  "password": "miSuperPassword123",
+  "rolBase": "cajero"
+}
+
+###
+
+### 2. REGISTRO - Intentar duplicar usuario (Error esperado: 400 o 409)
+POST {{baseUrl}}/api/auth/register HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "nombreCompleto": "Otro Juan",
+  "nombreUsuario": "jperez",
+  "password": "otraPassword123",
+  "rolBase": "admin"
+}
+
+###
+
+### 3. LOGIN - Autenticación con Auth.js / NextAuth
+# Nota importante: Auth.js incluye protección CSRF por defecto. 
+# Probar el login directamente desde un cliente REST puro suele 
+# fallar a menos que primero hagas un GET a /api/auth/csrf para 
+# capturar el token y la cookie, y los envíes juntos. 
+# 
+# Si tienes el CSRF deshabilitado en desarrollo, el payload es así:
+
+POST {{baseUrl}}/api/auth/callback/credentials HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "nombreUsuario": "jperez",
+  "password": "miSuperPassword123"
+}
