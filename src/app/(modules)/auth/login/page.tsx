@@ -4,18 +4,7 @@ import { LoginForm } from "./components/login-form"
 export default function LoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2 bg-background/50">
-      <div className="flex flex-col gap-4 p-8 md:p-12 lg:p-16 relative z-10 justify-center">
-        <div className="absolute top-8 left-8 md:top-12 md:left-12 flex items-center gap-3 font-semibold text-lg tracking-tight">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
-            <Package className="size-5" />
-          </div>
-          <span className="text-foreground">Market Quilla</span>
-        </div>
-        
-        <div className="flex w-full flex-col justify-center items-center sm:w-[450px] mx-auto mt-12 lg:mt-0">
-          <LoginForm className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700" />
-        </div>
-      </div>
+  
       
       <div className="relative hidden bg-zinc-950 lg:block overflow-hidden">
         {/* Abstract gradient overlays for a premium look */}
@@ -38,6 +27,18 @@ export default function LoginPage() {
             </p>
             <footer className="text-base text-zinc-400 font-medium tracking-wide uppercase">Market Quilla Team</footer>
           </blockquote>
+        </div>
+      </div>
+          <div className="flex flex-col gap-4 p-8 md:p-12 lg:p-16 relative z-10 justify-center">
+        {/* <div className="absolute top-8 left-8 md:top-12 md:left-12 flex items-center gap-3 font-semibold text-lg tracking-tight">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+            <Package className="size-5" />
+          </div>
+          <span className="text-foreground">Market Quilla</span>
+        </div> */}
+        
+        <div className="flex w-full flex-col justify-center items-center sm:w-[450px] mx-auto mt-12 lg:mt-0">
+          <LoginForm className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700" />
         </div>
       </div>
     </div>
