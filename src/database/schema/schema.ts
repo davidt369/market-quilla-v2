@@ -470,6 +470,32 @@ export const configuracion = pgTable('tbconfiguracion', {
 ]);
 
 // ============================================
+// TABLA: AUDITORIA (Logs centralizados)
+// ============================================
+export const auditoria = pgTable('tbauditoria', {
+  id: serial('id').primaryKey(),
+  empresaId: integer('fk_empresa_id').notNull().references(() => empresas.id, {
+    onDelete: 'cascade',
+    onUpdate: 'cascade',
+  }),
+  usuarioId: integer('fk_usuario_id').references(() => usuarios.id, {
+    onDelete: 'set null',
+    onUpdate: 'cascade',
+  }),
+  accion: varchar('accion', { length: 50 }).notNull(), // Ej: 'CREATE', 'UPDATE', 'DELETE', 'LOGIN'
+  entidad: varchar('entidad', { length: 100 }).notNull(), // Ej: 'tbclientes', 'tbpaquetes'
+  entidadId: integer('entidad_id'), // ID del registro afectado
+  detalles: text('detalles'), // JSON stringificado con detalles adicionales (valores antiguos/nuevos)
+  ip: varchar('ip', { length: 45 }),
+  dispositivo: text('dispositivo'),
+  fecha: timestamp('fecha', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index('idx_auditoria_empresa').on(table.empresaId),
+  index('idx_auditoria_entidad').on(table.entidad, table.entidadId),
+  index('idx_auditoria_fecha').on(table.fecha),
+]);
+
+// ============================================
 // EXPORTAR TIPOS
 // ============================================
 export type Empresa = typeof empresas.$inferSelect;
@@ -512,3 +538,6 @@ export type NewPaqueteHistorial = typeof paqueteHistorial.$inferInsert;
 
 export type Configuracion = typeof configuracion.$inferSelect;
 export type NewConfiguracion = typeof configuracion.$inferInsert;
+
+export type Auditoria = typeof auditoria.$inferSelect;
+export type NewAuditoria = typeof auditoria.$inferInsert;
