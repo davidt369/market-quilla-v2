@@ -7,6 +7,7 @@ export default function Home() {
   <div>
     <h1>
      <BtnTheme/>
+     landing page que redirecciona a login  esta autenticado o no, con un diseño atractivo y moderno, usando componentes de shadcn/ui y lucide-react para los iconos.
     </h1>
   </div>
     );
