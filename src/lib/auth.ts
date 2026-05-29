@@ -1,9 +1,9 @@
 import NextAuth, { type DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import bcrypt from "bcrypt"
 import { db } from "@/database/index"
-import { usuarios, empresas, sucursales } from "@/database/schema/schema"
+import { usuarios, empresas, sucursales, usuariosRoles, rolesPermisos, permisos } from "@/database/schema/schema"
 
 declare module "next-auth" {
   interface User {
@@ -16,6 +16,7 @@ declare module "next-auth" {
     empresaId?: number | null;
     empresaSlug?: string | null;
     sucursalSlug?: string | null;
+    permisos?: string[];
   }
   interface Session {
     user: {
@@ -24,6 +25,7 @@ declare module "next-auth" {
       empresaId?: number | null;
       empresaSlug?: string | null;
       sucursalSlug?: string | null;
+      permisos?: string[];
     } & DefaultSession["user"]
   }
 }
@@ -34,6 +36,7 @@ interface CustomToken {
   empresaId?: number | null;
   empresaSlug?: string | null;
   sucursalSlug?: string | null;
+  permisos?: string[];
   sub?: string;
 }
 
@@ -82,6 +85,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         )
 
         if (passwordsMatch) {
+          // Extraer permisos dinámicos
+          let permisosStrings: string[] = [];
+          
+          const userRoles = await db.select().from(usuariosRoles).where(eq(usuariosRoles.usuarioId, userRecord.id));
+          if (userRoles.length > 0) {
+            const roleIds = userRoles.map(ur => ur.rolId);
+            const rolePerms = await db.select().from(rolesPermisos).where(inArray(rolesPermisos.rolId, roleIds));
+            
+            if (rolePerms.length > 0) {
+              const permIds = rolePerms.map(rp => rp.permisoId);
+              const perms = await db.select().from(permisos).where(inArray(permisos.id, permIds));
+              permisosStrings = perms.map(p => p.nombrePermiso);
+            }
+          }
+
           return {
             id: userRecord.id.toString(),
             name: userRecord.nombreCompleto,
@@ -91,6 +109,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             empresaId: userRecord.empresaId,
             empresaSlug: empresaResult[0].subdominio,
             sucursalSlug: sucursalSlug,
+            permisos: Array.from(new Set(permisosStrings)), // Quitar duplicados
           }
         }
 
@@ -100,13 +119,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      const customToken = token as CustomToken;
       if (user) {
-        customToken.rolBase = user.rolBase;
-        customToken.sucursalId = user.sucursalId;
-        customToken.empresaId = user.empresaId;
-        customToken.empresaSlug = user.empresaSlug;
-        customToken.sucursalSlug = user.sucursalSlug;
+        token.rolBase = user.rolBase;
+        token.sucursalId = user.sucursalId;
+        token.empresaId = user.empresaId;
+        token.empresaSlug = user.empresaSlug;
+        token.sucursalSlug = user.sucursalSlug;
+        token.permisos = user.permisos;
       }
       return token
     },
@@ -118,6 +137,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.empresaId = customToken.empresaId;
         session.user.empresaSlug = customToken.empresaSlug;
         session.user.sucursalSlug = customToken.sucursalSlug;
+        session.user.permisos = customToken.permisos || [];
         // El id se guarda en sub por defecto en el JWT de NextAuth
         if (customToken.sub) {
           session.user.id = customToken.sub;

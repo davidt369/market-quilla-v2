@@ -8,12 +8,14 @@ interface AuthState {
   sucursalId: number | null;
   empresaSlug: string | null;
   sucursalSlug: string | null;
+  permissions: string[];
   isAuthenticated: boolean;
   setAuthData: (session: any) => void;
   clearAuthData: () => void;
+  hasPermission: (permission: string) => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   userId: null,
   name: null,
   rolBase: null,
@@ -21,6 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   sucursalId: null,
   empresaSlug: null,
   sucursalSlug: null,
+  permissions: [],
   isAuthenticated: false,
   setAuthData: (session) => {
     if (!session || !session.user) return;
@@ -32,6 +35,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       sucursalId: session.user.sucursalId || null,
       empresaSlug: session.user.empresaSlug || null,
       sucursalSlug: session.user.sucursalSlug || null,
+      permissions: session.user.permisos || [],
       isAuthenticated: true,
     });
   },
@@ -44,7 +48,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       sucursalId: null,
       empresaSlug: null,
       sucursalSlug: null,
+      permissions: [],
       isAuthenticated: false,
     });
+  },
+  hasPermission: (permission: string) => {
+    const { permissions } = get();
+    return permissions.includes(permission);
   }
 }));

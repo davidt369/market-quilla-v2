@@ -4,7 +4,97 @@
 
 ---
 
-### 1. REGISTRO - Crear un usuario nuevo (Éxito esperado: 201)
+### ========================================
+### 🏢 EMPRESAS (Tenants)
+### ========================================
+
+### Obtener todas las empresas
+GET {{baseUrl}}/api/empresas HTTP/1.1
+
+###
+
+### Crear una empresa nueva
+POST {{baseUrl}}/api/empresas HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "nombre": "Mi Nueva Empresa SaaS"
+}
+
+###
+
+### Obtener empresa por ID (Cambiar ID según la base de datos)
+GET {{baseUrl}}/api/empresas/1 HTTP/1.1
+
+###
+
+### Actualizar empresa por ID
+PUT {{baseUrl}}/api/empresas/1 HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "nombre": "Empresa SaaS Actualizada",
+  "estado": true
+}
+
+###
+
+### Eliminar (Desactivar) empresa
+DELETE {{baseUrl}}/api/empresas/1 HTTP/1.1
+
+
+### ========================================
+### 📍 SUCURSALES
+### ========================================
+
+### Obtener TODAS las sucursales del sistema
+GET {{baseUrl}}/api/sucursales HTTP/1.1
+
+###
+
+### Obtener sucursales por Empresa (Usa QueryParams ?empresaId=1)
+GET {{baseUrl}}/api/sucursales?empresaId=1 HTTP/1.1
+
+###
+
+### Crear sucursal para una Empresa (Usa QueryParams ?empresaId=1)
+POST {{baseUrl}}/api/sucursales?empresaId=1 HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "nombre": "Sucursal Norte",
+  "direccion": "Av. Principal #123",
+  "telefono": "77788899"
+}
+
+###
+
+### Obtener sucursal por ID
+GET {{baseUrl}}/api/sucursales/1 HTTP/1.1
+
+###
+
+### Actualizar sucursal por ID
+PUT {{baseUrl}}/api/sucursales/1 HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "nombre": "Sucursal Norte Modificada",
+  "direccion": "Av. Secundaria #456",
+  "estado": true
+}
+
+###
+
+### Eliminar (Desactivar) sucursal
+DELETE {{baseUrl}}/api/sucursales/1 HTTP/1.1
+
+
+### ========================================
+### 👤 AUTH & USUARIOS (Antiguas)
+### ========================================
+
+### 1. REGISTRO - Crear un usuario nuevo (Requiere adaptación para Multi-Tenant en el futuro)
 POST {{baseUrl}}/api/auth/register HTTP/1.1
 Content-Type: {{contentType}}
 
@@ -17,7 +107,7 @@ Content-Type: {{contentType}}
 
 ###
 
-### 2. REGISTRO - Intentar duplicar usuario (Error esperado: 400 o 409)
+### 2. REGISTRO - Intentar duplicar usuario
 POST {{baseUrl}}/api/auth/register HTTP/1.1
 Content-Type: {{contentType}}
 
@@ -30,18 +120,14 @@ Content-Type: {{contentType}}
 
 ###
 
-### 3. LOGIN - Autenticación con Auth.js / NextAuth
+### 3. LOGIN - Autenticación con NextAuth
 # Nota importante: Auth.js incluye protección CSRF por defecto. 
-# Probar el login directamente desde un cliente REST puro suele 
-# fallar a menos que primero hagas un GET a /api/auth/csrf para 
-# capturar el token y la cookie, y los envíes juntos. 
-# 
-# Si tienes el CSRF deshabilitado en desarrollo, el payload es así:
+# Hacer esto con cURL o HTTP client normal fallará sin el CSRF token + cookie.
 
 POST {{baseUrl}}/api/auth/callback/credentials HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  "nombreUsuario": "jperez",
-  "password": "miSuperPassword123"
+  "nombreUsuario": "admin_logistica",
+  "password": "password_seguro_123"
 }

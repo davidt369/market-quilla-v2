@@ -169,11 +169,14 @@ export const usuarios = pgTable('tbusuarios', {
 // ============================================
 export const roles = pgTable('tbroles', {
   id: integer('pk_rol').primaryKey().generatedAlwaysAsIdentity(),
+  empresaId: integer('fk_empresa_id')
+    .notNull()
+    .references(() => empresas.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
   nombreRol: varchar('nombre_rol', { length: 50 }).notNull(),
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(true),
 }, (table) => [
-    uniqueIndex('idx_roles_nombre_rol').on(table.nombreRol),
+    uniqueIndex('idx_roles_empresa_nombre').on(table.empresaId, table.nombreRol),
 ]);
 
 // ============================================

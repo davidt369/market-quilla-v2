@@ -45,8 +45,7 @@ async function seedEmpresas() {
   return db.insert(schema.empresas).values(values).returning();
 }
 
-async function seedSucursales(empresas: Array<{ id: number }>) {
-  const empresaId = empresas[0].id;
+async function seedSucursales(empresaId: number) {
   const values = [
     {
       empresaId,
@@ -74,12 +73,12 @@ async function seedSucursales(empresas: Array<{ id: number }>) {
   return db.insert(schema.sucursales).values(values).returning();
 }
 
-async function seedRoles() {
+async function seedRoles(empresaId: number) {
   const values = [
-    { nombreRol: 'administrador' },
-    { nombreRol: 'supervisor' },
-    { nombreRol: 'recepcionista' },
-    { nombreRol: 'cajero' },
+    { empresaId, nombreRol: 'administrador' },
+    { empresaId, nombreRol: 'supervisor' },
+    { empresaId, nombreRol: 'recepcionista' },
+    { empresaId, nombreRol: 'cajero' },
   ];
 
   return db.insert(schema.roles).values(values).returning();
@@ -375,10 +374,11 @@ async function main() {
 
     console.log('Creando empresa (Tenant) MVP...');
     const empresas = (await seedEmpresas()) as Array<{ id: number }>;
+    const empresa = empresas[0];
 
     console.log('Creando sucursales, roles y permisos...');
-    const sucursales = (await seedSucursales(empresas)) as Array<{ id: number }>;
-    const roles = (await seedRoles()) as Array<{ id: number; nombreRol: string }>;
+    const sucursales = (await seedSucursales(empresa.id)) as Array<{ id: number; nombre: string }>;
+    const roles = (await seedRoles(empresa.id)) as Array<{ id: number; nombreRol: string }>;
     const permisos = (await seedPermisos()) as Array<{ id: number; nombrePermiso: string }>;
 
     console.log('Creando usuarios y relaciones de seguridad...');
