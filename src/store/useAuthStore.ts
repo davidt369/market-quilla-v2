@@ -53,7 +53,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
   hasPermission: (permission: string) => {
-    const { permissions } = get();
+    const { permissions, rolBase } = get();
+    if (rolBase === 'administrador') return true;
     return permissions.includes(permission);
   }
 }));
