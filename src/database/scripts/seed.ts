@@ -51,18 +51,21 @@ async function seedSucursales(empresas: Array<{ id: number }>) {
     {
       empresaId,
       nombre: 'Sucursal Central',
+      slug: 'sucursal-central',
       direccion: 'Av. Ayacucho #123, Centro',
       telefono: '7123456701',
     },
     {
       empresaId,
       nombre: 'Sucursal Norte',
+      slug: 'sucursal-norte',
       direccion: 'Calle Murillo #456, Zona Norte',
       telefono: '7123456702',
     },
     {
       empresaId,
       nombre: 'Sucursal Sur',
+      slug: 'sucursal-sur',
       direccion: 'Av. 6 de Agosto #789, Zona Sur',
       telefono: '7123456703',
     },

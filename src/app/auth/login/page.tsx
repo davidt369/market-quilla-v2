@@ -2,16 +2,26 @@ import { Package } from "lucide-react"
 import { LoginForm } from "./components/login-form"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
+import { db } from "@/database/index"
+import { empresas, sucursales } from "@/database/schema/schema"
+import { eq } from "drizzle-orm"
 
 export default async function LoginPage() {
 
-
-  // Verificación de sesión del lado del servidor (Súper seguro para producción)
+  // Verificación de sesión del lado del servidor
   const session = await auth()
 
-  // Si no hay sesión, Next.js aborta el renderizado y redirige inmediatamente
-  if (session ) {
-    redirect("/dashboard")
+  // Si hay sesión, calculamos la URL dinámica
+  if (session && session.user.empresaId && session.user.sucursalId) {
+    const [empresa] = await db.select().from(empresas).where(eq(empresas.id, session.user.empresaId));
+    const [sucursal] = await db.select().from(sucursales).where(eq(sucursales.id, session.user.sucursalId));
+    
+    if (empresa && sucursal) {
+      redirect(`/${empresa.subdominio}/${sucursal.slug}/dashboard`)
+    } else {
+      // Fallback si no tiene sucursal asignada (Ej. es SuperAdmin)
+      redirect("/dashboard") 
+    }
   }
 
 

@@ -107,7 +107,7 @@ function auditColumns(includeSucursalAudit = true): Record<string, any> {
 export const empresas = pgTable('tbempresas', {
   id: integer('pk_empresa').primaryKey().generatedAlwaysAsIdentity(),
   nombre: varchar('nombre', { length: 150 }).notNull(),
-  subdominio: varchar('subdominio', { length: 50 }),
+  subdominio: varchar('subdominio', { length: 50 }).unique().notNull(),
   estado: boolean('estado').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
@@ -131,10 +131,12 @@ export const sucursales = pgTable('tbsucursales', {
   nombre: varchar('nombre', { length: 100 }).notNull(),
   direccion: text('direccion').notNull(),
   telefono: varchar('telefono', { length: 10 }).notNull(),
+  slug: varchar('slug', { length: 100 }).notNull().default(''), // Valor por defecto temporal para migraciones
   estado: boolean('estado').default(true).notNull(),
   ...auditColumns(false),
 }, (table) => [
   uniqueIndex('idx_sucursales_empresa_nombre').on(table.empresaId, table.nombre),
+  uniqueIndex('idx_sucursales_empresa_slug').on(table.empresaId, table.slug),
   index('idx_sucursales_empresa').on(table.empresaId),
 ]);
 
