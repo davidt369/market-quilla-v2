@@ -2,9 +2,6 @@ import { Package } from "lucide-react"
 import { LoginForm } from "./components/login-form"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
-import { db } from "@/database/index"
-import { empresas, sucursales } from "@/database/schema/schema"
-import { eq } from "drizzle-orm"
 
 export default async function LoginPage() {
 
@@ -12,16 +9,11 @@ export default async function LoginPage() {
   const session = await auth()
 
   // Si hay sesión, calculamos la URL dinámica
-  if (session && session.user.empresaId && session.user.sucursalId) {
-    const [empresa] = await db.select().from(empresas).where(eq(empresas.id, session.user.empresaId));
-    const [sucursal] = await db.select().from(sucursales).where(eq(sucursales.id, session.user.sucursalId));
-    
-    if (empresa && sucursal) {
-      redirect(`/${empresa.subdominio}/${sucursal.slug}/dashboard`)
-    } else {
+  if (session && session.user.empresaSlug && session.user.sucursalSlug) {
+      redirect(`/${session.user.empresaSlug}/${session.user.sucursalSlug}/dashboard`)
+  } else if (session) {
       // Fallback si no tiene sucursal asignada (Ej. es SuperAdmin)
       redirect("/dashboard") 
-    }
   }
 
 

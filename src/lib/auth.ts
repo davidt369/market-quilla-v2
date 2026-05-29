@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { eq } from "drizzle-orm"
 import bcrypt from "bcrypt"
 import { db } from "@/database/index"
-import { usuarios, empresas } from "@/database/schema/schema"
+import { usuarios, empresas, sucursales } from "@/database/schema/schema"
 
 declare module "next-auth" {
   interface User {
@@ -14,12 +14,16 @@ declare module "next-auth" {
     rolBase?: string | null;
     sucursalId?: number | null;
     empresaId?: number | null;
+    empresaSlug?: string | null;
+    sucursalSlug?: string | null;
   }
   interface Session {
     user: {
       rolBase?: string | null;
       sucursalId?: number | null;
       empresaId?: number | null;
+      empresaSlug?: string | null;
+      sucursalSlug?: string | null;
     } & DefaultSession["user"]
   }
 }
@@ -28,6 +32,8 @@ interface CustomToken {
   rolBase?: string | null;
   sucursalId?: number | null;
   empresaId?: number | null;
+  empresaSlug?: string | null;
+  sucursalSlug?: string | null;
   sub?: string;
 }
 
@@ -62,6 +68,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             throw new Error("La empresa se encuentra inactiva")
         }
 
+        let sucursalSlug = null;
+        if (userRecord.sucursalId) {
+          const sucursalResult = await db.select().from(sucursales).where(eq(sucursales.id, userRecord.sucursalId)).limit(1);
+          if (sucursalResult[0]) {
+            sucursalSlug = sucursalResult[0].slug;
+          }
+        }
+
         const passwordsMatch = await bcrypt.compare(
           credentials.password as string,
           userRecord.password
@@ -75,6 +89,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             rolBase: userRecord.rolBase,
             sucursalId: userRecord.sucursalId,
             empresaId: userRecord.empresaId,
+            empresaSlug: empresaResult[0].subdominio,
+            sucursalSlug: sucursalSlug,
           }
         }
 
@@ -89,6 +105,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         customToken.rolBase = user.rolBase;
         customToken.sucursalId = user.sucursalId;
         customToken.empresaId = user.empresaId;
+        customToken.empresaSlug = user.empresaSlug;
+        customToken.sucursalSlug = user.sucursalSlug;
       }
       return token
     },
@@ -98,6 +116,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.rolBase = customToken.rolBase;
         session.user.sucursalId = customToken.sucursalId;
         session.user.empresaId = customToken.empresaId;
+        session.user.empresaSlug = customToken.empresaSlug;
+        session.user.sucursalSlug = customToken.sucursalSlug;
         // El id se guarda en sub por defecto en el JWT de NextAuth
         if (customToken.sub) {
           session.user.id = customToken.sub;

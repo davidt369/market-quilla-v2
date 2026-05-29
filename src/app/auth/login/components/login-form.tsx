@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
@@ -45,7 +45,12 @@ export function LoginForm({
       setError("Credenciales incorrectas o usuario inactivo.")
       setIsLoading(false)
     } else {
-      router.push("/dashboard")
+      const session = await getSession()
+      if (session?.user?.empresaSlug && session?.user?.sucursalSlug) {
+        router.push(`/${session.user.empresaSlug}/${session.user.sucursalSlug}/dashboard`)
+      } else {
+        router.push("/dashboard")
+      }
       router.refresh()
     }
   }
