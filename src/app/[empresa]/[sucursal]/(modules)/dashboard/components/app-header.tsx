@@ -6,6 +6,7 @@ import AppUser from "./app-user"
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
+import { BtnTheme } from "@/components/btn-theme"
 
 
 const routeTitles: Record<string, string> = {
@@ -35,7 +36,7 @@ export default function AppHeader() {
         <h1 className="text-lg font-semibold">{title}</h1>
       </div>
       <div className="ml-auto flex items-center gap-2 px-4">
-  
+    <BtnTheme/>
         <AppUser />
       </div>
     </header>

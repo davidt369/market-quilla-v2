@@ -74,43 +74,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Users,
       permission: "gestionar-usuarios",
     },
-    {
-      title: "Productos",
-      url: `${baseUrl}/productos`,
-      icon: Package,
-      permission: "gestionar-productos",
-    },
-    {
-      title: "Ingredientes",
-      url: `${baseUrl}/ingredientes`,
-      icon: Soup,
-      permission: "gestionar-ingredientes",
-    },
-    {
-      title: "Platos o Recetas",
-      url: `${baseUrl}/platos`,
-      icon: Utensils,
-      permission: "gestionar-recetas",
-    },
-    {
-      title: "Ventas",
-      url: `${baseUrl}/ventas`,
-      icon: Receipt,
-      permission: "ver-ventas",
-    },
-    {
-      title: "Monitor de Cocina",
-      url: `${baseUrl}/cocina`,
-      icon: ChefHat,
-      permission: "ver-cocina",
-      newTab: true,
-    },
-    {
-      title: "Historial de Ventas",
-      url: `${baseUrl}/ventas/historial`,
-      icon: Receipt,
-      permission: "ver-ventas",
-    },
+
+
+
+
+
   ]
 
   const visibleItems = navigationItems.filter(item => {

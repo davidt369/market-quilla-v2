@@ -89,17 +89,11 @@ export function UserTableWrapper() {
       align: "center",
       cell: ({ row }) => <div className="font-medium text-muted-foreground">{row.index + 1}</div>
     },
-    { accessorKey: "nombreCompleto", header: "Nombre Completo", enableFilter: true },
-    { accessorKey: "nombreUsuario", header: "Usuario", enableFilter: true },
+
     { 
       accessorKey: "rolBase", 
       header: "Nivel Base", 
-      enableFilter: true,
-      cell: (info) => (
-        <Badge variant="secondary" className="capitalize">
-          {info.getValue() as string}
-        </Badge>
-      )
+   
     },
     // {
     //   accessorKey: "estado",
@@ -148,8 +142,10 @@ export function UserTableWrapper() {
     <>
       <DataTable
         title="Directorio de Usuarios"
+        description="Administra los usuarios de tu empresa, asigna roles y controla el acceso a las funciones del sistema."
         rows={data}
         columns={columns}
+
         rowKey="id"
         topRightSlot={
           hasPermission("gestionar-usuarios") && (
