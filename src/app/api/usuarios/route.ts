@@ -4,6 +4,7 @@ import { usuarios, usuariosRoles, roles } from "@/database/schema/schema";
 import { eq, and } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { auth } from "@/lib/auth";
+import { createUserSchema } from "@/lib/validations/user";
 
 export async function GET(req: Request) {
   try {
@@ -53,84 +54,76 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    // 1. Obtener contexto de sesión (Empresa y Sucursal automáticas)
     const session = await auth();
-    if (!session || !session.user.empresaId || !session.user.sucursalId) {
-      return NextResponse.json(
-        {
-          error:
-            "No autorizado. Su sesión no tiene empresa o sucursal asociada.",
-        },
-        { status: 401 },
-      );
+    if (!session?.user?.empresaId) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { nombreCompleto, nombreUsuario, password, rolBase, rolId } = body;
 
-    // Validación básica
-    if (!nombreCompleto || !nombreUsuario || !password) {
-      return NextResponse.json(
-        {
-          error:
-            "Faltan campos obligatorios (nombreCompleto, nombreUsuario, password)",
-        },
-        { status: 400 },
-      );
+    // 1. Validar formato con Zod
+    const validation = createUserSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: "Datos inválidos", details: validation.error.flatten() }, { status: 400 });
     }
 
-    // Hash de la contraseña
+    const { nombreCompleto, nombreUsuario, password, rolBase, rolId } = validation.data;
+
+    // 2. Validación de negocio: Verificar si ya existe
+    const existingUser = await db.query.usuarios.findFirst({
+      where: and(
+        eq(usuarios.empresaId, session.user.empresaId),
+        eq(usuarios.nombreUsuario, nombreUsuario)
+      ),
+    });
+
+    if (existingUser) {
+      return NextResponse.json({ error: "El nombre de usuario ya existe en esta empresa" }, { status: 409 });
+    }
+
+    // 3. Opcional: Validar que el rolId exista si fue enviado
+    if (rolId) {
+      const roleExists = await db.query.roles.findFirst({ where: eq(roles.id, rolId) });
+      if (!roleExists) return NextResponse.json({ error: "El rol seleccionado no existe" }, { status: 400 });
+    }
+
+    // 4. Ejecución en Transacción
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 2. Insertar Usuario
-    const [nuevoUsuario] = await db
-      .insert(usuarios)
-      .values({
-        empresaId: session.user.empresaId,
-        sucursalId: session.user.sucursalId, // Inyectado desde la cookie del creador
+    const result = await db.transaction(async (tx) => {
+      // Insertar Usuario
+      const [user] = await tx.insert(usuarios).values({
+        empresaId: Number(session.user.empresaId),
+        sucursalId: Number(session.user.sucursalId),
         nombreCompleto,
         nombreUsuario,
         password: hashedPassword,
-        rolBase: rolBase || "recepcionista",
-      })
-      .returning({
-        id: usuarios.id,
-        nombreCompleto: usuarios.nombreCompleto,
-        nombreUsuario: usuarios.nombreUsuario,
-        rolBase: usuarios.rolBase,
-        sucursalId: usuarios.sucursalId,
-      });
+        rolBase,
+      }).returning();
 
-    // 3. Vincular con Rol Dinámico (Si se envía rolId)
-    if (rolId) {
-      await db.insert(usuariosRoles).values({
-        usuarioId: nuevoUsuario.id,
-        rolId: parseInt(rolId),
-      });
-    }
+      // Vincular Rol
+      if (rolId) {
+        await tx.insert(usuariosRoles).values({
+          usuarioId: user.id,
+          rolId: rolId,
+        });
+      }
+      return user;
+    });
 
-    return NextResponse.json(nuevoUsuario, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
+
   } catch (error: any) {
+    console.error("Error en creación de usuario:", error);
+
+    // Catch de violación de constraint única (por si hubo carrera concurrente)
     if (error.code === "23505") {
-      // Unique constraint violation
-      return NextResponse.json(
-        { error: "El nombre de usuario ya existe en esta empresa." },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: "Conflicto: El nombre de usuario ya está en uso." }, { status: 409 });
     }
-
-    // Mejorar el log para que el cliente vea la causa real del error de Postgres
-    const errorMessage = error.message || String(error);
-    const errorDetail = error.detail || "";
-    const errorCode = error.code || "UNKNOWN";
-
-    console.error("DB Insert Error:", error);
 
     return NextResponse.json(
-      {
-        error: `Database error (${errorCode}): ${errorMessage}. Detail: ${errorDetail}`,
-      },
-      { status: 500 },
+      { error: "Error interno del servidor al procesar la solicitud." },
+      { status: 500 }
     );
   }
 }
