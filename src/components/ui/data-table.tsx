@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnDef,
   SortingState,
@@ -9,14 +9,14 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Table,
@@ -26,7 +26,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 import {
   ArrowDown,
@@ -39,35 +39,37 @@ import {
   Search,
   X,
   Loader2,
-} from "lucide-react"
+} from "lucide-react";
 
 // ─────────────────────────────────────────────
 // Tipos
 // ─────────────────────────────────────────────
 
-export type TipoDato = "texto" | "numero" | "fecha"
+export type TipoDato = "texto" | "numero" | "fecha";
 
-export interface DataTableColumnDef<TData>
-  extends Omit<ColumnDef<TData, unknown>, "id" | "header"> {
-  accessorKey: keyof TData & string
-  header: React.ReactNode
-  dataType?: TipoDato
-  align?: "left" | "center" | "right"
-  size?: number
+export interface DataTableColumnDef<TData> extends Omit<
+  ColumnDef<TData, unknown>,
+  "id" | "header"
+> {
+  accessorKey: keyof TData & string;
+  header: React.ReactNode;
+  dataType?: TipoDato;
+  align?: "left" | "center" | "right";
+  size?: number;
 }
 
 export interface DataTableProps<TData extends Record<string, unknown>> {
-  title?: string
-  description?: string
-  rows: TData[]
-  columns: DataTableColumnDef<TData>[]
-  sumColumns?: (keyof TData & string)[]
-  totalLabelColumn?: keyof TData & string
-  rowKey?: keyof TData & string
-  rowsPerPageOptions?: number[]
-  topRightSlot?: React.ReactNode
-  className?: string
-  isLoading?: boolean
+  title?: string;
+  description?: string;
+  rows: TData[];
+  columns: DataTableColumnDef<TData>[];
+  sumColumns?: (keyof TData & string)[];
+  totalLabelColumn?: keyof TData & string;
+  rowKey?: keyof TData & string;
+  rowsPerPageOptions?: number[];
+  topRightSlot?: React.ReactNode;
+  className?: string;
+  isLoading?: boolean;
 }
 
 // ─────────────────────────────────────────────
@@ -75,12 +77,12 @@ export interface DataTableProps<TData extends Record<string, unknown>> {
 // ─────────────────────────────────────────────
 
 function extraerValores(obj: unknown): string {
-  if (obj == null) return ""
-  if (typeof obj !== "object") return String(obj)
-  if (Array.isArray(obj)) return obj.map(extraerValores).join(" ")
+  if (obj == null) return "";
+  if (typeof obj !== "object") return String(obj);
+  if (Array.isArray(obj)) return obj.map(extraerValores).join(" ");
   return Object.values(obj as Record<string, unknown>)
     .map(extraerValores)
-    .join(" ")
+    .join(" ");
 }
 
 // ─────────────────────────────────────────────
@@ -100,32 +102,30 @@ export function DataTable<TData extends Record<string, unknown>>({
   className,
   isLoading = false,
 }: DataTableProps<TData>) {
-  const [globalFilter, setGlobalFilter] = React.useState("")
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: rowsPerPageOptions[0],
-  })
+  });
 
   const filteredData = React.useMemo(() => {
-    if (!globalFilter.trim()) return rows
-    const s = globalFilter.toLowerCase().trim()
-    return rows.filter((row) =>
-      extraerValores(row).toLowerCase().includes(s)
-    )
-  }, [rows, globalFilter])
+    if (!globalFilter.trim()) return rows;
+    const s = globalFilter.toLowerCase().trim();
+    return rows.filter((row) => extraerValores(row).toLowerCase().includes(s));
+  }, [rows, globalFilter]);
 
   const totals = React.useMemo(() => {
-    const t: Record<string, number> = {}
+    const t: Record<string, number> = {};
     sumColumns.forEach((col) => {
       t[col] = filteredData.reduce((acc, row) => {
-        const v = Number(row[col])
-        return acc + (isNaN(v) ? 0 : v)
-      }, 0)
-      t[col] = Math.round(t[col] * 100) / 100
-    })
-    return t
-  }, [filteredData, sumColumns])
+        const v = Number(row[col]);
+        return acc + (isNaN(v) ? 0 : v);
+      }, 0);
+      t[col] = Math.round(t[col] * 100) / 100;
+    });
+    return t;
+  }, [filteredData, sumColumns]);
 
   const tanstackColumns = React.useMemo<ColumnDef<TData, unknown>[]>(
     () =>
@@ -136,15 +136,14 @@ export function DataTable<TData extends Record<string, unknown>>({
         enableSorting: true,
         size: col.size,
         cell:
-          (col as any).cell ??
-          ((info: any) => String(info.getValue() ?? "")),
+          (col as any).cell ?? ((info: any) => String(info.getValue() ?? "")),
         meta: {
           dataType: col.dataType ?? "texto",
           align: col.align,
         },
       })),
-    [columnsDef]
-  )
+    [columnsDef],
+  );
 
   const table = useReactTable({
     data: filteredData,
@@ -157,29 +156,29 @@ export function DataTable<TData extends Record<string, unknown>>({
     getPaginationRowModel: getPaginationRowModel(),
     getRowId: (row) => String(row[rowKey] ?? Math.random()),
     manualFiltering: true,
-  })
+  });
 
-  const visibleCols = table.getVisibleLeafColumns()
-  const pageRows = table.getRowModel().rows
-  const { pageIndex, pageSize } = table.getState().pagination
-  const totalRows = filteredData.length
-  const pageCount = Math.max(1, Math.ceil(totalRows / pageSize))
-  const startRow = totalRows === 0 ? 0 : pageIndex * pageSize + 1
-  const endRow = Math.min((pageIndex + 1) * pageSize, totalRows)
+  const visibleCols = table.getVisibleLeafColumns();
+  const pageRows = table.getRowModel().rows;
+  const { pageIndex, pageSize } = table.getState().pagination;
+  const totalRows = filteredData.length;
+  const pageCount = Math.max(1, Math.ceil(totalRows / pageSize));
+  const startRow = totalRows === 0 ? 0 : pageIndex * pageSize + 1;
+  const endRow = Math.min((pageIndex + 1) * pageSize, totalRows);
 
   const pageNumbers = React.useMemo(() => {
-    const pages: number[] = []
+    const pages: number[] = [];
     for (let i = 0; i < pageCount; i++) {
-      if (Math.abs(i - pageIndex) <= 2) pages.push(i)
+      if (Math.abs(i - pageIndex) <= 2) pages.push(i);
     }
-    return pages
-  }, [pageCount, pageIndex])
+    return pages;
+  }, [pageCount, pageIndex]);
 
   return (
     <div
       className={cn(
         "flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all",
-        className
+        className,
       )}
     >
       {/* Header */}
@@ -190,10 +189,12 @@ export function DataTable<TData extends Record<string, unknown>>({
               {title}
             </h2>
             {description && (
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {description}
+              </p>
             )}
           </div>
-          {topRightSlot && <div className="flex-shrink-0">{topRightSlot}</div>}
+          {topRightSlot && <div className="shrink-0">{topRightSlot}</div>}
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -204,8 +205,8 @@ export function DataTable<TData extends Record<string, unknown>>({
               placeholder="Buscar..."
               value={globalFilter}
               onChange={(e) => {
-                setGlobalFilter(e.target.value)
-                setPagination((p) => ({ ...p, pageIndex: 0 }))
+                setGlobalFilter(e.target.value);
+                setPagination((p) => ({ ...p, pageIndex: 0 }));
               }}
               className="pl-9 pr-8 h-9 bg-background"
               disabled={isLoading}
@@ -234,10 +235,10 @@ export function DataTable<TData extends Record<string, unknown>>({
                 className="border-b border-border bg-muted/50 hover:bg-muted/50 transition-colors"
               >
                 {hg.headers.map((header) => {
-                  const isSorted = header.column.getIsSorted()
+                  const isSorted = header.column.getIsSorted();
                   const meta = header.column.columnDef.meta as {
-                    align?: "left" | "center" | "right"
-                  }
+                    align?: "left" | "center" | "right";
+                  };
 
                   return (
                     <TableHead
@@ -251,14 +252,16 @@ export function DataTable<TData extends Record<string, unknown>>({
                         onClick={header.column.getToggleSortingHandler()}
                         className={cn(
                           "flex w-full items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                          meta?.align === "center" && "justify-center text-center",
+                          meta?.align === "center" &&
+                            "justify-center text-center",
                           meta?.align === "right" && "justify-end text-right",
-                          (!meta?.align || meta.align === "left") && "justify-start text-left"
+                          (!meta?.align || meta.align === "left") &&
+                            "justify-start text-left",
                         )}
                       >
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
 
                         {isSorted === "asc" ? (
@@ -270,7 +273,7 @@ export function DataTable<TData extends Record<string, unknown>>({
                         )}
                       </button>
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -285,7 +288,9 @@ export function DataTable<TData extends Record<string, unknown>>({
                 >
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Cargando...</span>
+                    <span className="text-sm text-muted-foreground">
+                      Cargando...
+                    </span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -296,7 +301,9 @@ export function DataTable<TData extends Record<string, unknown>>({
                   className="py-12 text-center"
                 >
                   <div className="text-sm text-muted-foreground">
-                    {globalFilter ? "No se encontraron resultados" : "Sin datos"}
+                    {globalFilter
+                      ? "No se encontraron resultados"
+                      : "Sin datos"}
                   </div>
                 </TableCell>
               </TableRow>
@@ -308,10 +315,10 @@ export function DataTable<TData extends Record<string, unknown>>({
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as {
-                      dataType?: TipoDato
-                      align?: "left" | "center" | "right"
-                    }
-                    const isNum = meta?.dataType === "numero"
+                      dataType?: TipoDato;
+                      align?: "left" | "center" | "right";
+                    };
+                    const isNum = meta?.dataType === "numero";
 
                     return (
                       <TableCell
@@ -320,15 +327,15 @@ export function DataTable<TData extends Record<string, unknown>>({
                           "h-12 px-4 text-sm",
                           meta?.align === "center" && "text-center",
                           meta?.align === "right" && "text-right",
-                          isNum && !meta?.align && "text-right font-mono"
+                          isNum && !meta?.align && "text-right font-mono",
                         )}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
-                    )
+                    );
                   })}
                 </TableRow>
               ))
@@ -341,15 +348,15 @@ export function DataTable<TData extends Record<string, unknown>>({
                 {visibleCols.map((col, i) => {
                   const isLabelCol = totalLabelColumn
                     ? col.id === totalLabelColumn
-                    : i === 0
-                  const total = totals[col.id]
+                    : i === 0;
+                  const total = totals[col.id];
 
                   return (
                     <TableCell
                       key={col.id}
                       className={cn(
                         "h-11 px-4 text-sm font-semibold",
-                        total !== undefined && "text-right font-mono"
+                        total !== undefined && "text-right font-mono",
                       )}
                     >
                       {isLabelCol && (
@@ -365,7 +372,7 @@ export function DataTable<TData extends Record<string, unknown>>({
                         </span>
                       )}
                     </TableCell>
-                  )
+                  );
                 })}
               </TableRow>
             </TableFooter>
@@ -398,33 +405,36 @@ export function DataTable<TData extends Record<string, unknown>>({
             >
               <CardContent className="space-y-3 p-4">
                 {row.getVisibleCells().map((cell, idx) => {
-                  const header = cell.column.columnDef.header
+                  const header = cell.column.columnDef.header;
                   const meta = cell.column.columnDef.meta as {
-                    dataType?: TipoDato
-                  }
+                    dataType?: TipoDato;
+                  };
 
                   return (
                     <div
                       key={cell.id}
                       className={cn(
                         "flex items-center justify-between gap-3",
-                        idx !== row.getVisibleCells().length - 1 && "border-b border-border pb-3"
+                        idx !== row.getVisibleCells().length - 1 &&
+                          "border-b border-border pb-3",
                       )}
                     >
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {typeof header === "string" ? header : cell.column.id}
                       </span>
-                      <div className={cn(
-                        "text-sm font-medium text-foreground",
-                        meta?.dataType === "numero" && "font-mono"
-                      )}>
+                      <div
+                        className={cn(
+                          "text-sm font-medium text-foreground",
+                          meta?.dataType === "numero" && "font-mono",
+                        )}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </CardContent>
             </Card>
@@ -443,14 +453,20 @@ export function DataTable<TData extends Record<string, unknown>>({
           </p>
 
           <div className="flex items-center gap-3">
-            <label htmlFor="rows-per-page" className="text-xs font-medium text-muted-foreground">
+            <label
+              htmlFor="rows-per-page"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Por página:
             </label>
             <select
               id="rows-per-page"
               value={pageSize}
               onChange={(e) =>
-                setPagination({ pageIndex: 0, pageSize: Number(e.target.value) })
+                setPagination({
+                  pageIndex: 0,
+                  pageSize: Number(e.target.value),
+                })
               }
               className="h-8 rounded-md border border-input bg-background px-2 text-xs font-medium hover:bg-muted transition-colors"
               disabled={isLoading}
@@ -497,7 +513,7 @@ export function DataTable<TData extends Record<string, unknown>>({
                 key={i}
                 variant={i === pageIndex ? "default" : "outline"}
                 size="icon"
-                className="h-8 w-8 text-xs font-semibold flex-shrink-0"
+                className="h-8 w-8 text-xs font-semibold shrink-0"
                 onClick={() => table.setPageIndex(i)}
                 disabled={isLoading}
               >
@@ -532,5 +548,5 @@ export function DataTable<TData extends Record<string, unknown>>({
         </div>
       </div>
     </div>
-  )
+  );
 }
