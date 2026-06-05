@@ -129,7 +129,7 @@ export function UserFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Editar Usuario" : "Crear Nuevo Usuario"}
