@@ -11,7 +11,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:reset": "npx tsx src/database/scripts/reset-db.ts",
-    "db:seed": "npx tsx src/database/scripts/seed.ts"
+    "db:seed": "npx tsx src/database/scripts/seed.ts",
+    "db:audit": "npx tsx src/database/scripts/audit_trigger.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

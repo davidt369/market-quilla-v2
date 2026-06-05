@@ -315,3 +315,10 @@ VALUES
 ('caja.cerrar'),
 
 ('reportes.ver');
+
+-- =========================================================
+-- TABLA DE AUDITORIA (Gestionada via Drizzle + Triggers)
+-- =========================================================
+
+-- La tabla tbauditoria se crea a través de Drizzle migrations.
+-- Ver src/database/schema/schema.ts para la definición completa.
