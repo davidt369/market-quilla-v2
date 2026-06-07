@@ -28,15 +28,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "@/shared/components/ui/sidebar"
+import { Separator } from "@/shared/components/ui/separator"
+import { Badge } from "@/shared/components/ui/badge"
+import { Button } from "@/shared/components/ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { cn } from "@/lib/utils"
-import { useAuthStore } from "@/store/useAuthStore"
+import { cn } from "@/shared/lib/utils"
+import { useAuthStore } from "@/shared/store/useAuthStore"
 
 interface NavItem {
   title: string;

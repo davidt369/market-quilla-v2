@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth"
-import { LogoutButton } from "@/components/logout-button"
+import { auth } from "@/shared/lib/auth"
+import { LogoutButton } from "@/shared/components/logout-button"
 import { Package } from "lucide-react"
 
 export default async function DashboardPage() {

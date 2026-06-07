@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Public_Sans } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/shared/lib/utils";
+import { ThemeProvider } from "@/shared/components/theme-provider";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import { Toaster } from "@/shared/components/ui/sonner";
 
-import SessionProvider from "@/components/session-provider";
-import { AuthProvider } from "@/components/providers/AuthProvider";
+import SessionProvider from "@/shared/components/session-provider";
+import { AuthProvider } from "@/shared/components/providers/AuthProvider";
 
 const publicSans = Public_Sans({subsets:['latin'],variable:'--font-sans'});
 

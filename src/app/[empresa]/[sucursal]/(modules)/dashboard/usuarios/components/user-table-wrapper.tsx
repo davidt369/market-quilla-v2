@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { DataTable, DataTableColumnDef } from "@/components/ui/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DataTable, DataTableColumnDef } from "@/shared/components/ui/data-table";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { Plus, Edit2, Trash2 } from "lucide-react";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore } from "@/shared/store/useAuthStore";
 import { UserFormDialog } from "./user-form-dialog";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 export interface User extends Record<string, unknown> {
   id: number;

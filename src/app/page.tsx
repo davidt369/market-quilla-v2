@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BtnTheme } from "@/components/btn-theme";
-import { Button } from "@/components/ui/button";
+import { BtnTheme } from "@/shared/components/btn-theme";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/shared/components/ui/card";
 import {
   ArrowRight,
   Zap,

@@ -1,8 +1,8 @@
 "use client"
 
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/shared/components/ui/dropdown-menu"
 import { User, LogOut } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 

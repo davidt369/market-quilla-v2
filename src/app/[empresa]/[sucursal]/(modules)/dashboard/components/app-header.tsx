@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
 import AppUser from "./app-user";
-import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { BtnTheme } from "@/components/btn-theme";
+import { Button } from "@/shared/components/ui/button";
+import { SidebarTrigger } from "@/shared/components/ui/sidebar";
+import { Separator } from "@/shared/components/ui/separator";
+import { BtnTheme } from "@/shared/components/btn-theme";
 
 const routeTitles: Record<string, string> = {
   "/dashboard": "Panel de Control",
