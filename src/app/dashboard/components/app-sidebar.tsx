@@ -49,28 +49,25 @@ interface NavItem {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const { name, rolBase, empresaSlug, sucursalSlug, hasPermission } = useAuthStore()
   const currentYear = new Date().getFullYear()
 
-  // Base URL para los links multi-tenant
-  const baseUrl = `/${empresaSlug}/${sucursalSlug}/dashboard`
 
   const navigationItems: NavItem[] = [
     {
       title: "Panel de Control",
-      url: baseUrl,
+      url: `/dashboard`,
       icon: LayoutDashboard,
       permission: null, // Todos ven el dashboard
     },
     {
       title: "Caja",
-      url: `${baseUrl}/caja`,
+      url: `/caja`,
       icon: DollarSign,
       permission: "registrar-caja",
     },
     {
       title: "Usuarios",
-      url: `${baseUrl}/usuarios`,
+      url: `/dashboard/usuarios`,
       icon: Users,
       permission: "gestionar-usuarios",
     },
@@ -81,10 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   ]
 
-  const visibleItems = navigationItems.filter(item => {
-    if (!item.permission) return true;
-    return hasPermission(item.permission);
-  });
+
 
   return (
     <Sidebar className="border-r bg-background" {...props}>
@@ -95,11 +89,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-semibold text-foreground tracking-tight capitalize">
-              {empresaSlug?.replace("-", " ") || "Restaurante"}
+              Market Quilla
             </span>
             <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground font-medium">
               <MapPin className="size-3" />
-              <span className="capitalize">{sucursalSlug?.replace("-", " ") || "Sucursal"}</span>
             </div>
           </div>
         </div>
@@ -108,18 +101,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <Separator />
 
       <SidebarContent className="px-3 py-4">
-        {/* Info del usuario logueado (como estaba en la versión anterior para mantener el UX) */}
-        <div className="mb-4 px-3">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-bold uppercase shrink-0">
-              {name?.charAt(0) || "U"}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold truncate text-foreground">{name}</p>
-              <p className="text-xs text-muted-foreground capitalize truncate">{rolBase}</p>
-            </div>
-          </div>
-        </div>
+
 
         <SidebarGroup>
           <SidebarGroupLabel className="px-3 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -127,16 +109,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {visibleItems.map((item) => {
+              {navigationItems.map((item) => {
                 const isActive =
                   pathname === item.url ||
-                  (item.url !== baseUrl && pathname.startsWith(item.url))
+                  (item.url !== "/dashboard" && pathname.startsWith(item.url))
                 const Icon = item.icon;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       render={
-                        item.newTab 
+                        item.newTab
                           ? <a href={item.url} target="_blank" rel="noopener noreferrer" />
                           : <Link href={item.url} />
                       }
@@ -171,7 +153,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           {item.title}
                         </span>
                       </div>
-                      
+
                       {item.newTab ? (
                         <ExternalLink className="size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                       ) : (

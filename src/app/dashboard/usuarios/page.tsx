@@ -1,12 +1,14 @@
 import { Metadata } from "next"
-import { UserTableWrapper } from "./components/user-table-wrapper"
+import { UserTableWrapper } from "../../../features/usuarios/components/user-table-wrapper"
+import { getUsuarios } from "@/features/usuarios/services/usuario.service";
 
 export const metadata: Metadata = {
   title: "Gestión de Usuarios | Market Quilla",
   description: "Administra los usuarios y roles de tu empresa",
 }
 
-export default function UsuariosPage() {
+export default async function UsuariosPage() {
+  const usuarios = await getUsuarios();
   return (
     <div className="h-full flex flex-col space-y-8">
       <div>
@@ -15,8 +17,10 @@ export default function UsuariosPage() {
           Administra los accesos, roles y el estado de tu equipo.
         </p>
       </div>
-      
-      <UserTableWrapper />
+
+      <UserTableWrapper
+        initialData={usuarios}
+      />
     </div>
   )
 }

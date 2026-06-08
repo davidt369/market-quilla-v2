@@ -15,8 +15,29 @@ import { cn } from "@/shared/lib/utils";
 
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Card, CardContent } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { Separator } from "@/shared/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
+import { ScrollArea, ScrollBar } from "@/shared/components/ui/scroll-area";
 
 import {
   Table,
@@ -39,6 +60,8 @@ import {
   Search,
   X,
   Loader2,
+  Database,
+  FilterX,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────
@@ -83,6 +106,34 @@ function extraerValores(obj: unknown): string {
   return Object.values(obj as Record<string, unknown>)
     .map(extraerValores)
     .join(" ");
+}
+
+// ─────────────────────────────────────────────
+// Empty State
+// ─────────────────────────────────────────────
+
+function EmptyState({ filtered }: { filtered: boolean }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+        {filtered ? (
+          <FilterX className="h-5 w-5 text-muted-foreground" />
+        ) : (
+          <Database className="h-5 w-5 text-muted-foreground" />
+        )}
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground">
+          {filtered ? "Sin resultados" : "Sin datos"}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {filtered
+            ? "Intenta ajustar los términos de búsqueda"
+            : "Aún no hay registros para mostrar"}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 // ─────────────────────────────────────────────
@@ -175,32 +226,34 @@ export function DataTable<TData extends Record<string, unknown>>({
   }, [pageCount, pageIndex]);
 
   return (
-    <div
-      className={cn(
-        "flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all",
-        className,
-      )}
-    >
-      {/* Header */}
-      <div className="space-y-4 border-b border-border px-4 py-5 sm:px-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">
-              {title}
-            </h2>
-            {description && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {description}
-              </p>
+    <TooltipProvider >
+      <Card className={cn("flex flex-col overflow-hidden shadow-sm", className)}>
+        {/* ── Header ── */}
+        <CardHeader className="pb-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-xl">{title}</CardTitle>
+                {!isLoading && (
+                  <Badge variant="secondary" className="tabular-nums">
+                    {totalRows.toLocaleString("es-ES")}
+                  </Badge>
+                )}
+              </div>
+              {description && (
+                <CardDescription>{description}</CardDescription>
+              )}
+            </div>
+            {topRightSlot && (
+              <div className="shrink-0">{topRightSlot}</div>
             )}
           </div>
-          {topRightSlot && <div className="shrink-0">{topRightSlot}</div>}
-        </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1 sm:flex-initial">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Separator className="mt-1" />
 
+          {/* Search */}
+          <div className="relative max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar..."
               value={globalFilter}
@@ -208,345 +261,320 @@ export function DataTable<TData extends Record<string, unknown>>({
                 setGlobalFilter(e.target.value);
                 setPagination((p) => ({ ...p, pageIndex: 0 }));
               }}
-              className="pl-9 pr-8 h-9 bg-background"
+              className="pl-9 pr-9"
               disabled={isLoading}
             />
-
             {globalFilter && (
               <button
                 onClick={() => setGlobalFilter("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Limpiar búsqueda"
               >
                 <X className="h-4 w-4" />
               </button>
             )}
           </div>
-        </div>
-      </div>
+        </CardHeader>
 
-      {/* Desktop Table */}
-      <div className="hidden overflow-x-auto md:block flex-1">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow
-                key={hg.id}
-                className="border-b border-border bg-muted/50 hover:bg-muted/50 transition-colors"
-              >
-                {hg.headers.map((header) => {
-                  const isSorted = header.column.getIsSorted();
-                  const meta = header.column.columnDef.meta as {
-                    align?: "left" | "center" | "right";
-                  };
+        <CardContent className="flex flex-col gap-0 p-0">
 
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="h-11 px-4"
-                      style={{
-                        minWidth: header.column.columnDef.size ?? 120,
-                      }}
-                    >
-                      <button
-                        onClick={header.column.getToggleSortingHandler()}
-                        className={cn(
-                          "flex w-full items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                          meta?.align === "center" &&
-                            "justify-center text-center",
-                          meta?.align === "right" && "justify-end text-right",
-                          (!meta?.align || meta.align === "left") &&
-                            "justify-start text-left",
-                        )}
+          {/* ── Desktop Table ── */}
+          <div className="hidden md:block">
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((hg) => (
+                    <TableRow key={hg.id} className="hover:bg-transparent">
+                      {hg.headers.map((header) => {
+                        const isSorted = header.column.getIsSorted();
+                        const meta = header.column.columnDef.meta as {
+                          align?: "left" | "center" | "right";
+                        };
+
+                        return (
+                          <TableHead
+                            key={header.id}
+                            className="h-10 px-4 first:pl-6 last:pr-6"
+                            style={{ minWidth: header.column.columnDef.size ?? 120 }}
+                          >
+                            <button
+                              onClick={header.column.getToggleSortingHandler()}
+                              className={cn(
+                                "flex w-full items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground transition-colors hover:text-foreground",
+                                meta?.align === "center" && "justify-center",
+                                meta?.align === "right" && "justify-end",
+                                (!meta?.align || meta.align === "left") && "justify-start",
+                              )}
+                            >
+                              {flexRender(header.column.columnDef.header, header.getContext())}
+                              {isSorted === "asc" ? (
+                                <ArrowUp className="h-3.5 w-3.5 text-foreground" />
+                              ) : isSorted === "desc" ? (
+                                <ArrowDown className="h-3.5 w-3.5 text-foreground" />
+                              ) : (
+                                <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />
+                              )}
+                            </button>
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={visibleCols.length} className="py-16 text-center">
+                        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Cargando...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : pageRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={visibleCols.length} className="p-0">
+                        <EmptyState filtered={!!globalFilter} />
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    pageRows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        className="transition-colors hover:bg-muted/50"
                       >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                        {row.getVisibleCells().map((cell) => {
+                          const meta = cell.column.columnDef.meta as {
+                            dataType?: TipoDato;
+                            align?: "left" | "center" | "right";
+                          };
+                          const isNum = meta?.dataType === "numero";
 
-                        {isSorted === "asc" ? (
-                          <ArrowUp className="h-4 w-4 text-foreground" />
-                        ) : isSorted === "desc" ? (
-                          <ArrowDown className="h-4 w-4 text-foreground" />
-                        ) : (
-                          <ArrowUpDown className="h-4 w-4 opacity-30" />
-                        )}
-                      </button>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
+                          return (
+                            <TableCell
+                              key={cell.id}
+                              className={cn(
+                                "h-12 px-4 text-sm first:pl-6 last:pr-6",
+                                meta?.align === "center" && "text-center",
+                                meta?.align === "right" && "text-right",
+                                isNum && !meta?.align && "text-right font-mono tabular-nums",
+                              )}
+                            >
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
 
-          <TableBody>
+                {sumColumns.length > 0 && pageRows.length > 0 && !isLoading && (
+                  <TableFooter>
+                    <TableRow className="hover:bg-muted/60">
+                      {visibleCols.map((col, i) => {
+                        const isLabelCol = totalLabelColumn
+                          ? col.id === totalLabelColumn
+                          : i === 0;
+                        const total = totals[col.id];
+
+                        return (
+                          <TableCell
+                            key={col.id}
+                            className={cn(
+                              "h-11 px-4 first:pl-6 last:pr-6 text-sm font-semibold",
+                              total !== undefined && "text-right font-mono tabular-nums",
+                            )}
+                          >
+                            {isLabelCol && (
+                              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                                Total
+                              </span>
+                            )}
+                            {total !== undefined && (
+                              <span>
+                                {total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}
+                              </span>
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  </TableFooter>
+                )}
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+
+          {/* ── Mobile Cards ── */}
+          <div className="space-y-3 p-4 md:hidden">
             {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={visibleCols.length}
-                  className="py-12 text-center"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Cargando...
-                    </span>
-                  </div>
-                </TableCell>
-              </TableRow>
+              <Card>
+                <CardContent className="flex items-center justify-center gap-2 py-10">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Cargando...</span>
+                </CardContent>
+              </Card>
             ) : pageRows.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={visibleCols.length}
-                  className="py-12 text-center"
-                >
-                  <div className="text-sm text-muted-foreground">
-                    {globalFilter
-                      ? "No se encontraron resultados"
-                      : "Sin datos"}
-                  </div>
-                </TableCell>
-              </TableRow>
+              <EmptyState filtered={!!globalFilter} />
             ) : (
               pageRows.map((row) => (
-                <TableRow
+                <Card
                   key={row.id}
-                  className="border-b border-border hover:bg-muted/40 transition-colors"
+                  className="overflow-hidden transition-shadow hover:shadow-md"
                 >
-                  {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as {
-                      dataType?: TipoDato;
-                      align?: "left" | "center" | "right";
-                    };
-                    const isNum = meta?.dataType === "numero";
+                  <CardContent className="divide-y divide-border p-0">
+                    {row.getVisibleCells().map((cell) => {
+                      const header = cell.column.columnDef.header;
+                      const meta = cell.column.columnDef.meta as {
+                        dataType?: TipoDato;
+                      };
 
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          "h-12 px-4 text-sm",
-                          meta?.align === "center" && "text-center",
-                          meta?.align === "right" && "text-right",
-                          isNum && !meta?.align && "text-right font-mono",
-                        )}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
+                      return (
+                        <div
+                          key={cell.id}
+                          className="flex items-center justify-between gap-4 px-4 py-3"
+                        >
+                          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            {typeof header === "string" ? header : cell.column.id}
+                          </span>
+                          <span
+                            className={cn(
+                              "text-sm font-medium text-foreground",
+                              meta?.dataType === "numero" && "font-mono tabular-nums",
+                            )}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
               ))
             )}
-          </TableBody>
+          </div>
 
-          {sumColumns.length > 0 && (
-            <TableFooter>
-              <TableRow className="bg-muted/60 border-t-2 border-border hover:bg-muted/60">
-                {visibleCols.map((col, i) => {
-                  const isLabelCol = totalLabelColumn
-                    ? col.id === totalLabelColumn
-                    : i === 0;
-                  const total = totals[col.id];
+          <Separator />
 
-                  return (
-                    <TableCell
-                      key={col.id}
-                      className={cn(
-                        "h-11 px-4 text-sm font-semibold",
-                        total !== undefined && "text-right font-mono",
-                      )}
-                    >
-                      {isLabelCol && (
-                        <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                          Total
-                        </span>
-                      )}
-                      {total !== undefined && (
-                        <span className="text-foreground">
-                          {total.toLocaleString("es-ES", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </span>
-                      )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            </TableFooter>
-          )}
-        </Table>
-      </div>
-
-      {/* Mobile Cards */}
-      <div className="space-y-3 p-4 sm:p-5 md:hidden flex-1">
-        {isLoading ? (
-          <Card>
-            <CardContent className="py-8 flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Cargando...</span>
-            </CardContent>
-          </Card>
-        ) : pageRows.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                {globalFilter ? "No se encontraron resultados" : "Sin datos"}
+          {/* ── Footer / Pagination ── */}
+          <div className="flex flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between">
+            {/* Info + rows per page */}
+            <div className="flex flex-wrap items-center gap-4">
+              <p className="text-xs text-muted-foreground tabular-nums">
+                {totalRows === 0
+                  ? "Sin resultados"
+                  : `${startRow}–${endRow} de ${totalRows.toLocaleString("es-ES")} registros`}
               </p>
-            </CardContent>
-          </Card>
-        ) : (
-          pageRows.map((row) => (
-            <Card
-              key={row.id}
-              className="overflow-hidden border border-border rounded-lg shadow-sm transition-all hover:shadow-md"
-            >
-              <CardContent className="space-y-3 p-4">
-                {row.getVisibleCells().map((cell, idx) => {
-                  const header = cell.column.columnDef.header;
-                  const meta = cell.column.columnDef.meta as {
-                    dataType?: TipoDato;
-                  };
 
-                  return (
-                    <div
-                      key={cell.id}
-                      className={cn(
-                        "flex items-center justify-between gap-3",
-                        idx !== row.getVisibleCells().length - 1 &&
-                          "border-b border-border pb-3",
-                      )}
-                    >
-                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        {typeof header === "string" ? header : cell.column.id}
-                      </span>
-                      <div
-                        className={cn(
-                          "text-sm font-medium text-foreground",
-                          meta?.dataType === "numero" && "font-mono",
-                        )}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Por página</span>
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(v) =>
+                    setPagination({ pageIndex: 0, pageSize: Number(v) })
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="h-7 w-[70px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rowsPerPageOptions.map((n) => (
+                      <SelectItem key={n} value={String(n)} className="text-xs">
+                        {n}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="999999" className="text-xs">
+                      Todos
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-      {/* Footer / Pagination */}
-      <div className="flex flex-col gap-4 border-t border-border bg-muted/30 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-        {/* Left side - Info & Rows per page */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-          <p className="text-xs font-medium text-muted-foreground">
-            {totalRows === 0
-              ? "Sin resultados"
-              : `${startRow}–${endRow} de ${totalRows.toLocaleString("es-ES")}`}
-          </p>
+            {/* Page buttons */}
+            <div className="flex items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="hidden h-7 w-7 sm:flex"
+                    disabled={!table.getCanPreviousPage() || isLoading}
+                    onClick={() => table.firstPage()}
+                  >
+                    <ChevronsLeft className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Primera página</TooltipContent>
+              </Tooltip>
 
-          <div className="flex items-center gap-3">
-            <label
-              htmlFor="rows-per-page"
-              className="text-xs font-medium text-muted-foreground"
-            >
-              Por página:
-            </label>
-            <select
-              id="rows-per-page"
-              value={pageSize}
-              onChange={(e) =>
-                setPagination({
-                  pageIndex: 0,
-                  pageSize: Number(e.target.value),
-                })
-              }
-              className="h-8 rounded-md border border-input bg-background px-2 text-xs font-medium hover:bg-muted transition-colors"
-              disabled={isLoading}
-            >
-              {rowsPerPageOptions.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-              <option value={999999}>Todos</option>
-            </select>
+              <Tooltip>
+                <TooltipTrigger >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    disabled={!table.getCanPreviousPage() || isLoading}
+                    onClick={() => table.previousPage()}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Anterior</TooltipContent>
+              </Tooltip>
+
+              <div className="flex items-center gap-1">
+                {pageNumbers.map((i) => (
+                  <Button
+                    key={i}
+                    variant={i === pageIndex ? "default" : "outline"}
+                    size="icon"
+                    className="h-7 w-7 text-xs font-semibold"
+                    onClick={() => table.setPageIndex(i)}
+                    disabled={isLoading}
+                  >
+                    {i + 1}
+                  </Button>
+                ))}
+              </div>
+
+              <Tooltip>
+                <TooltipTrigger >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    disabled={!table.getCanNextPage() || isLoading}
+                    onClick={() => table.nextPage()}
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Siguiente</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="hidden h-7 w-7 sm:flex"
+                    disabled={!table.getCanNextPage() || isLoading}
+                    onClick={() => table.lastPage()}
+                  >
+                    <ChevronsRight className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Última página</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
-        </div>
-
-        {/* Right side - Pagination buttons */}
-        <div className="flex items-center justify-between gap-1 sm:justify-end">
-          <div className="hidden sm:flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={!table.getCanPreviousPage() || isLoading}
-              onClick={() => table.firstPage()}
-              title="Primera página"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={!table.getCanPreviousPage() || isLoading}
-              onClick={() => table.previousPage()}
-              title="Página anterior"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-1 overflow-x-auto">
-            {pageNumbers.map((i) => (
-              <Button
-                key={i}
-                variant={i === pageIndex ? "default" : "outline"}
-                size="icon"
-                className="h-8 w-8 text-xs font-semibold shrink-0"
-                onClick={() => table.setPageIndex(i)}
-                disabled={isLoading}
-              >
-                {i + 1}
-              </Button>
-            ))}
-          </div>
-
-          <div className="hidden sm:flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={!table.getCanNextPage() || isLoading}
-              onClick={() => table.nextPage()}
-              title="Página siguiente"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={!table.getCanNextPage() || isLoading}
-              onClick={() => table.lastPage()}
-              title="Última página"
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 }
