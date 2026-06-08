@@ -237,3 +237,36 @@ export const tbauditoria = pgTable("tbauditoria", {
   ip: varchar("ip", { length: 45 }),
   fecha: timestamp("fecha", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// --- Zod Validation Schemas & Inferred Types ---
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+
+export const insertUsuarioSchema = createInsertSchema(tbusuarios);
+export const selectUsuarioSchema = createSelectSchema(tbusuarios);
+export type Usuario = typeof tbusuarios.$inferSelect;
+export type NewUsuario = typeof tbusuarios.$inferInsert;
+
+export const insertClienteSchema = createInsertSchema(tbclientes);
+export const selectClienteSchema = createSelectSchema(tbclientes);
+export type Cliente = typeof tbclientes.$inferSelect;
+export type NewCliente = typeof tbclientes.$inferInsert;
+
+export const insertPaqueteSchema = createInsertSchema(tbpaquetes);
+export const selectPaqueteSchema = createSelectSchema(tbpaquetes);
+export type Paquete = typeof tbpaquetes.$inferSelect;
+export type NewPaquete = typeof tbpaquetes.$inferInsert;
+
+export const insertCajaTurnoSchema = createInsertSchema(tbcajaTurnos);
+export const selectCajaTurnoSchema = createSelectSchema(tbcajaTurnos);
+export type CajaTurno = typeof tbcajaTurnos.$inferSelect;
+export type NewCajaTurno = typeof tbcajaTurnos.$inferInsert;
+
+export const insertCajaMovimientoSchema = createInsertSchema(tbcajaMovimientos);
+export const selectCajaMovimientoSchema = createSelectSchema(tbcajaMovimientos);
+export type CajaMovimiento = typeof tbcajaMovimientos.$inferSelect;
+export type NewCajaMovimiento = typeof tbcajaMovimientos.$inferInsert;
+
+export const insertAuditoriaSchema = createInsertSchema(tbauditoria);
+export const selectAuditoriaSchema = createSelectSchema(tbauditoria);
+export type Auditoria = typeof tbauditoria.$inferSelect;
+export type NewAuditoria = typeof tbauditoria.$inferInsert;
