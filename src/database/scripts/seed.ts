@@ -17,9 +17,9 @@ const db = drizzle(pool, { schema });
 async function resetDatabase() {
   await db.execute(sql`
     TRUNCATE TABLE
-      tbtransacciones,
-      tbgastos_caja,
-      caja_turno,
+      tbauditoria,
+      tbcaja_movimientos,
+      tbcaja_turnos,
       tbpaquete_historial,
       tbpaquetes,
       tbusuarios_roles,
@@ -38,333 +38,162 @@ async function resetDatabase() {
 async function seedEmpresas() {
   const values = [
     {
-      nombre: 'Quilla Logistics MVP',
-      subdominio: 'mvp',
+      nombre: 'Market Quilla by MisterSofts',
+      subdominio: 'marketquilla',
+      activo: true,
     },
   ];
-  return db.insert(schema.empresas).values(values).returning();
+  // Asumiendo que definiste 'tbempresas' en el schema
+  return db.insert(schema.tbempresas).values(values).returning();
 }
 
 async function seedSucursales(empresaId: number) {
   const values = [
     {
-      empresaId,
-      nombre: 'Sucursal Central',
-      slug: 'sucursal-central',
+      fk_id_empresa: empresaId,
+      nombre: 'Sucursal Cochabamba Centro',
       direccion: 'Av. Ayacucho #123, Centro',
-      telefono: '7123456701',
+      activo: true,
     },
     {
-      empresaId,
-      nombre: 'Sucursal Norte',
-      slug: 'sucursal-norte',
-      direccion: 'Calle Murillo #456, Zona Norte',
-      telefono: '7123456702',
-    },
-    {
-      empresaId,
-      nombre: 'Sucursal Sur',
-      slug: 'sucursal-sur',
-      direccion: 'Av. 6 de Agosto #789, Zona Sur',
-      telefono: '7123456703',
+      fk_id_empresa: empresaId,
+      nombre: 'Sucursal Quillacollo',
+      direccion: 'Plaza Principal #456',
+      activo: true,
     },
   ];
 
-  return db.insert(schema.sucursales).values(values).returning();
+  return db.insert(schema.tbsucursales).values(values).returning();
 }
 
-async function seedRoles(empresaId: number) {
-  const values = [
-    { empresaId, nombreRol: 'administrador' },
-    { empresaId, nombreRol: 'supervisor' },
-    { empresaId, nombreRol: 'recepcionista' },
-    { empresaId, nombreRol: 'cajero' },
-  ];
-
-  return db.insert(schema.roles).values(values).returning();
-}
-
-async function seedPermisos() {
-  const values = [
-    { nombrePermiso: 'ver-dashboard' },
-    { nombrePermiso: 'gestionar-usuarios' },
-    { nombrePermiso: 'gestionar-roles' },
-    { nombrePermiso: 'gestionar-clientes' },
-    { nombrePermiso: 'gestionar-paquetes' },
-    { nombrePermiso: 'registrar-caja' },
-    { nombrePermiso: 'registrar-gastos' },
-    { nombrePermiso: 'cerrar-caja' },
-    { nombrePermiso: 'ver-reportes' },
-  ];
-
-  return db.insert(schema.permisos).values(values).returning();
-}
-
-async function seedUsuarios(empresas: Array<{ id: number }>, sucursales: Array<{ id: number }>) {
+async function seedUsuarios() {
   const hashedPassword = await bcrypt.hash('Password123!', 10);
-  const empresaId = empresas[0].id;
 
   const values = [
     {
-      empresaId,
-      sucursalId: sucursales[0]?.id,
-      nombreCompleto: 'Admin Central',
-      nombreUsuario: 'admin',
-      password: hashedPassword,
-      rolBase: 'administrador',
+      nombre_completo: 'David Admin',
+      nombre_usuario: 'admin',
+      email: 'admin@mistersofts.local',
+      password_hash: hashedPassword,
     },
     {
-      empresaId,
-      sucursalId: sucursales[0]?.id,
-      nombreCompleto: 'Laura Perez',
-      nombreUsuario: 'laura.perez',
-      password: hashedPassword,
-      rolBase: 'recepcionista',
+      nombre_completo: 'Laura Perez',
+      nombre_usuario: 'laura.perez',
+      email: 'laura@marketquilla.local',
+      password_hash: hashedPassword,
     },
     {
-      empresaId,
-      sucursalId: sucursales[1]?.id,
-      nombreCompleto: 'Carlos Vega',
-      nombreUsuario: 'carlos.vega',
-      password: hashedPassword,
-      rolBase: 'cajero',
-    },
-    {
-      empresaId,
-      sucursalId: sucursales[2]?.id,
-      nombreCompleto: 'Marta Salinas',
-      nombreUsuario: 'marta.salinas',
-      password: hashedPassword,
-      rolBase: 'supervisor',
-    },
-    {
-      empresaId,
-      sucursalId: sucursales[1]?.id,
-      nombreCompleto: 'Jorge Mamani',
-      nombreUsuario: 'jorge.mamani',
-      password: hashedPassword,
-      rolBase: 'recepcionista',
-    },
-    {
-      empresaId,
-      sucursalId: sucursales[2]?.id,
-      nombreCompleto: 'Sofia Rojas',
-      nombreUsuario: 'sofia.rojas',
-      password: hashedPassword,
-      rolBase: 'cajero',
+      nombre_completo: 'Carlos Vega',
+      nombre_usuario: 'carlos.vega',
+      email: 'carlos@marketquilla.local',
+      password_hash: hashedPassword,
     },
   ];
 
-  return db.insert(schema.usuarios).values(values as schema.NewUsuario[]).returning();
+  return db.insert(schema.tbusuarios).values(values).returning();
 }
 
-async function seedUsuariosRoles(usuarios: Array<{ id: number }>, roles: Array<{ id: number; nombreRol: string }>) {
-  const roleMap = new Map(roles.map((role) => [role.nombreRol, role.id]));
+async function seedClientes() {
+  const tiposCliente = ['persona', 'empresa'];
 
-  const values = [
-    { usuarioId: usuarios[0].id, rolId: roleMap.get('administrador')! },
-    { usuarioId: usuarios[1].id, rolId: roleMap.get('recepcionista')! },
-    { usuarioId: usuarios[2].id, rolId: roleMap.get('cajero')! },
-    { usuarioId: usuarios[3].id, rolId: roleMap.get('supervisor')! },
-    { usuarioId: usuarios[4].id, rolId: roleMap.get('recepcionista')! },
-    { usuarioId: usuarios[5].id, rolId: roleMap.get('cajero')! },
-  ];
-
-  return db.insert(schema.usuariosRoles).values(values).returning();
-}
-
-async function seedRolesPermisos(roles: Array<{ id: number; nombreRol: string }>, permisos: Array<{ id: number; nombrePermiso: string }>) {
-  const permisoMap = new Map(permisos.map((permiso) => [permiso.nombrePermiso, permiso.id]));
-  const roleMap = new Map(roles.map((role) => [role.nombreRol, role.id]));
-
-  const values = [
-    ...permisos.map((permiso) => ({ rolId: roleMap.get('administrador')!, permisoId: permiso.id })),
-    { rolId: roleMap.get('supervisor')!, permisoId: permisoMap.get('ver-dashboard')! },
-    { rolId: roleMap.get('supervisor')!, permisoId: permisoMap.get('gestionar-paquetes')! },
-    { rolId: roleMap.get('supervisor')!, permisoId: permisoMap.get('ver-reportes')! },
-    { rolId: roleMap.get('recepcionista')!, permisoId: permisoMap.get('ver-dashboard')! },
-    { rolId: roleMap.get('recepcionista')!, permisoId: permisoMap.get('gestionar-clientes')! },
-    { rolId: roleMap.get('recepcionista')!, permisoId: permisoMap.get('gestionar-paquetes')! },
-    { rolId: roleMap.get('cajero')!, permisoId: permisoMap.get('ver-dashboard')! },
-    { rolId: roleMap.get('cajero')!, permisoId: permisoMap.get('registrar-caja')! },
-    { rolId: roleMap.get('cajero')!, permisoId: permisoMap.get('registrar-gastos')! },
-    { rolId: roleMap.get('cajero')!, permisoId: permisoMap.get('cerrar-caja')! },
-  ];
-
-  return db.insert(schema.rolesPermisos).values(values).returning();
-}
-
-async function seedClientes(empresas: Array<{ id: number }>) {
-  const empresaId = empresas[0].id;
   const values = Array.from({ length: 24 }, (_, index) => {
-    const phone = String(7000000000 + index + 1);
-    const ci = String(1000000000 + index + 1);
+    const isEmpresa = index % 4 === 0;
 
     return {
-      empresaId,
-      nombreCompleto: faker.person.fullName(),
-      empresa: index % 4 === 0 ? faker.company.name() : undefined,
-      celular: phone,
-      ci,
-      contacto: faker.string.numeric(9),
+      tipoCliente: isEmpresa ? 'empresa' : 'persona',
+      nombre_completo: faker.person.fullName(),
+      empresa: isEmpresa ? faker.company.name() : null, // Campo para la etiqueta
+      celular: String(70000000 + index + 1), // Celulares locales
+      ci: String(1000000 + index + 1),
+      observaciones: index % 5 === 0 ? 'Cliente frecuente' : null,
     };
   });
 
-  return db.insert(schema.clientes).values(values).returning();
+  return db.insert(schema.tbclientes).values(values).returning();
 }
 
 async function seedPaquetes(
-  empresas: Array<{ id: number }>,
-  sucursales: Array<{ id: number }>,
-  usuarios: Array<{ id: number }>,
-  clientes: Array<{ id: number }>,
+  sucursales: Array<{ pk_id_sucursal: number }>,
+  usuarios: Array<{ pk_id_usuario: number }>,
+  clientes: Array<{ pk_id_cliente: number }>
 ) {
-  const empresaId = empresas[0].id;
-  const tipos = ['documentos', 'ropa', 'electronicos', 'regalos'];
-  const estadosPago = ['pendiente', 'pagado', 'parcial'];
-  const estadosPaquete = ['en almacen', 'en ruta', 'entregado'];
+  const tipos = ['documentos', 'ropa', 'electronicos', 'repuestos'];
+  // Enums exactos definidos en el schema
+  const estadosPago = ['pendiente', 'pagado', 'parcial', 'anulado'];
+  const estadosPaquete = ['registrado', 'en_almacen', 'entregado', 'devuelto'];
+  const momentosPago = ['al_registrar', 'al_entregar'];
 
   const values = Array.from({ length: 18 }, (_, index) => {
     const remitente = clientes[(index * 2) % clientes.length];
     const destinatario = clientes[(index * 2 + 1) % clientes.length];
+    const estadoActual = estadosPaquete[index % estadosPaquete.length];
 
     return {
-      empresaId,
-      sucursalId: sucursales[index % sucursales.length].id,
-      remitenteId: remitente.id,
-      destinatarioId: destinatario.id,
-      usuarioId: usuarios[index % usuarios.length].id,
-      codigoPaquete: `PKT-${faker.string.alphanumeric({ length: 8, casing: 'upper' })}-${index + 1}`,
+      fk_id_remitente: remitente.pk_id_cliente,
+      fk_id_destinatario: destinatario.pk_id_cliente,
+      fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
+
+      codigoPaquete: `LUN-${String(index + 1).padStart(3, '0')}`,
+      ubicacionAlmacen: `MT/${faker.number.int({ min: 1, max: 5 })}/${faker.number.int({ min: 100, max: 999 })}`, // Para la ficha amarilla
+
       descripcion: faker.commerce.productDescription(),
       tipoPaquete: tipos[index % tipos.length],
-      costo: faker.number.float({ min: 15, max: 250, fractionDigits: 2 }).toFixed(2),
+      peso: faker.number.float({ min: 0.5, max: 20, fractionDigits: 2 }).toString(),
+      costoEnvio: faker.number.float({ min: 15, max: 150, fractionDigits: 2 }).toString(), // En Drizzle es mejor pasar Numeric como string
+
       estadoPago: estadosPago[index % estadosPago.length],
-      estadoPaquete: estadosPaquete[index % estadosPaquete.length],
-      ubicacionPaquete: faker.location.city(),
-      fotoEntregaUrl: index % 3 === 0 ? faker.image.urlPicsumPhotos() : null,
-      fechaHoraRegistro: faker.date.recent({ days: 45 }),
-      fechaHoraEntrega: index % 3 === 0 ? faker.date.recent({ days: 7 }) : null,
+      momentoPago: momentosPago[index % momentosPago.length], // Regla de negocio
+      estadoPaquete: estadoActual,
+
+      fotoEntregadoUrl: estadoActual === 'entregado' ? faker.image.urlPicsumPhotos() : null,
+      fechaHoraRegistro: faker.date.recent({ days: 15 }),
+      fechaHoraEntrega: estadoActual === 'entregado' ? faker.date.recent({ days: 2 }) : null,
     };
   });
 
-  return db.insert(schema.paquetes).values(values as schema.NewPaquete[]).returning();
+  return db.insert(schema.tbpaquetes).values(values).returning();
 }
 
-async function seedPaqueteHistorial(
-  empresas: Array<{ id: number }>,
-  sucursales: Array<{ id: number }>,
-  usuarios: Array<{ id: number }>,
-  paquetes: Array<{ id: number; estadoPaquete: string }>,
-) {
-  const empresaId = empresas[0].id;
-  const estadosPrevios = ['registrado', 'en almacen', 'en viaje', 'en sucursal'];
-
-  const values = paquetes.slice(0, 12).map((paquete, index) => ({
-    empresaId,
-    paqueteId: paquete.id,
-    estadoAnterior: estadosPrevios[index % estadosPrevios.length],
-    estadoNuevo: paquete.estadoPaquete,
-    observacion: faker.lorem.sentence(),
-    usuarioId: usuarios[index % usuarios.length].id,
-    sucursalId: sucursales[index % sucursales.length].id,
-    fecha: faker.date.recent({ days: 30 }),
-  }));
-
-  return db.insert(schema.paqueteHistorial).values(values as schema.NewPaqueteHistorial[]).returning();
-}
-
-async function seedCajaTurno(empresas: Array<{ id: number }>, sucursales: Array<{ id: number }>, usuarios: Array<{ id: number }>) {
-  const empresaId = empresas[0].id;
+async function seedCajaTurnos(usuarios: Array<{ pk_id_usuario: number }>) {
   const values = Array.from({ length: 5 }, (_, index) => {
-    const fecha = faker.date.recent({ days: 12 }).toISOString().slice(0, 10);
+    const isCerrada = index % 2 === 0;
 
     return {
-      empresaId,
-      sucursalId: sucursales[index % sucursales.length].id,
-      fecha,
-      horaApertura: faker.date.recent({ days: 12 }),
-      horaCierre: index % 2 === 0 ? faker.date.recent({ days: 1 }) : null,
-      usuarioId: usuarios[index % usuarios.length].id,
-      montoInicial: faker.number.float({ min: 100, max: 500, fractionDigits: 2 }).toFixed(2),
-      b200: faker.number.int({ min: 0, max: 8 }),
-      b100: faker.number.int({ min: 0, max: 10 }),
-      b50: faker.number.int({ min: 0, max: 12 }),
-      b20: faker.number.int({ min: 0, max: 20 }),
-      b10: faker.number.int({ min: 0, max: 20 }),
-      b5: faker.number.int({ min: 0, max: 20 }),
-      m2: faker.number.int({ min: 0, max: 15 }),
-      m1: faker.number.int({ min: 0, max: 20 }),
-      m050: faker.number.int({ min: 0, max: 20 }),
-      m020: faker.number.int({ min: 0, max: 25 }),
-      m010: faker.number.int({ min: 0, max: 30 }),
-      ventasEfectivo: faker.number.float({ min: 200, max: 2500, fractionDigits: 2 }).toFixed(2),
-      pagosQR: faker.number.float({ min: 0, max: 1500, fractionDigits: 2 }).toFixed(2),
-      totalSalidas: faker.number.float({ min: 0, max: 700, fractionDigits: 2 }).toFixed(2),
-      cerrada: index % 2 === 0,
-      cierreObs: index % 2 === 0 ? faker.lorem.sentence() : null,
+      fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
+      fecha: faker.date.recent({ days: 5 }).toISOString().slice(0, 10),
+      horaApertura: faker.date.recent({ days: 5 }),
+      horaCierre: isCerrada ? faker.date.recent({ days: 1 }) : null,
+      montoInicial: faker.number.float({ min: 100, max: 500, fractionDigits: 2 }).toString(),
+      montoFinal: isCerrada ? faker.number.float({ min: 500, max: 2000, fractionDigits: 2 }).toString() : null,
+      cerrada: isCerrada,
     };
   });
 
-  return db.insert(schema.cajaTurno).values(values).returning();
+  return db.insert(schema.tbcajaTurnos).values(values).returning();
 }
 
-async function seedConfiguracion(empresas: Array<{ id: number }>, sucursal: { id: number }) {
-  const empresaId = empresas[0].id;
-  return db.insert(schema.configuracion).values({
-    empresaId,
-    nombreEmpresa: 'Market Quilla',
-    logoUrl: faker.image.urlLoremFlickr({ category: 'business' }),
-    qrUrl: faker.image.urlLoremFlickr({ category: 'qr' }),
-    moneda: 'BOB',
-    impuestos: '13.00',
-    whatsapp: '59170000000',
-    impresora: 'EPSON_TM_T20',
-    ticketFooter: 'Gracias por confiar en Market Quilla',
-    createdSucursalId: sucursal.id,
-    updatedSucursalId: sucursal.id,
-  } as schema.NewConfiguracion).returning();
-}
-
-async function seedGastosCaja(
-  empresas: Array<{ id: number }>,
-  cajas: Array<{ id: number }>,
-  usuarios: Array<{ id: number }>,
+async function seedMovimientosCaja(
+  cajas: Array<{ pk_id_cajaTurno: number }>,
+  usuarios: Array<{ pk_id_usuario: number }>,
+  paquetes: Array<{ pk_id_paquete: number }>
 ) {
-  const empresaId = empresas[0].id;
-  const metodosPago = ['efectivo', 'qr'];
-
-  const values = Array.from({ length: 10 }, (_, index) => ({
-    empresaId,
-    cajaId: cajas[index % cajas.length].id,
-    usuarioId: usuarios[index % usuarios.length].id,
-    descripcion: faker.commerce.productDescription(),
-    metodoPago: metodosPago[index % metodosPago.length],
-    monto: faker.number.float({ min: 5, max: 180, fractionDigits: 2 }).toFixed(2),
-  }));
-
-  return db.insert(schema.gastosCaja).values(values as schema.NewGastoCaja[]).returning();
-}
-
-async function seedTransacciones(
-  empresas: Array<{ id: number }>,
-  cajas: Array<{ id: number }>,
-  usuarios: Array<{ id: number }>,
-  paquetes: Array<{ id: number }>,
-) {
-  const empresaId = empresas[0].id;
-  const tipos = ['ingreso', 'egreso', 'servicio'];
+  // Enums exactos
+  const tiposMovimiento = ['ingreso', 'egreso'];
+  const metodosPago = ['efectivo', 'qr', 'transferencia']; // Adaptado para QR Simple
 
   const values = Array.from({ length: 20 }, (_, index) => ({
-    empresaId,
-    cajaId: cajas[index % cajas.length].id,
-    usuarioId: usuarios[index % usuarios.length].id,
-    paqueteId: index % 2 === 0 ? paquetes[index % paquetes.length].id : null,
-    tipoTransaccion: tipos[index % tipos.length],
-    monto: faker.number.float({ min: 10, max: 500, fractionDigits: 2 }).toFixed(2),
-    descripcion: faker.commerce.productDescription(),
+    fk_id_cajaTurno: cajas[index % cajas.length].pk_id_cajaTurno,
+    fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
+    fk_id_paquete: index % 2 === 0 ? paquetes[index % paquetes.length].pk_id_paquete : null,
+
+    tipoMovimiento: tiposMovimiento[index % tiposMovimiento.length],
+    metodoPago: metodosPago[index % metodosPago.length],
+
+    monto: faker.number.float({ min: 10, max: 250, fractionDigits: 2 }).toString(),
+    descripcion: index % 2 === 0 ? 'Pago de envío de paquete' : 'Compra de material de escritorio',
   }));
 
-  return db.insert(schema.transacciones).values(values as schema.NewTransaccion[]).returning();
+  return db.insert(schema.tbcajaMovimientos).values(values).returning();
 }
 
 async function main() {
@@ -372,36 +201,26 @@ async function main() {
     console.log('Limpiando tablas...');
     await resetDatabase();
 
-    console.log('Creando empresa (Tenant) MVP...');
-    const empresas = (await seedEmpresas()) as Array<{ id: number }>;
-    const empresa = empresas[0];
+    console.log('Creando empresa y sucursales...');
+    const empresas = await seedEmpresas();
+    const sucursales = await seedSucursales(empresas[0].pk_id_empresa);
 
-    console.log('Creando sucursales, roles y permisos...');
-    const sucursales = (await seedSucursales(empresa.id)) as Array<{ id: number; nombre: string }>;
-    const roles = (await seedRoles(empresa.id)) as Array<{ id: number; nombreRol: string }>;
-    const permisos = (await seedPermisos()) as Array<{ id: number; nombrePermiso: string }>;
+    console.log('Creando usuarios base...');
+    const usuarios = await seedUsuarios();
 
-    console.log('Creando usuarios y relaciones de seguridad...');
-    const usuarios = (await seedUsuarios(empresas, sucursales)) as Array<{ id: number }>;
-    await seedUsuariosRoles(usuarios, roles);
-    await seedRolesPermisos(roles, permisos);
+    console.log('Creando clientes...');
+    const clientes = await seedClientes();
 
-    console.log('Creando clientes y paquetes...');
-    const clientes = (await seedClientes(empresas)) as Array<{ id: number }>;
-    const paquetes = (await seedPaquetes(empresas, sucursales, usuarios, clientes)) as Array<{ id: number; estadoPaquete: string }>;
-    await seedPaqueteHistorial(empresas, sucursales, usuarios, paquetes);
+    console.log('Creando paquetes (con ubicaciones para etiquetas)...');
+    const paquetes = await seedPaquetes(sucursales, usuarios, clientes);
 
-    console.log('Creando cajas, gastos y transacciones...');
-    const cajas = (await seedCajaTurno(empresas, sucursales, usuarios)) as Array<{ id: number }>;
-    await seedGastosCaja(empresas, cajas, usuarios);
-    await seedTransacciones(empresas, cajas, usuarios, paquetes);
+    console.log('Generando turnos de caja y movimientos financieros...');
+    const cajas = await seedCajaTurnos(usuarios);
+    await seedMovimientosCaja(cajas, usuarios, paquetes);
 
-    console.log('Creando configuración base...');
-    await seedConfiguracion(empresas, sucursales[0]);
-
-    console.log('Seeder completado con datos de prueba.');
+    console.log('✅ Seeder completado con éxito.');
   } catch (error) {
-    console.error('Error ejecutando el seeder:', error);
+    console.error('❌ Error ejecutando el seeder:', error);
     process.exitCode = 1;
   } finally {
     await pool.end();
