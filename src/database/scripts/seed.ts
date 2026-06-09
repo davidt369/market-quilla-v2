@@ -46,12 +46,10 @@ async function seedClientes() {
     const isEmpresa = index % 4 === 0;
 
     return {
-      tipoCliente: (isEmpresa ? "empresa" : "persona") as "persona" | "empresa",
       nombre_completo: faker.person.fullName(),
       empresa: isEmpresa ? faker.company.name() : null, // Campo para la etiqueta
-      celular: String(70000000 + index + 1), // Celulares locales
+      ci_o_cel: String(70000000 + index + 1), // Celulares locales
       ci: String(1000000 + index + 1),
-      observaciones: index % 5 === 0 ? "Cliente frecuente" : null,
     };
   });
 

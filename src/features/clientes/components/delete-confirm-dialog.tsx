@@ -1,0 +1,40 @@
+"use client"
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/ui/alert-dialog"
+
+interface DeleteConfirmDialogProps {
+  isOpen: boolean
+  setIsOpen: (val: boolean) => void
+  onConfirm: () => void
+  itemName: string
+}
+
+export function DeleteConfirmDialog({ isOpen, setIsOpen, onConfirm, itemName }: DeleteConfirmDialogProps) {
+  return (
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acción eliminará al cliente <strong>{itemName}</strong>. No podrá acceder a los servicios hasta que sea reactivado. Sus registros de paquetes se mantendrán por seguridad.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Sí, Eliminar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}

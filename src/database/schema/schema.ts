@@ -33,10 +33,6 @@ export const rolBaseEnum = pgEnum("rol_base_enum", [
   "recepcionista",
   "cajero",
 ]);
-export const tipoClienteEnum = pgEnum("tipo_cliente_enum", [
-  "persona",
-  "empresa",
-]);
 // Nota: 'qr' está perfecto para integraciones de pago rápido locales
 export const metodoPagoEnum = pgEnum("metodo_pago_enum", [
   "efectivo",
@@ -78,10 +74,9 @@ export const tbclientes = pgTable("tbclientes", {
   pk_id_cliente: integer("pk_id_cliente")
     .primaryKey()
     .generatedAlwaysAsIdentity(),
-  tipoCliente: tipoClienteEnum("tipo_cliente").default("persona").notNull(),
   nombre_completo: varchar("nombre_completo", { length: 150 }).notNull(),
   empresa: varchar("empresa", { length: 150 }),
-  ci_celular: varchar("ci_celular", { length: 20 }),
+  ci_o_cel: varchar("ci_o_cel", { length: 30 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
