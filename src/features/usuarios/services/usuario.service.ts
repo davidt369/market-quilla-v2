@@ -8,6 +8,22 @@ export async function createUsuario(
     data: UsuarioInsert
 ) {
     try {
+        // Validación previa
+        const usuarioExistente =
+            await db.query.tbusuarios.findFirst({
+                where: (u, { eq }) =>
+                    eq(u.nombre_usuario, data.nombre_usuario),
+                columns: {
+                    pk_id_usuario: true,
+                },
+            });
+
+        if (usuarioExistente) {
+            throw new Error(
+                "El nombre de usuario ya existe"
+            );
+        }
+
         const [usuario] = await db
             .insert(tbusuarios)
             .values(data)
@@ -20,16 +36,41 @@ export async function createUsuario(
 
         return usuario;
     } catch (error: any) {
-        if (error.code === "23505") {
+        // PostgreSQL unique constraint
+        const constraint =
+            error?.cause?.constraint ||
+            error?.cause?.constraint_name;
+
+        if (
+            constraint ===
+            "tbusuarios_nombre_usuario_unique"
+        ) {
             throw new Error(
                 "El nombre de usuario ya existe"
             );
         }
 
-        throw error;
+        // PostgreSQL code 23505
+        const code =
+            error?.cause?.code ||
+            error?.code;
+
+        if (code === "23505") {
+            throw new Error(
+                "El nombre de usuario ya existe"
+            );
+        }
+
+        console.error(
+            "[CREATE_USUARIO_ERROR]",
+            error
+        );
+
+        throw new Error(
+            "Ocurrió un error al crear el usuario"
+        );
     }
 }
-
 export async function updateUsuario(
     id: number,
     data: Partial<UsuarioInsert>
@@ -62,16 +103,18 @@ export async function deleteUsuario(id: number) {
 
 export async function getUsuarios() {
     const usuarios = await db.query.tbusuarios.findMany({
+        where: (usuarios, { isNull }) =>
+            isNull(usuarios.deletedAt),
+
         orderBy: (usuarios, { asc }) => [
-            asc(usuarios.nombre_completo)
-        ]
+            asc(usuarios.createdAt),
+        ],
     });
 
-    return usuarios.map(u => ({
+    return usuarios.map((u) => ({
         id_usuario: u.pk_id_usuario,
         nombre_completo: u.nombre_completo,
         nombre_usuario: u.nombre_usuario,
         rol: u.rol,
-        estado: u.deletedAt === null,
     }));
 }

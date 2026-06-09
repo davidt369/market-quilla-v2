@@ -35,7 +35,9 @@ export async function createUsuarioAction(
         if (!parsed.success) {
             return {
                 success: false,
-                message: parsed.error.issues[0]?.message ?? "Datos inválidos",
+                message:
+                    parsed.error.issues[0]?.message ??
+                    "Datos inválidos",
             };
         }
 
@@ -43,11 +45,12 @@ export async function createUsuarioAction(
             parsed.data.password,
             12
         );
+
         await createUsuario({
             nombre_completo: parsed.data.nombre_completo,
             nombre_usuario: parsed.data.nombre_usuario,
             password_hash,
-            rol: parsed.data.rol as any,
+            rol: parsed.data.rol,
         });
 
         revalidatePath("/dashboard/usuarios");
@@ -57,8 +60,6 @@ export async function createUsuarioAction(
             message: "Usuario creado correctamente",
         };
     } catch (error) {
-        console.error(error);
-
         return {
             success: false,
             message:
@@ -128,7 +129,7 @@ export async function deleteUsuarioAction(id_usuario: number): Promise<ActionSta
         revalidatePath("/dashboard/usuarios");
         return {
             success: true,
-            message: "Usuario desactivado exitosamente",
+            message: "Usuario eliminado exitosamente",
         };
     } catch (error) {
         console.error(error);
@@ -137,7 +138,7 @@ export async function deleteUsuarioAction(id_usuario: number): Promise<ActionSta
             message:
                 error instanceof Error
                     ? error.message
-                    : "Error interno al desactivar usuario",
+                    : "Error interno al eliminar usuario",
         };
     }
 }

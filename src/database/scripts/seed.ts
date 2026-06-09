@@ -15,7 +15,7 @@ const pool = new Pool({
 const db = drizzle(pool, { schema });
 
 async function seedUsuarios() {
-  const hashedPassword = await bcrypt.hash("Password123!", 10);
+  const hashedPassword = await bcrypt.hash("123", 10);
 
   const values = [
     {
@@ -124,8 +124,8 @@ async function seedCajaTurnos(usuarios: Array<{ pk_id_usuario: number }>) {
         .toString(),
       montoFinal: isCerrada
         ? faker.number
-            .float({ min: 500, max: 2000, fractionDigits: 2 })
-            .toString()
+          .float({ min: 500, max: 2000, fractionDigits: 2 })
+          .toString()
         : null,
       cerrada: isCerrada,
     };
