@@ -1,7 +1,5 @@
-"use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { BtnTheme } from "@/shared/components/btn-theme";
 import { Button } from "@/shared/components/ui/button";
@@ -21,28 +19,14 @@ import {
   CheckCircle,
   Rocket,
 } from "lucide-react";
+import { auth } from "@/shared/lib/auth";
 
-export default function Home() {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export default async function Home() {
+  const session = await auth()
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("auth-token");
-      setIsAuthenticated(!!token);
-      setIsLoading(false);
-    };
-    checkAuth();
-  }, []);
+  if (session) redirect("/dashboard")
 
-  useEffect(() => {
-    if (isAuthenticated === true) {
-      router.replace("/dashboard");
-    }
-  }, [isAuthenticated, router]);
-
-  if (isLoading || isAuthenticated === null) {
+  if (session === null) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -50,7 +34,7 @@ export default function Home() {
     );
   }
 
-  if (isAuthenticated === false) {
+  if (session === null) {
     return (
       <div className="relative flex min-h-screen flex-col bg-background">
         {/* Header centrado */}
@@ -62,7 +46,7 @@ export default function Home() {
             </Link>
             <div className="flex items-center gap-4">
               <BtnTheme />
-              <Button variant="default" size="sm" onClick={() => router.push("/login")}>
+              <Button variant="default" size="sm" onClick={() => redirect("/login")}>
                 Iniciar sesión
               </Button>
             </div>
@@ -90,7 +74,7 @@ export default function Home() {
                   Únete a miles de empresas que ya confían en Nexify.
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-4">
-                  <Button size="lg" className="group" onClick={() => router.push("/login")}>
+                  <Button size="lg" className="group" onClick={() => redirect("/login")}>
                     Comenzar ahora
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
@@ -150,7 +134,7 @@ export default function Home() {
                   Comienza hoy mismo y descubre por qué miles de usuarios eligen Nexify.
                 </p>
                 <div className="mt-8">
-                  <Button size="lg" onClick={() => router.push("/login")}>
+                  <Button size="lg" onClick={() => redirect("/login")}>
                     Crear cuenta gratuita
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>

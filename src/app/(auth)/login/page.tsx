@@ -7,10 +7,7 @@ export default async function LoginPage() {
 
   // Verificación de sesión del lado del servidor
   const session = await auth()
-
-
-
-
+  if (session) redirect("/dashboard")
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2 bg-background/50">
