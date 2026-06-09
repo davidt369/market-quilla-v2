@@ -22,7 +22,6 @@ export interface User extends Record<string, unknown> {
   nombre_completo: string;
   nombre_usuario: string;
   rol: string;
-  estado: boolean;
 }
 
 interface Props {
@@ -87,24 +86,24 @@ export function UserTableWrapper({
       ),
     },
 
-    {
-      accessorKey: "estado",
-      header: "Estado",
+    // {
+    //   accessorKey: "estado",
+    //   header: "Estado",
 
-      cell: ({ row }: any) => (
-        <Badge
-          variant={
-            row.original.estado
-              ? "default"
-              : "destructive"
-          }
-        >
-          {row.original.estado
-            ? "Activo"
-            : "Inactivo"}
-        </Badge>
-      ),
-    },
+    //   cell: ({ row }: any) => (
+    //     <Badge
+    //       variant={
+    //         row.original.estado
+    //           ? "default"
+    //           : "destructive"
+    //       }
+    //     >
+    //       {row.original.estado
+    //         ? "Activo"
+    //         : "Inactivo"}
+    //     </Badge>
+    //   ),
+    // },
 
     {
       accessorKey: "acciones",
@@ -127,7 +126,6 @@ export function UserTableWrapper({
             variant="ghost"
             size="icon"
             onClick={() => handleDelete(row.original)}
-            disabled={!row.original.estado}
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -139,8 +137,8 @@ export function UserTableWrapper({
   return (
     <>
       <DataTable
-        title="Usuarios"
-        description="Administración de usuarios del sistema"
+        title="Tabla de Usuarios"
+        description="Listado de usuarios registrados en el sistema"
         columns={columns}
         rows={initialData}
         rowKey="id_usuario"
