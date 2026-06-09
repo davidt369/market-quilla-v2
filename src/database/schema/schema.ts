@@ -104,7 +104,7 @@ export const tbpaquetes = pgTable(
       { onDelete: "set null" },
     ),
     ubicacionAlmacen: varchar("ubicacion_almacen", { length: 50 }).notNull(),
-    tipoPaquete: text("tipo_paquete").notNull(),
+    tipoPaquete: text("tipo_paquete").notNull().unique(),
 
     estadoPago: estadoPagoEnum("estado_pago").default("pendiente").notNull(),
     momentoPago: momentoPagoEnum("momento_pago").notNull(),
