@@ -111,7 +111,6 @@ export async function updateUsuarioAction(
             message: "Usuario actualizado correctamente",
         };
     } catch (error) {
-        console.error(error);
 
         return {
             success: false,
@@ -132,7 +131,6 @@ export async function deleteUsuarioAction(id_usuario: number): Promise<ActionSta
             message: "Usuario eliminado exitosamente",
         };
     } catch (error) {
-        console.error(error);
         return {
             success: false,
             message:

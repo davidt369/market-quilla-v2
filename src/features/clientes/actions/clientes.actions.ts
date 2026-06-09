@@ -98,7 +98,6 @@ export async function updateClienteAction(
       message: "Cliente actualizado correctamente",
     }
   } catch (error) {
-    console.error(error)
 
     return {
       success: false,
@@ -119,7 +118,6 @@ export async function deleteClienteAction(id_pk_cliente: number): Promise<Action
       message: "Cliente eliminado exitosamente",
     }
   } catch (error) {
-    console.error(error)
     return {
       success: false,
       message:
@@ -139,7 +137,7 @@ export async function getClientesAction(): Promise<ClientesResult> {
       message: "Clientes obtenidos correctamente",
     }
   } catch (error) {
-    console.error(error)
+
     return {
       success: false,
       clientes: [],

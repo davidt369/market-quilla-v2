@@ -61,10 +61,7 @@ export async function createUsuario(
             );
         }
 
-        console.error(
-            "[CREATE_USUARIO_ERROR]",
-            error
-        );
+
 
         throw new Error(
             "Ocurrió un error al crear el usuario"

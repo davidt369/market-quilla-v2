@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 
 export default async function UsuariosPage() {
   const usuarios = await getUsuarios();
-  console.log("usuarios", usuarios);
   return (
     <div className="h-full flex flex-col space-y-8">
       <div>
