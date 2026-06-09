@@ -81,9 +81,7 @@ export const tbclientes = pgTable("tbclientes", {
   tipoCliente: tipoClienteEnum("tipo_cliente").default("persona").notNull(),
   nombre_completo: varchar("nombre_completo", { length: 150 }).notNull(),
   empresa: varchar("empresa", { length: 150 }),
-  ci: varchar("ci", { length: 20 }),
-  celular: varchar("celular", { length: 15 }).notNull(),
-  observaciones: text("observaciones"),
+  ci_celular: varchar("ci_celular", { length: 20 }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -110,26 +108,14 @@ export const tbpaquetes = pgTable(
       () => tbusuarios.pk_id_usuario,
       { onDelete: "set null" },
     ),
-
-    codigoPaquete: varchar("codigo_paquete", { length: 50 }).notNull().unique(),
     ubicacionAlmacen: varchar("ubicacion_almacen", { length: 50 }).notNull(),
-    descripcion: text("descripcion"),
-    tipoPaquete: varchar("tipo_paquete", { length: 50 }).notNull(),
-    peso: numeric("peso", { precision: 8, scale: 2 }),
-    valorDeclarado: numeric("valor_declarado", {
-      precision: 10,
-      scale: 2,
-    }).default("0"),
-    costoEnvio: numeric("costo_envio", { precision: 10, scale: 2 }).notNull(),
+    tipoPaquete: text("tipo_paquete").notNull(),
 
     estadoPago: estadoPagoEnum("estado_pago").default("pendiente").notNull(),
     momentoPago: momentoPagoEnum("momento_pago").notNull(),
     estadoPaquete: estadoPaqueteEnum("estado_paquete")
       .default("registrado")
       .notNull(),
-
-    nombreRecoge: varchar("nombre_recoge", { length: 150 }),
-    ciRecoge: varchar("ci_recoge", { length: 20 }),
     fotoEntregadoUrl: varchar("foto_entregado_url", { length: 255 }),
 
     fechaHoraRegistro: timestamp("fecha_hora_registro", { withTimezone: true })
@@ -146,11 +132,11 @@ export const tbpaquetes = pgTable(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => {
-    return {
+    return [
       // MEJORA: Índices para agilizar las búsquedas en el sistema
-      codigoIdx: index("idx_paquetes_codigo").on(table.codigoPaquete),
-      estadoIdx: index("idx_paquetes_estado").on(table.estadoPaquete),
-    };
+      index("idx_paquetes_ubicacion").on(table.ubicacionAlmacen),
+      index("idx_paquetes_estado").on(table.estadoPaquete),
+    ]
   },
 );
 
