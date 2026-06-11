@@ -1,12 +1,10 @@
-"use client";
+"use client"
 
-import { usePathname } from "next/navigation";
-import { Moon, Sun } from "lucide-react";
-import AppUser from "./app-user";
-import { Button } from "@/shared/components/ui/button";
-import { SidebarTrigger } from "@/shared/components/ui/sidebar";
-import { Separator } from "@/shared/components/ui/separator";
-import { BtnTheme } from "@/shared/components/btn-theme";
+import { usePathname } from "next/navigation"
+import AppUser from "./app-user"
+import { SidebarTrigger } from "@/shared/components/ui/sidebar"
+import { Separator } from "@/shared/components/ui/separator"
+import { BtnTheme } from "@/shared/components/btn-theme"
 
 const routeTitles: Record<string, string> = {
   "/dashboard": "Panel de Control",
@@ -21,23 +19,25 @@ const routeTitles: Record<string, string> = {
   "/caja/reporte": "Reportes de Caja",
   "/dashboard/ventas": "Realizar Ventas",
   "/ventas/historial": "Historial de Ventas",
-};
+}
 
 export default function AppHeader() {
-  const pathname = usePathname();
-  const title = routeTitles[pathname] || "Dashboard";
+  const pathname = usePathname()
+  const title = routeTitles[pathname] || "Panel"
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur `supports-backdrop-filter:bg-background/60">
-      <div className="flex items-center gap-2 px-4">
-        <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="mr-2 h-4" />
-        <h1 className="text-lg font-semibold">{title}</h1>
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border/40 bg-background/80 px-4 backdrop-blur-md shadow-sm transition-all duration-300">
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1 rounded-xl hover:bg-muted/40 transition-colors" />
+        <Separator orientation="vertical" className="mx-2 h-4 bg-border/60" />
+        <h1 className="text-base font-bold tracking-tight text-foreground/90 select-none">
+          {title}
+        </h1>
       </div>
-      <div className="ml-auto flex items-center gap-2 px-4">
+      <div className="ml-auto flex items-center gap-3">
         <BtnTheme />
         <AppUser />
       </div>
     </header>
-  );
+  )
 }

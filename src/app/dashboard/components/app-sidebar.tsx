@@ -3,21 +3,18 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { HugeiconsIcon } from "@hugeicons/react"
 import {
-  LayoutDashboard,
-  Package,
-  ChevronRight,
-  Building2,
-  Users,
-  LogOut,
-  DollarSign,
-  ExternalLink,
-  MapPin,
-  PackagePlus,
-  Settings,
-  Store,
-} from "lucide-react"
+  DashboardSquare01Icon,
+  PackageIcon,
+  Money03Icon,
+  Store01Icon,
+  UserGroupIcon,
+  Building01Icon,
+  PinLocation01Icon,
+  ArrowRight01Icon,
+  Link01Icon
+} from "@hugeicons/core-free-icons"
 
 import {
   Sidebar,
@@ -30,16 +27,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/shared/components/ui/sidebar"
 import { Badge } from "@/shared/components/ui/badge"
 import { cn } from "@/shared/lib/utils"
 
-// Tipado más estricto y escalable
 interface NavItem {
   title: string
   url: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: any
   permission: string | null
   newTab?: boolean
 }
@@ -53,7 +48,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
 
-  // Agrupación lógica: Mejora la UX para el usuario y la escalabilidad del código
   const navigationGroups: NavGroup[] = [
     {
       label: "General",
@@ -61,13 +55,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Panel de Control",
           url: `/dashboard`,
-          icon: LayoutDashboard,
+          icon: DashboardSquare01Icon,
           permission: null,
         },
         {
           title: "Caja",
           url: `/caja`,
-          icon: DollarSign,
+          icon: Money03Icon,
           permission: "registrar-caja",
         },
       ],
@@ -78,14 +72,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Registrar Paquete",
           url: "/dashboard/paquetes/nuevo",
-          icon: PackagePlus,
+          icon: PackageIcon,
           permission: null,
         },
         {
           title: "Paquetes Sin Entregar",
-          // url: "/dashboard/paquetes/sin-entregar",
           url: "/dashboard/paquetes",
-          icon: Package,
+          icon: PackageIcon,
           permission: null,
         },
       ],
@@ -96,13 +89,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Clientes",
           url: "/dashboard/clientes",
-          icon: Store,
+          icon: Store01Icon,
           permission: null,
         },
         {
           title: "Usuarios",
           url: "/dashboard/usuarios",
-          icon: Users,
+          icon: UserGroupIcon,
           permission: "gestionar-usuarios",
         },
       ],
@@ -110,34 +103,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ]
 
   return (
-    <Sidebar className="border-r border-border/50 bg-background backdrop-blur-sm" {...props}>
+    <Sidebar className="border-r border-border/40 bg-background/80 backdrop-blur-lg" {...props}>
       {/* Header estilo SaaS moderno */}
-      <SidebarHeader className="px-5 py-5">
-        <div className="flex items-center gap-3 transition-opacity hover:opacity-80">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-sm shadow-primary/5">
-            <Building2 className="h-5 w-5 text-primary" />
+      <SidebarHeader className="px-5 py-6">
+        <div className="flex items-center gap-3 select-none">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/25 shadow-[0_0_12px_rgba(var(--primary),0.05)]">
+            <HugeiconsIcon icon={Building01Icon} className="size-5 text-primary stroke-[2.5]" />
           </div>
           <div className="flex flex-col overflow-hidden">
-            <span className="truncate text-base font-semibold tracking-tight text-foreground">
+            <span className="truncate text-base font-bold tracking-tight text-foreground/90">
               Market Quilla
             </span>
-            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <MapPin className="h-3 w-3 shrink-0" />
-              <span className="truncate">Sucursal Quillacollo</span>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground/80 mt-0.5">
+              <HugeiconsIcon icon={PinLocation01Icon} className="size-3.5 shrink-0" />
+              <span className="truncate font-medium">Sucursal Quillacollo</span>
+              <span className="relative flex size-1.5 ml-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
+              </span>
             </div>
           </div>
         </div>
       </SidebarHeader>
 
-
-      <SidebarContent className="px-3 py-4 scrollbar-hide">
+      <SidebarContent className="px-3 py-2 scrollbar-hide">
         {navigationGroups.map((group, index) => (
-          <SidebarGroup key={group.label} className={cn(index > 0 && "mt-5")}>
-            <SidebarGroupLabel className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-2">
+          <SidebarGroup key={group.label} className={cn(index > 0 && "mt-4")}>
+            <SidebarGroupLabel className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
+              <SidebarMenu className="gap-1">
                 {group.items.map((item) => {
                   const isActive =
                     pathname === item.url ||
@@ -149,10 +145,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuButton
                         isActive={isActive}
                         className={cn(
-                          "group flex h-9 items-center justify-between rounded-lg px-3 transition-all duration-200",
+                          "group flex h-10 items-center justify-between rounded-xl px-3.5 transition-all duration-300 ease-out border border-transparent select-none",
                           isActive
-                            ? "bg-primary/10 text-primary font-semibold"
-                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium"
+                            ? "bg-gradient-to-r from-primary/15 to-primary/5 text-primary border-primary/20 shadow-sm font-semibold"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground font-medium hover:translate-x-0.5"
                         )}
                       >
                         {item.newTab ? (
@@ -174,17 +170,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/50 p-4">
-        <div className="flex flex-col gap-4">
-
+      <SidebarFooter className="border-t border-border/40 p-4">
+        <div className="flex flex-col gap-3">
           {/* Footer badge */}
-          <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2.5">
-            <span className="text-[11px] font-medium text-muted-foreground">
+          <div className="flex items-center justify-between rounded-xl bg-muted/30 border border-border/20 px-3 py-2.5 backdrop-blur-sm">
+            <span className="text-[10px] font-semibold text-muted-foreground/80 tracking-wide">
               © {currentYear} Market Quilla
             </span>
             <Badge
               variant="secondary"
-              className="h-5 rounded-md px-1.5 text-[10px] font-semibold bg-background/50 text-muted-foreground hover:bg-background/50"
+              className="h-5 rounded-lg border border-primary/20 px-1.5 text-[9px] font-bold bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-300 select-none"
             >
               v2.0.0
             </Badge>
@@ -195,36 +190,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   )
 }
 
-// Subcomponente extraído para mantener el código DRY y limpio
 function MenuContent({ 
   item, 
   Icon, 
   isActive 
 }: { 
   item: NavItem; 
-  Icon: React.ElementType; 
+  Icon: any; 
   isActive: boolean 
 }) {
   return (
     <div className="flex w-full items-center justify-between">
       <div className="flex items-center gap-3">
-        <Icon
+        <HugeiconsIcon
+          icon={Icon}
           className={cn(
-            "h-4 w-4 shrink-0 transition-colors",
-            isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+            "size-4 shrink-0 transition-all duration-300",
+            isActive 
+              ? "text-primary scale-110 stroke-[2.5]" 
+              : "text-muted-foreground group-hover:text-foreground group-hover:scale-105 stroke-[2]"
           )}
         />
-        <span className="text-sm">{item.title}</span>
+        <span className="text-sm tracking-wide">{item.title}</span>
       </div>
       {item.newTab ? (
-        <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground" />
+        <HugeiconsIcon 
+          icon={Link01Icon} 
+          className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground" 
+        />
       ) : (
-        <ChevronRight
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
           className={cn(
-            "h-3.5 w-3.5 shrink-0 transition-all duration-200",
+            "size-3.5 shrink-0 transition-all duration-300",
             isActive
-              ? "opacity-100 translate-x-0 text-primary/70"
-              : "opacity-0 -translate-x-2 text-muted-foreground group-hover:opacity-100 group-hover:translate-x-0"
+              ? "opacity-100 translate-x-0 text-primary/70 stroke-[2.5]"
+              : "opacity-0 -translate-x-2 text-muted-foreground group-hover:opacity-100 group-hover:translate-x-0 stroke-[2]"
           )}
         />
       )}
