@@ -21,11 +21,11 @@ const poolConfig = {
   connectionString,
   max: process.env.DB_MAX_CONNECTIONS ? parseInt(process.env.DB_MAX_CONNECTIONS) : 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-  // Use SSL in production if not explicitly disabled
-  ssl: process.env.NODE_ENV === 'production' && process.env.DB_DISABLE_SSL !== 'true' 
-    ? { rejectUnauthorized: false } 
-    : undefined,
+  connectionTimeoutMillis: 10000,
+  // Require SSL for Neon DB (or any remote DB), unless it's localhost
+  ssl: connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
+    ? undefined
+    : { rejectUnauthorized: false },
 };
 
 const pool = global.__pgPool ?? new Pool(poolConfig);
