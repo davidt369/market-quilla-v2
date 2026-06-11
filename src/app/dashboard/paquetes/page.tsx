@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent, CardFooter, CardAction, CardDescription,
 import { Dollar01Icon } from "@hugeicons/core-free-icons";
 import { formatBoliviaDateTime } from "@/shared/lib/timezone";
 import PaquetesCard from "@/features/paquetes/components/paquetes-card";
+import { getPaquetesSinEntregar } from "@/features/paquetes/services/paquetesSinEntregar.service";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function PaquetesPage({
     const limit = Number(resolvedSearchParams.limit) || 10;
     const q = resolvedSearchParams.q || "";
 
-    const data = await getPaquetes({ page, limit, q });
+    const data = await getPaquetesSinEntregar({ page, limit, q });
 
     const paquetes = data?.data || [];
 

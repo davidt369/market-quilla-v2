@@ -82,7 +82,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           permission: null,
         },
         {
-          title: "Inventario",
+          title: "Paquetes Sin Entregar",
+          // url: "/dashboard/paquetes/sin-entregar",
           url: "/dashboard/paquetes",
           icon: Package,
           permission: null,
