@@ -104,7 +104,7 @@ export const tbpaquetes = pgTable(
       { onDelete: "set null" },
     ),
     ubicacionAlmacen: varchar("ubicacion_almacen", { length: 50 }).notNull(),
-    tipoPaquete: text("tipo_paquete").notNull().unique(),
+    tipoPaquete: text("tipo_paquete").notNull(),
 
     estadoPago: estadoPagoEnum("estado_pago").default("pendiente").notNull(),
     momentoPago: momentoPagoEnum("momento_pago").notNull(),
@@ -113,7 +113,7 @@ export const tbpaquetes = pgTable(
       .notNull(),
     fotoEntregadoUrl: varchar("foto_entregado_url", { length: 255 }),
     precioBase: numeric("precio_base", { precision: 10, scale: 2 })
-
+      .default("3")
       .notNull(),
 
     fechaHoraRegistro: timestamp("fecha_hora_registro", { withTimezone: true })
