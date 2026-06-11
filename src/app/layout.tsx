@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Public_Sans } from "next/font/google";
+import { Geist_Mono, Public_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/shared/lib/utils";
 import { ThemeProvider } from "@/shared/components/theme-provider";
@@ -10,11 +10,6 @@ import SessionProvider from "@/shared/components/session-provider";
 import { AuthProvider } from "@/shared/components/providers/AuthProvider";
 
 const publicSans = Public_Sans({subsets:['latin'],variable:'--font-sans'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -35,7 +30,7 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", publicSans.variable)}
+      className={cn("h-full", "antialiased", geistMono.variable, "font-sans", publicSans.variable)}
     >
       <body className="min-h-full flex flex-col">
         <SessionProvider>

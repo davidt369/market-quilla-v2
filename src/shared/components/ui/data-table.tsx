@@ -38,16 +38,6 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip"
 import { ScrollArea, ScrollBar } from "@/shared/components/ui/scroll-area"
-import { Skeleton } from "@/shared/components/ui/skeleton"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-} from "@/shared/components/ui/empty"
-
 import {
   Table,
   TableBody,
@@ -71,11 +61,8 @@ import {
   Loader2,
   Database,
   FilterX,
+  Rows3,
 } from "lucide-react"
-
-// ─────────────────────────────────────────────
-// Tipos
-// ─────────────────────────────────────────────
 
 export type TipoDato = "texto" | "numero" | "fecha"
 
@@ -104,10 +91,6 @@ export interface DataTableProps<TData extends Record<string, unknown>> {
   isLoading?: boolean
 }
 
-// ─────────────────────────────────────────────
-// Utilidad
-// ─────────────────────────────────────────────
-
 function extraerValores(obj: unknown): string {
   if (obj == null) return ""
   if (typeof obj !== "object") return String(obj)
@@ -123,37 +106,29 @@ function formatNumber(val: unknown): string {
   return num.toLocaleString("es-ES", { minimumFractionDigits: 2 })
 }
 
-// ─────────────────────────────────────────────
-// Empty State
-// ─────────────────────────────────────────────
-
 function EmptyState({ filtered }: { filtered: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+    <div className="flex flex-col items-center justify-center gap-4 py-20 px-4 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
         {filtered ? (
-          <FilterX className="h-5 w-5 text-muted-foreground" />
+          <FilterX className="h-7 w-7 text-primary/60" />
         ) : (
-          <Database className="h-5 w-5 text-muted-foreground" />
+          <Database className="h-7 w-7 text-primary/60" />
         )}
       </div>
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-foreground">
           {filtered ? "Sin resultados" : "Sin datos"}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground max-w-[240px]">
           {filtered
-            ? "Intenta ajustar los términos de búsqueda"
+            ? "Intenta ajustar los términos de búsqueda para encontrar lo que necesitas"
             : "Aún no hay registros para mostrar"}
         </p>
       </div>
     </div>
   )
 }
-
-// ─────────────────────────────────────────────
-// Tabla principal
-// ─────────────────────────────────────────────
 
 export function DataTable<TData extends Record<string, unknown>>({
   title = "Datos",
@@ -241,22 +216,23 @@ export function DataTable<TData extends Record<string, unknown>>({
   }, [pageCount, pageIndex]);
 
   return (
-    <TooltipProvider >
-      <Card className={cn("flex flex-col overflow-hidden shadow-sm", className)}>
+    <TooltipProvider>
+      <Card className={cn("flex flex-col overflow-hidden border-0 shadow-md ring-1 ring-black/5", className)}>
         {/* ── Header ── */}
-        <CardHeader className="pb-4">
+        <CardHeader className="bg-primary rounded-t-xl pb-4 pt-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-xl">{title}</CardTitle>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-lg font-semibold text-primary-foreground tracking-tight">{title}</CardTitle>
                 {!isLoading && (
-                  <Badge variant="secondary" className="tabular-nums">
+                  <Badge className="bg-primary-foreground/15 text-primary-foreground border-0 tabular-nums hover:bg-primary-foreground/25 shadow-none">
+                    <Rows3 className="h-3 w-3 mr-1" />
                     {totalRows.toLocaleString("es-ES")}
                   </Badge>
                 )}
               </div>
               {description && (
-                <CardDescription>{description}</CardDescription>
+                <CardDescription className="text-primary-foreground/70">{description}</CardDescription>
               )}
             </div>
             {topRightSlot && (
@@ -264,11 +240,8 @@ export function DataTable<TData extends Record<string, unknown>>({
             )}
           </div>
 
-          <Separator className="mt-1" />
-
-          {/* Search */}
-          <div className="relative max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative max-w-sm mt-2">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-foreground/40" />
             <Input
               placeholder="Buscar..."
               value={globalFilter}
@@ -276,13 +249,13 @@ export function DataTable<TData extends Record<string, unknown>>({
                 setGlobalFilter(e.target.value);
                 setPagination((p) => ({ ...p, pageIndex: 0 }));
               }}
-              className="pl-9 pr-9"
+              className="pl-9 pr-9 h-9 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 focus:bg-primary-foreground/15 focus:border-primary-foreground/30 focus-visible:ring-primary-foreground/20"
               disabled={isLoading}
             />
             {globalFilter && (
               <button
                 onClick={() => setGlobalFilter("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 transition-colors hover:text-primary-foreground"
                 aria-label="Limpiar búsqueda"
               >
                 <X className="h-4 w-4" />
@@ -299,7 +272,7 @@ export function DataTable<TData extends Record<string, unknown>>({
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((hg) => (
-                    <TableRow key={hg.id} className="hover:bg-transparent">
+                    <TableRow key={hg.id} className="hover:bg-transparent border-b-0 bg-primary/8">
                       {hg.headers.map((header) => {
                         const isSorted = header.column.getIsSorted();
                         const meta = header.column.columnDef.meta as {
@@ -309,13 +282,13 @@ export function DataTable<TData extends Record<string, unknown>>({
                         return (
                           <TableHead
                             key={header.id}
-                            className="h-10 px-4 first:pl-6 last:pr-6"
+                            className="h-11 px-4 first:pl-6 last:pr-6 bg-primary/6"
                             style={{ minWidth: header.column.columnDef.size ?? 120 }}
                           >
                             <button
                               onClick={header.column.getToggleSortingHandler()}
                               className={cn(
-                                "flex w-full items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground transition-colors hover:text-foreground",
+                                "flex w-full items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary transition-colors hover:text-primary/70",
                                 meta?.align === "center" && "justify-center",
                                 meta?.align === "right" && "justify-end",
                                 (!meta?.align || meta.align === "left") && "justify-start",
@@ -323,11 +296,11 @@ export function DataTable<TData extends Record<string, unknown>>({
                             >
                               {flexRender(header.column.columnDef.header, header.getContext())}
                               {isSorted === "asc" ? (
-                                <ArrowUp className="h-3.5 w-3.5 text-foreground" />
+                                <ArrowUp className="h-3.5 w-3.5 text-primary" />
                               ) : isSorted === "desc" ? (
-                                <ArrowDown className="h-3.5 w-3.5 text-foreground" />
+                                <ArrowDown className="h-3.5 w-3.5 text-primary" />
                               ) : (
-                                <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />
+                                <ArrowUpDown className="h-3.5 w-3.5 opacity-25" />
                               )}
                             </button>
                           </TableHead>
@@ -341,9 +314,9 @@ export function DataTable<TData extends Record<string, unknown>>({
                   {isLoading ? (
                     <TableRow>
                       <TableCell colSpan={visibleCols.length} className="py-16 text-center">
-                        <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-sm">Cargando...</span>
+                        <div className="flex items-center justify-center gap-2.5 text-muted-foreground">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          <span className="text-sm font-medium">Cargando datos...</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -354,10 +327,13 @@ export function DataTable<TData extends Record<string, unknown>>({
                       </TableCell>
                     </TableRow>
                   ) : (
-                    pageRows.map((row) => (
+                    pageRows.map((row, rowIdx) => (
                       <TableRow
                         key={row.id}
-                        className="transition-colors hover:bg-muted/50"
+                        className={cn(
+                          "transition-colors hover:bg-primary/5",
+                          rowIdx % 2 === 0 ? "bg-background" : "bg-muted/30",
+                        )}
                       >
                         {row.getVisibleCells().map((cell) => {
                           const meta = cell.column.columnDef.meta as {
@@ -387,7 +363,7 @@ export function DataTable<TData extends Record<string, unknown>>({
 
                 {sumColumns.length > 0 && pageRows.length > 0 && !isLoading && (
                   <TableFooter>
-                    <TableRow className="hover:bg-muted/60">
+                    <TableRow className="hover:bg-muted/60 bg-primary/5">
                       {visibleCols.map((col, i) => {
                         const isLabelCol = totalLabelColumn
                           ? col.id === totalLabelColumn
@@ -403,12 +379,12 @@ export function DataTable<TData extends Record<string, unknown>>({
                             )}
                           >
                             {isLabelCol && (
-                              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                              <span className="text-xs font-bold uppercase tracking-widest text-primary">
                                 Total
                               </span>
                             )}
                             {total !== undefined && (
-                              <span>
+                              <span className="text-primary">
                                 {total.toLocaleString("es-ES", { minimumFractionDigits: 2 })}
                               </span>
                             )}
@@ -427,9 +403,9 @@ export function DataTable<TData extends Record<string, unknown>>({
           <div className="space-y-3 p-4 md:hidden">
             {isLoading ? (
               <Card>
-                <CardContent className="flex items-center justify-center gap-2 py-10">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Cargando...</span>
+                <CardContent className="flex items-center justify-center gap-2.5 py-10">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-sm font-medium text-muted-foreground">Cargando datos...</span>
                 </CardContent>
               </Card>
             ) : pageRows.length === 0 ? (
@@ -438,9 +414,14 @@ export function DataTable<TData extends Record<string, unknown>>({
               pageRows.map((row) => (
                 <Card
                   key={row.id}
-                  className="overflow-hidden transition-shadow hover:shadow-md"
+                  className="overflow-hidden transition-all hover:shadow-md hover:border-primary/20 border border-border/50"
                 >
-                  <CardContent className="divide-y divide-border p-0">
+                  <div className="bg-primary/6 px-4 py-2.5 border-b border-primary/10">
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                      Registro
+                    </span>
+                  </div>
+                  <CardContent className="divide-y divide-border/50 p-0">
                     {row.getVisibleCells().map((cell) => {
                       const header = cell.column.columnDef.header;
                       const meta = cell.column.columnDef.meta as {
@@ -475,10 +456,9 @@ export function DataTable<TData extends Record<string, unknown>>({
           <Separator />
 
           {/* ── Footer / Pagination ── */}
-          <div className="flex flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between">
-            {/* Info + rows per page */}
+          <div className="flex flex-col gap-3 px-5 py-4 sm:px-6 md:flex-row md:items-center md:justify-between bg-muted/20">
             <div className="flex flex-wrap items-center gap-4">
-              <p className="text-xs text-muted-foreground tabular-nums">
+              <p className="text-xs font-medium text-muted-foreground tabular-nums">
                 {totalRows === 0
                   ? "Sin resultados"
                   : `${startRow}–${endRow} de ${totalRows.toLocaleString("es-ES")} registros`}
@@ -493,7 +473,7 @@ export function DataTable<TData extends Record<string, unknown>>({
                   }
                   disabled={isLoading}
                 >
-                  <SelectTrigger className="h-7 w-[70px] text-xs">
+                  <SelectTrigger className="h-8 w-[72px] text-xs border-border/60">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -510,7 +490,6 @@ export function DataTable<TData extends Record<string, unknown>>({
               </div>
             </div>
 
-            {/* Page buttons */}
             <div className="flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger
@@ -518,7 +497,7 @@ export function DataTable<TData extends Record<string, unknown>>({
                     <Button
                       variant="outline"
                       size="icon"
-                      className="hidden h-7 w-7 sm:flex"
+                      className="hidden h-8 w-8 sm:flex"
                     />
                   }
                   disabled={!table.getCanPreviousPage() || isLoading}
@@ -531,7 +510,7 @@ export function DataTable<TData extends Record<string, unknown>>({
 
               <Tooltip>
                 <TooltipTrigger
-                  render={<Button variant="outline" size="icon" className="h-7 w-7" />}
+                  render={<Button variant="outline" size="icon" className="h-8 w-8" />}
                   disabled={!table.getCanPreviousPage() || isLoading}
                   onClick={() => table.previousPage()}
                 >
@@ -546,7 +525,10 @@ export function DataTable<TData extends Record<string, unknown>>({
                     key={i}
                     variant={i === pageIndex ? "default" : "outline"}
                     size="icon"
-                    className="h-7 w-7 text-xs font-semibold"
+                    className={cn(
+                      "h-8 w-8 text-xs font-semibold",
+                      i === pageIndex && "shadow-sm",
+                    )}
                     onClick={() => table.setPageIndex(i)}
                     disabled={isLoading}
                   >
@@ -557,7 +539,7 @@ export function DataTable<TData extends Record<string, unknown>>({
 
               <Tooltip>
                 <TooltipTrigger
-                  render={<Button variant="outline" size="icon" className="h-7 w-7" />}
+                  render={<Button variant="outline" size="icon" className="h-8 w-8" />}
                   disabled={!table.getCanNextPage() || isLoading}
                   onClick={() => table.nextPage()}
                 >
@@ -572,7 +554,7 @@ export function DataTable<TData extends Record<string, unknown>>({
                     <Button
                       variant="outline"
                       size="icon"
-                      className="hidden h-7 w-7 sm:flex"
+                      className="hidden h-8 w-8 sm:flex"
                     />
                   }
                   disabled={!table.getCanNextPage() || isLoading}

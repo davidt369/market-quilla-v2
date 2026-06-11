@@ -15,6 +15,7 @@ import {
   ChefHat,
   ExternalLink,
   MapPin,
+  PackagePlus,
 } from "lucide-react"
 
 import {
@@ -71,6 +72,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Users,
       permission: "gestionar-usuarios",
     },
+    {
+      title: "Registrar Paquetes",
+      url: "/dashboard/paquetes/nuevo",
+      icon: PackagePlus,
+      permission: null,
+    },
+    {
+      title: "Lista de Paquetes",
+      url: "/dashboard/paquetes",
+      icon: Package,
+      permission: null,
+    },
+    {
+      title: "Clientes",
+      url: "/dashboard/clientes",
+      icon: Users,
+      permission: "",
+    }
 
 
 
