@@ -112,6 +112,9 @@ export const tbpaquetes = pgTable(
       .default("registrado")
       .notNull(),
     fotoEntregadoUrl: varchar("foto_entregado_url", { length: 255 }),
+    precioBase: numeric("precio_base", { precision: 10, scale: 2 })
+
+      .notNull(),
 
     fechaHoraRegistro: timestamp("fecha_hora_registro", { withTimezone: true })
       .defaultNow()

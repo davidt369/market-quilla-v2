@@ -126,6 +126,42 @@ export const paqueteFormSchema = z.object({
 export type PaqueteFormData =
     z.infer<typeof paqueteFormSchema>;
 
+export const clienteFormSubSchema = z.object({
+    pk_id_cliente: z.number().optional(),
+    nombre_completo: z.string().trim().min(1, "El nombre es requerido"),
+    ci_o_cel: z.string().trim().min(1, "El CI/Celular es requerido"),
+    empresa: z.string().trim().optional(),
+});
+
+export const paqueteCompletoFormSchema = z.object({
+    remitente: clienteFormSubSchema,
+    destinatario: clienteFormSubSchema,
+
+    ubicacionAlmacen: z
+        .string()
+        .trim()
+        .min(1, "La ubicación es requerida")
+        .max(50),
+
+    tipoPaquete: z
+        .string()
+        .trim()
+        .min(3, "Debe describir el paquete")
+        .max(500),
+
+    momentoPago: z.enum([
+        "al_registrar",
+        "al_entregar",
+    ]),
+
+    precioBase: z.coerce
+        .number()
+        .min(0, "El precio no puede ser negativo")
+        .default(3.00),
+});
+
+export type PaqueteCompletoFormData = z.infer<typeof paqueteCompletoFormSchema>;
+
 export const paqueteFormUpdateSchema =
     paqueteFormSchema.extend({
         pk_id_paquete: z

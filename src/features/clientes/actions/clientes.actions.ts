@@ -145,3 +145,38 @@ export async function getClientesAction(): Promise<ClientesResult> {
     }
   }
 }
+
+export type InlineClientState = {
+  success?: boolean;
+  error?: string;
+  data?: any;
+};
+
+export async function registrarClienteInlineAction(
+  nombre_completo: string,
+  ci_o_cel: string,
+  empresa?: string
+): Promise<InlineClientState> {
+  try {
+    if (!nombre_completo || !ci_o_cel) {
+      return { error: "Nombre y CI/Celular son obligatorios." };
+    }
+
+    const cliente = await createCliente({
+      nombre_completo,
+      ci_o_cel,
+      empresa: empresa || null,
+    });
+
+    revalidatePath("/dashboard/clientes");
+
+    return {
+      success: true,
+      data: cliente,
+    };
+  } catch (error: any) {
+    return {
+      error: error.message || "Error al registrar cliente inline.",
+    };
+  }
+}
