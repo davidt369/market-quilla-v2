@@ -5,6 +5,7 @@ import { createPaquete, createPaqueteCompletoTransaction, deletePaquete, updateP
 import { PaqueteCompletoFormData, paqueteCompletoFormSchema, PaqueteUpdate, paqueteUpdateSchema } from "../schemas/paquetes.schema";
 import { auth } from "@/shared/lib/auth";
 import { entregarPaquete } from "../services/entregarPaquetes.service";
+import { uploadEvidenciaToPocketBase } from "../services/pocketbase.service";
 
 export type ActionState = {
     error?: string;
@@ -42,8 +43,7 @@ export async function registrarPaqueteAction(
 }
 
 export async function entregarPaqueteAction(
-    paqueteId: number,
-    metodoPago?: "efectivo" | "qr" | "transferencia" | "tarjeta"
+    formData: FormData
 ): Promise<ActionState> {
     try {
         const session = await auth();
@@ -60,7 +60,25 @@ export async function entregarPaqueteAction(
             };
         }
 
-        const paquete = await entregarPaquete(paqueteId, usuarioId, metodoPago);
+        const paqueteIdStr = formData.get("paqueteId") as string;
+        if (!paqueteIdStr) return { error: "ID de paquete requerido" };
+        const paqueteId = parseInt(paqueteIdStr);
+        const metodoPago = formData.get("metodoPago") as "efectivo" | "qr" | undefined;
+        const file = formData.get("fotoEntregadoUrl") as File | null;
+
+        let finalUrl: string | undefined = undefined;
+
+        if (file && file.size > 0) {
+            try {
+                finalUrl = await uploadEvidenciaToPocketBase(paqueteId, file);
+            } catch (err: any) {
+                return {
+                    error: err.message || "Error al subir la evidencia fotográfica a PocketBase.",
+                };
+            }
+        }
+
+        const paquete = await entregarPaquete(paqueteId, usuarioId, metodoPago, finalUrl);
 
         revalidatePath("/dashboard/paquetes");
 

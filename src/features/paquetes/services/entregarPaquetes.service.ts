@@ -17,7 +17,8 @@ import { handleDbErrorPaquete } from "./paquetes.service";
 export async function entregarPaquete(
     paqueteId: number,
     usuarioId: number,
-    metodoPago?: "efectivo" | "qr" | "transferencia" | "tarjeta"
+    metodoPago?: "efectivo" | "qr",
+    fotoEntregadoUrl?: string
 ) {
     try {
         return await db.transaction(async (tx) => {
@@ -74,6 +75,7 @@ export async function entregarPaquete(
                         estadoPaquete: "entregado",
                         estadoPago: "pagado",
                         fechaHoraEntrega: new Date(),
+                        ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
                     })
                     .where(eq(tbpaquetes.pk_id_paquete, paqueteId))
                     .returning();
@@ -86,6 +88,7 @@ export async function entregarPaquete(
                     .set({
                         estadoPaquete: "entregado",
                         fechaHoraEntrega: new Date(),
+                        ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
                     })
                     .where(eq(tbpaquetes.pk_id_paquete, paqueteId))
                     .returning();
