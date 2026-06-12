@@ -76,21 +76,21 @@ export default function ClientesTable({ clientes, onAdd, onEdit, onDelete }: Cli
   ]
 
   return (
-    <DataTable
-      title="Gestión de Clientes"
-      description="Administra los clientes y su información de contacto"
-      rows={clientes}
-      columns={columns}
-      sumColumns={[]}
-      totalLabelColumn="pk_id_cliente"
-      rowKey="pk_id_cliente"
-      rowsPerPageOptions={[5, 10, 20, 50]}
-      topRightSlot={
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <Button onClick={onAdd}>
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Cliente
         </Button>
-      }
-    />
+      </div>
+      <DataTable
+        title="Gestión de Clientes"
+        description="Administra los clientes y su información de contacto"
+        rows={clientes}
+        columns={columns}
+        rowKey="pk_id_cliente"
+        rowsPerPageOptions={[5, 10, 20, 50]}
+      />
+    </div>
   )
 }

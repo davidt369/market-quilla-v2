@@ -136,24 +136,27 @@ export function UserTableWrapper({
 
   return (
     <>
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          onClick={() => {
+            setSelectedUser(null);
+            setIsFormOpen(true);
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Nuevo Usuario
+        </Button>
+      </div>
+
       <DataTable
         title="Tabla de Usuarios"
         description="Listado de usuarios registrados en el sistema"
         columns={columns}
         rows={initialData}
         rowKey="id_usuario"
-        topRightSlot={
-          <Button
-            onClick={() => {
-              setSelectedUser(null);
-              setIsFormOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Usuario
-          </Button>
-        }
       />
+    </div>
 
       {isFormOpen && (
         <UserFormDialog
