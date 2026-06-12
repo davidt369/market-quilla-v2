@@ -46,7 +46,7 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
         }
 
         const sanitize = (str: string) => (str || "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-        
+
         const fecha = new Date(pkg.fechaHoraRegistro || Date.now()).toISOString().split('T')[0];
         const destNombre = sanitize(pkg.destinatario?.nombre_completo);
         const destCel = sanitize(pkg.destinatario?.ci_o_cel);
@@ -133,28 +133,29 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                     )}
 
                     {/* Selector de Foto (Evidencia) */}
-                    <div className="mt-2">
-                        <span className="text-xs font-semibold text-foreground block mb-2">
-                            Foto de Entrega (Evidencia):
-                        </span>
-                        
-                        <input 
-                            type="file" 
-                            accept="image/*" 
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Foto de Entrega (Evidencia)</span>
+                            <span className="text-xs text-rose-500 font-medium">* Obligatoria</span>
+                        </div>
+
+                        <input
+                            type="file"
+                            accept="image/*"
                             onChange={handleFileChange}
                             ref={fileInputRef}
                             className="hidden"
                         />
-                        <input 
-                            type="file" 
-                            accept="image/*" 
+                        <input
+                            type="file"
+                            accept="image/*"
                             capture="environment"
                             onChange={handleFileChange}
                             ref={cameraInputRef}
                             className="hidden"
                         />
 
-                        <div className="relative flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-slate-50 dark:bg-zinc-900/60 p-6 text-center transition-colors">
+                        <div className="rounded-2xl border border-dashed border-border bg-muted/50 p-6 md:p-8 transition-all">
                             {previewUrl ? (
                                 <div className="flex flex-col items-center gap-4 w-full max-w-full">
                                     <div className="relative w-40 h-40 rounded-lg overflow-hidden border shadow-sm bg-white shrink-0">
@@ -165,7 +166,7 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                                         <PackageCheck className="h-4 w-4 shrink-0" />
                                         <span className="truncate">{file?.name}</span>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-2 gap-2 mt-2 w-full">
                                         <Button className="w-full text-xs" variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
                                             <ImageIcon className="mr-1.5 h-3.5 w-3.5 shrink-0" /> Archivo
@@ -176,18 +177,33 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                                     </div>
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center gap-4 w-full">
-                                    <div className="p-3 bg-muted rounded-full">
-                                        <Camera className="h-8 w-8 text-muted-foreground/70" />
+                                <div className="flex flex-col items-center justify-center text-center">
+                                    <div className="p-4 bg-background rounded-full mb-5 shadow-sm">
+                                        <Camera className="h-10 w-10 text-muted-foreground" />
                                     </div>
-                                    <span className="text-sm font-medium text-foreground/80">Añadir Evidencia Fotográfica</span>
-                                    
-                                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full mt-2">
-                                        <Button className="w-full" variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
-                                            <ImageIcon className="mr-2 h-4 w-4" /> Subir Archivo
+
+                                    <p className="font-medium mb-1">Añadir evidencia fotográfica</p>
+                                    <p className="text-sm text-muted-foreground mb-6 max-w-[260px]">
+                                        Captura o sube una foto clara de la entrega
+                                    </p>
+
+                                    {/* BOTONES CORREGIDOS */}
+                                    <div className="flex flex-col sm:flex-row gap-3 w-full max-w-[320px]">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            <ImageIcon className="mr-2 h-4 w-4" />
+                                            Subir Archivo
                                         </Button>
-                                        <Button className="w-full bg-primary/10 text-primary hover:bg-primary/20" variant="ghost" type="button" onClick={() => cameraInputRef.current?.click()}>
-                                            <Camera className="mr-2 h-4 w-4" /> Tomar Foto
+
+                                        <Button
+                                            className="flex-1 bg-primary hover:bg-primary/90"
+                                            onClick={() => cameraInputRef.current?.click()}
+                                        >
+                                            <Camera className="mr-2 h-4 w-4" />
+                                            Tomar Foto
                                         </Button>
                                     </div>
                                 </div>
