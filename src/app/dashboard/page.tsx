@@ -18,7 +18,7 @@ export default async function DashboardPage() {
           <LogoutButton />
         </div>
       </div>
-      
+
       {/* Contenido de prueba del Dashboard */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
@@ -27,8 +27,7 @@ export default async function DashboardPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="text-2xl font-bold">
-            {/* Si tenemos el sucursalId en la sesión, lo mostramos, si no mostramos N/A */}
-            {session?.user?.sucursalId ? `Sucursal #${session.user.sucursalId}` : "Sucursal Principal"}
+
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             Rol asignado: <span className="capitalize">{session?.user?.rolBase || 'Desconocido'}</span>
