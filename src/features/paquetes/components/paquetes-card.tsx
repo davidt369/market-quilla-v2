@@ -110,8 +110,8 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                                 <MapPin className="h-4 w-4 text-muted-foreground" />
                                 <div className="h-5 w-px bg-border my-1"></div> {/* Conector vertical */}
                             </div>
-                            <div className="flex flex-col pb-3">
-                                <span className="text-sm font-semibold leading-none text-foreground/90">
+                            <div className="flex flex-col pb-3 min-w-0">
+                                <span className="text-sm font-semibold leading-none text-foreground/90 truncate">
                                     De: {pkg.remitente?.nombre_completo}
                                 </span>
                                 <span className="text-xs text-muted-foreground mt-1.5 truncate">
@@ -126,8 +126,8 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                             <div className="flex flex-col items-center mt-0.5">
                                 <Flag className="h-4 w-4 text-amber-500" />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-sm font-semibold leading-none text-foreground/90">
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-sm font-semibold leading-none text-foreground/90 truncate">
                                     Para: {pkg.destinatario?.nombre_completo}
                                 </span>
                                 <span className="text-xs text-muted-foreground mt-1.5 truncate">

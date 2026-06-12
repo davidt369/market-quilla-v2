@@ -15,8 +15,8 @@ export function PaqueteMobileCard({
     onDeliver: () => void
 }) {
     return (
-        <div className="rounded-xl border bg-card shadow-sm overflow-hidden active:scale-[0.99] transition-transform">
-            <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-b">
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden active:scale-[0.99] transition-transform isolate">
+            <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-b min-w-0">
                 <div className="flex items-center gap-2">
                     <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     <span className="text-xs font-bold text-muted-foreground tracking-wider uppercase">
@@ -35,24 +35,24 @@ export function PaqueteMobileCard({
             </div>
 
             <div className="p-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-0.5">
+                <div className="grid grid-cols-2 gap-3 min-w-0">
+                    <div className="space-y-0.5 min-w-0">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-orange-500 flex items-center gap-1">
                             <User className="h-3 w-3" /> Remitente
                         </p>
-                        <p className="text-sm font-semibold leading-tight line-clamp-1">
+                        <p className="text-sm font-semibold leading-tight truncate">
                             {paquete.remitente?.nombre_completo || "—"}
                         </p>
-                        <p className="text-xs text-muted-foreground">{paquete.remitente?.ci_o_cel}</p>
+                        <p className="text-xs text-muted-foreground truncate">{paquete.remitente?.ci_o_cel}</p>
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5 min-w-0">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
                             <MapPin className="h-3 w-3" /> Destinatario
                         </p>
-                        <p className="text-sm font-semibold leading-tight line-clamp-1">
+                        <p className="text-sm font-semibold leading-tight truncate">
                             {paquete.destinatario?.nombre_completo || "—"}
                         </p>
-                        <p className="text-xs text-muted-foreground">{paquete.destinatario?.ci_o_cel}</p>
+                        <p className="text-xs text-muted-foreground truncate">{paquete.destinatario?.ci_o_cel}</p>
                     </div>
                 </div>
 
