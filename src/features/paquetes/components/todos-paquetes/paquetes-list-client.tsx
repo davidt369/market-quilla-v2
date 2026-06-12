@@ -104,7 +104,7 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
     const confirmDeliver = async () => {
         if (!packageToDeliver) return;
         setIsDelivering(true);
-        
+
         const formData = new FormData();
         formData.append("paqueteId", packageToDeliver.pk_id_paquete.toString());
         formData.append("metodoPago", metodoPago);
@@ -113,7 +113,7 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
         }
 
         const result = await entregarPaqueteAction(formData);
-        
+
         if (result.success) {
             toast.success("Paquete entregado correctamente");
             setPackageToDeliver(null);
@@ -309,7 +309,7 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
                         Mostrando registros del sistema
                     </p>
                 </div>
-                
+
                 {/* Custom Filters Wrapper (besides DataTable's search) */}
                 <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                     <Select value={estadoFilter} onValueChange={(val) => setEstadoFilter(val || "all")}>
