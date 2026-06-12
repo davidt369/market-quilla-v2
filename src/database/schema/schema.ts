@@ -17,15 +17,11 @@ import {
 export const estadoPagoEnum = pgEnum("estado_pago_enum", [
   "pendiente",
   "pagado",
-  "parcial",
-  "anulado",
 ]);
 export const estadoPaqueteEnum = pgEnum("estado_paquete_enum", [
   "registrado",
-  "en_almacen",
   "entregado",
-  "devuelto",
-  "perdido",
+
 ]);
 export const rolBaseEnum = pgEnum("rol_base_enum", [
   "administrador",
@@ -37,8 +33,6 @@ export const rolBaseEnum = pgEnum("rol_base_enum", [
 export const metodoPagoEnum = pgEnum("metodo_pago_enum", [
   "efectivo",
   "qr",
-  "transferencia",
-  "tarjeta",
 ]);
 export const tipoMovimientoEnum = pgEnum("tipo_movimiento_enum", [
   "ingreso",

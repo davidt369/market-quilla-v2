@@ -62,12 +62,10 @@ async function seedPaquetes(
 ) {
   const tipos = ["documentos", "ropa", "electronicos", "repuestos"] as const;
   // Enums exactos definidos en el schema
-  const estadosPago = ["pendiente", "pagado", "parcial", "anulado"] as const;
+  const estadosPago = ["pendiente", "pagado"] as const;
   const estadosPaquete = [
     "registrado",
-    "en_almacen",
     "entregado",
-    "devuelto",
   ] as const;
   const momentosPago = ["al_registrar", "al_entregar"] as const;
 
@@ -139,7 +137,7 @@ async function seedMovimientosCaja(
 ) {
   // Enums exactos
   const tiposMovimiento = ["ingreso", "egreso"] as const;
-  const metodosPago = ["efectivo", "qr", "transferencia"] as const; // Adaptado para QR Simple
+  const metodosPago = ["efectivo", "qr"] as const; // Adaptado para QR Simple
 
   const values = Array.from({ length: 20 }, (_, index) => ({
     fk_id_cajaTurno: cajas[index % cajas.length].pk_id_cajaTurno,
