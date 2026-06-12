@@ -44,14 +44,6 @@ export function LoginForm({
     if (result?.error) {
       setError("Credenciales incorrectas o usuario inactivo.")
       setIsLoading(false)
-    } else {
-      const session = await getSession()
-      if (session?.user?.empresaSlug && session?.user?.sucursalSlug) {
-        router.push(`/${session.user.empresaSlug}/${session.user.sucursalSlug}/dashboard`)
-      } else {
-        router.push("/dashboard")
-      }
-      router.refresh()
     }
   }
 
@@ -81,7 +73,7 @@ export function LoginForm({
                 className="h-11 px-4 rounded-xl transition-all focus-visible:ring-primary/50 bg-background/50"
               />
             </div>
-            
+
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-medium">Contraseña</Label>
@@ -112,7 +104,7 @@ export function LoginForm({
                 {error}
               </div>
             )}
-            
+
             <Button type="submit" className="w-full h-11 text-[15px] font-semibold rounded-xl shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLoading ? "Autenticando..." : "Ingresar"}

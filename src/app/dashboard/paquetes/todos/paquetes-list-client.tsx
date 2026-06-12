@@ -74,6 +74,7 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
     const [isDelivering, setIsDelivering] = React.useState(false);
     const [packageToDeliver, setPackageToDeliver] = React.useState<PaqueteListItem | null>(null);
     const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr">("efectivo");
+    const [evidenciaFile, setEvidenciaFile] = React.useState<File | null>(null);
 
     const [isEditing, setIsEditing] = React.useState(false);
     const [packageToEdit, setPackageToEdit] = React.useState<PaqueteListItem | null>(null);
@@ -103,10 +104,20 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
     const confirmDeliver = async () => {
         if (!packageToDeliver) return;
         setIsDelivering(true);
-        const result = await entregarPaqueteAction(packageToDeliver.pk_id_paquete, metodoPago);
+        
+        const formData = new FormData();
+        formData.append("paqueteId", packageToDeliver.pk_id_paquete.toString());
+        formData.append("metodoPago", metodoPago);
+        if (evidenciaFile) {
+            formData.append("fotoEntregadoUrl", evidenciaFile);
+        }
+
+        const result = await entregarPaqueteAction(formData);
+        
         if (result.success) {
             toast.success("Paquete entregado correctamente");
             setPackageToDeliver(null);
+            setEvidenciaFile(null);
             router.refresh();
         } else {
             toast.error(result.error || "No se pudo entregar el paquete");
@@ -415,11 +426,18 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
             {packageToDeliver && (
                 <ModalEntregaPaquete
                     isOpen={!!packageToDeliver}
-                    setIsOpen={(open) => !open && setPackageToDeliver(null)}
+                    setIsOpen={(open) => {
+                        if (!open) {
+                            setPackageToDeliver(null);
+                            setEvidenciaFile(null);
+                        }
+                    }}
                     pkg={packageToDeliver as any}
                     isPendiente={packageToDeliver.estadoPago === "pendiente"}
                     metodoPago={metodoPago}
                     setMetodoPago={setMetodoPago as any}
+                    file={evidenciaFile}
+                    setFile={setEvidenciaFile}
                     isSubmitting={isDelivering}
                     handleConfirm={confirmDeliver}
                 />

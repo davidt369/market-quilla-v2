@@ -7,21 +7,57 @@ import {
     DialogHeader,
     DialogTitle
 } from "@/shared/components/ui/dialog";
-import { Truck, QrCode, Banknote, PackageCheck } from "lucide-react";
+import { Truck, QrCode, Banknote, PackageCheck, Camera, Image as ImageIcon } from "lucide-react";
+import * as React from "react";
 
 type Props = {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
     pkg: any;
     isPendiente: boolean;
-    metodoPago: "efectivo" | "qr" | "transferencia" | "tarjeta";
-    setMetodoPago: (metodoPago: "efectivo" | "qr" | "transferencia" | "tarjeta") => void;
+    metodoPago: "efectivo" | "qr";
+    setMetodoPago: (metodoPago: "efectivo" | "qr") => void;
+    file: File | null;
+    setFile: (file: File | null) => void;
     isSubmitting: boolean;
     handleConfirm: () => void;
 }
 
-export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendiente, metodoPago, setMetodoPago, isSubmitting, handleConfirm }: Props) {
+export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendiente, metodoPago, setMetodoPago, file, setFile, isSubmitting, handleConfirm }: Props) {
+    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const cameraInputRef = React.useRef<HTMLInputElement>(null);
 
+    React.useEffect(() => {
+        if (!file) {
+            setPreviewUrl(null);
+            return;
+        }
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [file]);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const originalFile = e.target.files?.[0];
+        if (!originalFile) {
+            setFile(null);
+            return;
+        }
+
+        const sanitize = (str: string) => (str || "").replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        
+        const fecha = new Date(pkg.fechaHoraRegistro || Date.now()).toISOString().split('T')[0];
+        const destNombre = sanitize(pkg.destinatario?.nombre_completo);
+        const destCel = sanitize(pkg.destinatario?.ci_o_cel);
+        const ubicacion = sanitize(pkg.ubicacionAlmacen);
+        const ext = originalFile.name.split('.').pop() || "jpg";
+
+        const newName = `${fecha}_${destNombre}_${destCel}_${ubicacion}.${ext}`;
+        const renamedFile = new File([originalFile], newName, { type: originalFile.type });
+
+        setFile(renamedFile);
+    };
 
     return (
 
@@ -95,6 +131,69 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                             </span>
                         </div>
                     )}
+
+                    {/* Selector de Foto (Evidencia) */}
+                    <div className="mt-2">
+                        <span className="text-xs font-semibold text-foreground block mb-2">
+                            Foto de Entrega (Evidencia):
+                        </span>
+                        
+                        <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleFileChange}
+                            ref={fileInputRef}
+                            className="hidden"
+                        />
+                        <input 
+                            type="file" 
+                            accept="image/*" 
+                            capture="environment"
+                            onChange={handleFileChange}
+                            ref={cameraInputRef}
+                            className="hidden"
+                        />
+
+                        <div className="relative flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-slate-50 dark:bg-zinc-900/60 p-6 text-center transition-colors">
+                            {previewUrl ? (
+                                <div className="flex flex-col items-center gap-4 w-full max-w-full">
+                                    <div className="relative w-40 h-40 rounded-lg overflow-hidden border shadow-sm bg-white shrink-0">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="text-xs font-medium text-primary flex items-center justify-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-md max-w-full overflow-hidden">
+                                        <PackageCheck className="h-4 w-4 shrink-0" />
+                                        <span className="truncate">{file?.name}</span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-2 mt-2 w-full">
+                                        <Button className="w-full text-xs" variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
+                                            <ImageIcon className="mr-1.5 h-3.5 w-3.5 shrink-0" /> Archivo
+                                        </Button>
+                                        <Button className="w-full text-xs" variant="outline" type="button" onClick={() => cameraInputRef.current?.click()}>
+                                            <Camera className="mr-1.5 h-3.5 w-3.5 shrink-0" /> Cámara
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-4 w-full">
+                                    <div className="p-3 bg-muted rounded-full">
+                                        <Camera className="h-8 w-8 text-muted-foreground/70" />
+                                    </div>
+                                    <span className="text-sm font-medium text-foreground/80">Añadir Evidencia Fotográfica</span>
+                                    
+                                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full mt-2">
+                                        <Button className="w-full" variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
+                                            <ImageIcon className="mr-2 h-4 w-4" /> Subir Archivo
+                                        </Button>
+                                        <Button className="w-full bg-primary/10 text-primary hover:bg-primary/20" variant="ghost" type="button" onClick={() => cameraInputRef.current?.click()}>
+                                            <Camera className="mr-2 h-4 w-4" /> Tomar Foto
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                     <DialogFooter className="mt-4">
                         <Button

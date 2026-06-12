@@ -47,7 +47,8 @@ const getPaymentBadge = (status: string) => {
 export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr" | "transferencia" | "tarjeta">("efectivo");
+    const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr">("efectivo");
+    const [evidenciaFile, setEvidenciaFile] = React.useState<File | null>(null);
 
     const isEntregado = pkg.estadoPaquete === "entregado";
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
@@ -55,10 +56,20 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const handleConfirm = async () => {
         setIsSubmitting(true);
         try {
-            const result = await entregarPaqueteAction(pkg.pk_id_paquete, isPendiente ? metodoPago : undefined);
+            const formData = new FormData();
+            formData.append("paqueteId", pkg.pk_id_paquete.toString());
+            if (isPendiente && metodoPago) {
+                formData.append("metodoPago", metodoPago);
+            }
+            if (evidenciaFile) {
+                formData.append("fotoEntregadoUrl", evidenciaFile);
+            }
+
+            const result = await entregarPaqueteAction(formData);
             if (result.success) {
                 toast.success("¡Paquete entregado exitosamente!");
                 setIsOpen(false);
+                setEvidenciaFile(null);
             } else {
                 toast.error(result.error || "Ocurrió un error al entregar el paquete.");
             }
@@ -169,11 +180,20 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
 
             <ModalEntregaPaquete
                 isOpen={isOpen}
-                setIsOpen={setIsOpen}
+                setIsOpen={(open) => {
+                    if (!open) {
+                        setIsOpen(false);
+                        setEvidenciaFile(null);
+                    } else {
+                        setIsOpen(true);
+                    }
+                }}
                 pkg={pkg}
                 isPendiente={isPendiente}
                 metodoPago={metodoPago}
-                setMetodoPago={setMetodoPago}
+                setMetodoPago={setMetodoPago as any}
+                file={evidenciaFile}
+                setFile={setEvidenciaFile}
                 isSubmitting={isSubmitting}
                 handleConfirm={handleConfirm}
             />
