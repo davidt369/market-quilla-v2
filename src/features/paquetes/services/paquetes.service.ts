@@ -180,6 +180,7 @@ export async function getPaquetes({
             with: {
                 remitente: { columns: { nombre_completo: true, ci_o_cel: true, empresa: true } },
                 destinatario: { columns: { nombre_completo: true, ci_o_cel: true, empresa: true } },
+                usuarioRegistro: { columns: { nombre_completo: true } },
             },
         });
 
