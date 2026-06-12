@@ -81,6 +81,7 @@ export interface DataTableProps<TData extends Record<string, unknown>> {
   className?: string
   isLoading?: boolean
   emptyMessage?: React.ReactNode
+  mobileCard?: (row: TData) => React.ReactNode
 }
 
 /* -------------------------------------------------------------------------- */
@@ -110,6 +111,7 @@ export function DataTable<TData extends Record<string, unknown>>({
   className,
   isLoading = false,
   emptyMessage,
+  mobileCard,
 }: DataTableProps<TData>) {
   const [globalFilter, setGlobalFilter] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -243,7 +245,7 @@ export function DataTable<TData extends Record<string, unknown>>({
       </CardHeader>
 
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className={cn("overflow-x-auto", mobileCard && "hidden md:block")}>
           <Table>
             <TableHeader className="bg-muted/40 sticky top-0 z-10 shadow-[inset_0_-1px_0_0_var(--border)]">
               {table.getHeaderGroups().map((hg) => (
@@ -409,6 +411,42 @@ export function DataTable<TData extends Record<string, unknown>>({
             </TableBody>
           </Table>
         </div>
+
+        {/* ─────────────────────── MOBILE CARDS ─────────────────────── */}
+        {mobileCard && (
+          <div className="flex flex-col md:hidden p-4 space-y-4">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-16">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+            ) : pageRows.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-16 px-4 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border bg-gradient-to-b from-background to-muted/40 shadow-sm">
+                  {globalFilter ? (
+                    <span className="text-sm text-muted-foreground">Sin resultados</span>
+                  ) : (
+                    <Database className="h-7 w-7 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="space-y-1.5 max-w-[320px]">
+                  <p className="text-sm font-semibold text-foreground">
+                    {globalFilter ? "Sin resultados" : "Aún no hay registros"}
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {globalFilter
+                      ? "No encontramos coincidencias. Prueba con otros términos."
+                      : "Cuando lleguen datos, los verás reflejados aquí."}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              pageRows.map((row) => (
+                <div key={row.id}>{mobileCard(row.original)}</div>
+              ))
+            )}
+          </div>
+        )}
 
         {/* ─────────────────────── PAGINATION ─────────────────────── */}
         <div className="flex flex-col-reverse gap-3 border-t bg-muted/15 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">

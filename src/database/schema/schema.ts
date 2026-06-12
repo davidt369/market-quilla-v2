@@ -105,7 +105,7 @@ export const tbpaquetes = pgTable(
     estadoPaquete: estadoPaqueteEnum("estado_paquete")
       .default("registrado")
       .notNull(),
-    fotoEntregadoUrl: varchar("foto_entregado_url", { length: 255 }),
+    fotoEntregadoUrl: text("foto_entregado_url"),
     precioBase: numeric("precio_base", { precision: 10, scale: 2 })
       .default("3")
       .notNull(),
