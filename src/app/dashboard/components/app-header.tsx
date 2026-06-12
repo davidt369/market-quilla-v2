@@ -26,15 +26,15 @@ export default function AppHeader() {
   const title = routeTitles[pathname] || "Panel"
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border/40 bg-background/80 px-4 backdrop-blur-md shadow-sm transition-all duration-300">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1 rounded-xl hover:bg-muted/40 transition-colors" />
-        <Separator orientation="vertical" className="mx-2 h-4 bg-border/60" />
-        <h1 className="text-base font-bold tracking-tight text-foreground/90 select-none">
+    <header className="sticky top-0 z-40 flex h-16 w-full shrink-0 items-center justify-between border-b border-border/40 bg-background/80 px-4 sm:px-6 backdrop-blur-md shadow-sm transition-all duration-300">
+      <div className="flex items-center gap-2 min-w-0">
+        <SidebarTrigger className="-ml-1 shrink-0 rounded-xl hover:bg-muted/40 transition-colors" />
+        <Separator orientation="vertical" className="mx-2 h-4 shrink-0 bg-border/60" />
+        <h1 className="text-base font-bold tracking-tight text-foreground/90 select-none truncate">
           {title}
         </h1>
       </div>
-      <div className="ml-auto flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <BtnTheme />
         <AppUser />
       </div>
