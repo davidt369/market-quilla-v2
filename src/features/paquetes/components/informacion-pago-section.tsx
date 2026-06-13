@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { Coins } from "lucide-react";
+import { Coins, Info } from "lucide-react";
 
 import { PaqueteCompletoFormData } from "@/features/paquetes/schemas/paquetes.schema";
 import { Field, FieldLabel, FieldError } from "@/shared/components/ui/field";
@@ -22,7 +22,7 @@ export function InformacionPagoSection() {
 
     return (
         <SectionCard>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-5 flex items-center justify-between">
                 <SectionTitle icon={Coins}>Información de Pago</SectionTitle>
             </div>
 
@@ -30,67 +30,74 @@ export function InformacionPagoSection() {
                 name="momentoPago"
                 control={control}
                 render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid} className="mb-4">
-                        <FieldLabel htmlFor={field.name}>Momento de Pago</FieldLabel>
+                    <Field data-invalid={fieldState.invalid} className="mb-6">
+                        <FieldLabel htmlFor={field.name} className="mb-2 block">
+                            Momento de Pago
+                        </FieldLabel>
                         <Select
                             name={field.name}
                             value={field.value ?? ""}
                             onValueChange={field.onChange}
                         >
-                            <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                            <SelectTrigger id={field.name} aria-invalid={fieldState.invalid} className="w-full">
                                 <SelectValue placeholder="Seleccione cuándo pagará" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="al_registrar">
-                                    Al registrar (Prepaid)
+                                    Al registrar
                                 </SelectItem>
                                 <SelectItem value="al_entregar">
-                                    Al entregar (COD)
+                                    Al entregar
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <p className="mt-1.5 text-xs text-muted-foreground">
-                            {momentoPago === "al_registrar"
-                                ? "El remitente paga al registrar el paquete."
-                                : "El destinatario paga al recibir el paquete."}
-                        </p>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+
+
+
+                        {fieldState.invalid ? (
+                            <div className="mt-2">
+                                <FieldError errors={[fieldState.error]} />
+                            </div>
+                        ) : null}
                     </Field>
                 )}
             />
+
             <Controller
                 name="precioBase"
                 control={control}
                 render={({ field, fieldState }) => (
-                    <div className="flex items-center justify-between border-t border-border/40 pt-4">
-                        <div>
-                            <span className="text-sm font-medium text-foreground block">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border/40 pt-5">
+                        <div className="space-y-1">
+                            <span className="text-sm font-semibold text-foreground block">
                                 Costo Estimado (Base)
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground block">
                                 *Se duplica cada semana en almacén
                             </span>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                            <div className="relative w-32">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
+
+                        <div className="flex flex-col w-full sm:w-auto sm:items-end gap-1">
+                            <div className="relative w-full sm:w-36">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground pointer-events-none select-none">
                                     Bs.
                                 </span>
                                 <Input
                                     {...field}
                                     id={field.name}
                                     type="number"
+                                    inputMode="decimal"
                                     step="0.10"
                                     min="0"
-                                    className="pl-9 pr-3 text-right font-semibold tabular-nums"
+                                    className="pl-10 pr-3 w-full text-right font-semibold tabular-nums text-base sm:text-sm h-11 sm:h-10"
                                     aria-invalid={fieldState.invalid}
                                 />
                             </div>
-                            {fieldState.invalid && (
-                                <span className="text-xs text-destructive">
+                            {fieldState.invalid ? (
+                                <span className="text-xs text-destructive mt-1">
                                     {fieldState.error?.message}
                                 </span>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 )}

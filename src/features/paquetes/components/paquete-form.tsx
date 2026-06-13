@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { PackageOpen } from "lucide-react";
+import { PackageOpen, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -14,6 +14,7 @@ import {
 import { registrarPaqueteAction } from "@/features/paquetes/actions/paquetes.actions";
 
 import { Button } from "@/shared/components/ui/button";
+import { PaqueteConfirmDialog } from "./paquete-confirm-dialog";
 import { ClienteBase } from "@/features/clientes/components/client-combobox";
 
 // Import subcomponents
@@ -21,7 +22,6 @@ import { RemitenteSection } from "./remitente-section";
 import { DestinatarioSection } from "./destinatario-section";
 import { TipoPaqueteSection } from "./tipo-paquete-section";
 import { InformacionPagoSection } from "./informacion-pago-section";
-import { SectionCard, SectionTitle } from "./form-layout";
 
 interface PaqueteFormProps {
     initialClientes: ClienteBase[];
@@ -33,6 +33,11 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
     const router = useRouter();
     const [clientes, setClientes] = React.useState<ClienteBase[]>(initialClientes);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+    // Modal states
+    const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
+    const [pendingData, setPendingData] = React.useState<PaqueteCompletoFormData | null>(null);
+
 
     const form = useForm<PaqueteCompletoFormData>({
         resolver: zodResolver(paqueteCompletoFormSchema as any),
@@ -55,17 +60,36 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
     });
 
     const onSubmit = async (data: PaqueteCompletoFormData) => {
-        setIsSubmitting(true);
-        const result = await registrarPaqueteAction({}, data);
+        setPendingData(data);
+        setConfirmModalOpen(true);
+    };
 
-        if (result.success) {
-            toast.success("Paquete registrado exitosamente!");
-            form.reset();
-            router.push("/dashboard/paquetes");
-        } else {
-            toast.error(result.error || "No se pudo registrar el paquete.");
+    const submitData = async (data: PaqueteCompletoFormData) => {
+        setIsSubmitting(true);
+        try {
+            const result = await registrarPaqueteAction({}, data);
+
+            if (result.success) {
+                toast.success("Paquete registrado exitosamente", {
+                    description: `El paquete de ${data.remitente.nombre_completo} ha sido procesado.`,
+                    icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                });
+                form.reset();
+                router.push("/dashboard/paquetes");
+            } else {
+                toast.error("Error al registrar", {
+                    description: result.error || "No se pudo registrar el paquete. Verifique los datos e intente nuevamente.",
+                    icon: <AlertCircle className="h-5 w-5 text-destructive" />
+                });
+            }
+        } catch (error) {
+            toast.error("Error inesperado", {
+                description: "Ocurrió un problema de conexión. Intente nuevamente."
+            });
+        } finally {
+            setIsSubmitting(false);
+            setConfirmModalOpen(false);
         }
-        setIsSubmitting(false);
     };
 
     const handleClientSelected = (type: "remitente" | "destinatario", clientId: number | undefined) => {
@@ -88,30 +112,47 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
 
     return (
         <FormProvider {...form}>
-            <div className="">
-                {/* ── Page Header ── */}
-                <div className="mb-6 flex items-start justify-between">
-                    <div>
-                        <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-                            <PackageOpen className="h-5 w-5 text-primary" />
-                            Registro de Paquetes
-                        </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Busque un cliente existente o complete sus datos para registrar uno nuevo automáticamente.
-                        </p>
+            <div className="w-full p-4 sm:p-6 pb-32 lg:pb-12 animate-in fade-in duration-500">
+
+                {/* ── Page Header (Enterprise Style) ── */}
+                <div className="mb-8 border-b pb-6">
+                    <button
+                        onClick={() => router.back()}
+                        className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 w-fit"
+                    >
+                        <div className="p-1 rounded-md bg-muted/50 group-hover:bg-muted transition-colors">
+                            <ArrowLeft className="h-4 w-4" />
+                        </div>
+                        Regresar al listado
+                    </button>
+
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-foreground">
+                                <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm border border-primary/10">
+                                    <PackageOpen className="h-6 w-6 text-primary" />
+                                </div>
+                                Nuevo Registro de Paquete
+                            </h1>
+                            <p className="mt-2 text-muted-foreground max-w-2xl text-sm md:text-base">
+                                Ingrese los detalles operativos del envío. Busque clientes existentes para autocompletar la información.
+                            </p>
+                        </div>
+                        {/* Indicador opcional de estado de formulario */}
+                        <div className="hidden md:flex text-sm text-muted-foreground bg-muted/40 px-4 py-2 rounded-full border">
+                            Formulario de Operaciones
+                        </div>
                     </div>
-
-
                 </div>
 
-                {/* ── Two-column layout ── */}
+                {/* ── Layout del Formulario ── */}
                 <form
                     id="paquete-form"
                     onSubmit={form.handleSubmit(onSubmit)}
-                    className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_740px]"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start"
                 >
-                    {/* ── LEFT COLUMN ── */}
-                    <div className="flex flex-col gap-4">
+                    {/* ── COLUMNA IZQUIERDA (Personas) ── */}
+                    <div className="flex flex-col gap-6 lg:col-span-6 xl:col-span-5">
                         <RemitenteSection
                             clientes={clientes}
                             handleClientSelected={handleClientSelected}
@@ -122,30 +163,51 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
                         />
                     </div>
 
-                    {/* ── RIGHT COLUMN ── */}
-                    <div className="flex flex-col gap-4">
+                    {/* ── COLUMNA DERECHA (Detalles y Pago) ── */}
+                    <div className="flex flex-col gap-6 lg:col-span-6 xl:col-span-7">
                         <TipoPaqueteSection />
                         <InformacionPagoSection />
-                        <div className="flex items-center gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => router.back()}
-                                disabled={isSubmitting}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                form="paquete-form"
-                                disabled={isSubmitting}
-                                className="min-w-[160px]"
-                            >
-                                {isSubmitting ? "Registrando..." : "Registrar Paquete"}
-                            </Button>
-                        </div>
                     </div>
                 </form>
+
+                {/* ── ACTION BAR (Sticky Móvil, Anclado Escritorio) ── */}
+                <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/85 backdrop-blur-md border-t shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:static lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:mt-10 lg:border-t-0 lg:pt-6">
+                    <div className="max-w-7xl mx-auto flex flex-col-reverse sm:flex-row justify-end gap-3 lg:border-t lg:pt-6">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => router.back()}
+                            disabled={isSubmitting}
+                            className="w-full sm:w-32 h-12 sm:h-11 font-medium"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="submit"
+                            form="paquete-form"
+                            disabled={isSubmitting}
+                            className="w-full sm:w-48 h-12 sm:h-11 font-medium shadow-md transition-all active:scale-[0.98]"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Procesando...
+                                </>
+                            ) : (
+                                "Registrar Paquete"
+                            )}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* ── Confirm Modal (Estilo Recibo Empresarial) ── */}
+                <PaqueteConfirmDialog
+                    open={confirmModalOpen}
+                    onOpenChange={setConfirmModalOpen}
+                    pendingData={pendingData}
+                    isSubmitting={isSubmitting}
+                    onConfirm={submitData}
+                />
             </div>
         </FormProvider>
     );
