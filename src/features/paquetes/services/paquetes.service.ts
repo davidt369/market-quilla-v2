@@ -63,7 +63,7 @@ export async function createPaquete(data: PaqueteInsert) {
     }
 }
 
-export async function createPaqueteCompletoTransaction(data: PaqueteCompletoFormData) {
+export async function createPaqueteCompletoTransaction(data: PaqueteCompletoFormData, usuarioId: number) {
     try {
         return await db.transaction(async (tx) => {
             // 1. Manejar Remitente
@@ -123,12 +123,44 @@ export async function createPaqueteCompletoTransaction(data: PaqueteCompletoForm
             const [paquete] = await tx.insert(tbpaquetes).values({
                 fk_id_remitente: remitenteId,
                 fk_id_destinatario: destinatarioId,
+                fk_id_usuario: usuarioId,
                 ubicacionAlmacen: data.ubicacionAlmacen,
                 tipoPaquete: data.tipoPaquete,
                 estadoPago: data.momentoPago === "al_registrar" ? "pagado" : "pendiente",
                 momentoPago: data.momentoPago as "al_registrar" | "al_entregar",
                 precioBase: data.precioBase?.toString() || "3.00",
             }).returning();
+
+            // 5. Registrar cobro en caja si es "al_registrar"
+            if (data.momentoPago === "al_registrar") {
+                if (!data.metodoPago) {
+                    throw new Error("Se requiere especificar un método de pago al registrar un paquete pagado al instante.");
+                }
+
+                // Buscar turno de caja activo
+                const turnoActivo = await tx.query.tbcajaTurnos.findFirst({
+                    where: (ct, { eq, and }) =>
+                        and(
+                            eq(ct.fk_id_usuario, usuarioId),
+                            eq(ct.cerrada, false)
+                        ),
+                });
+
+                if (!turnoActivo) {
+                    throw new Error("No hay una caja abierta para este usuario. Debe abrir caja primero.");
+                }
+
+                // Registrar movimiento en caja
+                await tx.insert(tbcajaMovimientos).values({
+                    fk_id_cajaTurno: turnoActivo.pk_id_cajaTurno,
+                    fk_id_usuario: usuarioId,
+                    fk_id_paquete: paquete.pk_id_paquete,
+                    tipoMovimiento: "ingreso",
+                    metodoPago: data.metodoPago,
+                    monto: data.precioBase?.toString() || "3.00",
+                    descripcion: `Cobro por registro de paquete TRK-${paquete.pk_id_paquete.toString().padStart(4, "0")}`,
+                });
+            }
 
             return paquete;
         });

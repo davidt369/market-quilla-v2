@@ -158,6 +158,8 @@ export const paqueteCompletoFormSchema = z.object({
         .number()
         .min(0, "El precio no puede ser negativo")
         .default(3.00),
+
+    metodoPago: z.enum(["efectivo", "qr"]).optional(),
 });
 
 export type PaqueteCompletoFormData = z.infer<typeof paqueteCompletoFormSchema>;

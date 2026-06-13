@@ -27,7 +27,15 @@ export async function registrarPaqueteAction(
             };
         }
 
-        const paquete = await createPaqueteCompletoTransaction(parsed.data);
+        const session = await auth();
+        if (!session?.user?.id) {
+            return {
+                error: "Debe iniciar sesión para registrar un paquete.",
+            };
+        }
+        const usuarioId = parseInt(session.user.id);
+
+        const paquete = await createPaqueteCompletoTransaction(parsed.data, usuarioId);
 
         revalidatePath("/dashboard/paquetes"); // Revalida la tabla/lista donde se muestren
 
