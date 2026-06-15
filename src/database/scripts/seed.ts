@@ -106,59 +106,59 @@ async function seedPaquetes(
   return db.insert(schema.tbpaquetes).values(values).returning();
 }
 
-async function seedCajaTurnos(usuarios: Array<{ pk_id_usuario: number }>) {
-  const values = Array.from({ length: 5 }, (_, index) => {
-    const isCerrada = index % 2 === 0;
+// async function seedCajaTurnos(usuarios: Array<{ pk_id_usuario: number }>) {
+//   const values = Array.from({ length: 5 }, (_, index) => {
+//     const isCerrada = index % 2 === 0;
 
-    return {
-      fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
-      fecha: faker.date.recent({ days: 5 }).toISOString().slice(0, 10),
-      horaApertura: faker.date.recent({ days: 5 }),
-      horaCierre: isCerrada ? faker.date.recent({ days: 1 }) : null,
-      montoInicial: faker.number
-        .float({ min: 100, max: 500, fractionDigits: 2 })
-        .toString(),
-      montoFinal: isCerrada
-        ? faker.number
-          .float({ min: 500, max: 2000, fractionDigits: 2 })
-          .toString()
-        : null,
-      cerrada: isCerrada,
-    };
-  });
+//     return {
+//       fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
+//       fecha: faker.date.recent({ days: 5 }).toISOString().slice(0, 10),
+//       horaApertura: faker.date.recent({ days: 5 }),
+//       horaCierre: isCerrada ? faker.date.recent({ days: 1 }) : null,
+//       montoInicial: faker.number
+//         .float({ min: 100, max: 500, fractionDigits: 2 })
+//         .toString(),
+//       montoFinal: isCerrada
+//         ? faker.number
+//           .float({ min: 500, max: 2000, fractionDigits: 2 })
+//           .toString()
+//         : null,
+//       cerrada: isCerrada,
+//     };
+//   });
 
-  return db.insert(schema.tbcajaTurnos).values(values).returning();
-}
+//   return db.insert(schema.tbcajaTurnos).values(values).returning();
+// }
 
-async function seedMovimientosCaja(
-  cajas: Array<{ pk_id_cajaTurno: number }>,
-  usuarios: Array<{ pk_id_usuario: number }>,
-  paquetes: Array<{ pk_id_paquete: number }>,
-) {
-  // Enums exactos
-  const tiposMovimiento = ["ingreso", "egreso"] as const;
-  const metodosPago = ["efectivo", "qr"] as const; // Adaptado para QR Simple
+// async function seedMovimientosCaja(
+//   cajas: Array<{ pk_id_cajaTurno: number }>,
+//   usuarios: Array<{ pk_id_usuario: number }>,
+//   paquetes: Array<{ pk_id_paquete: number }>,
+// ) {
+//   // Enums exactos
+//   const tiposMovimiento = ["ingreso", "egreso"] as const;
+//   const metodosPago = ["efectivo", "qr"] as const; // Adaptado para QR Simple
 
-  const values = Array.from({ length: 20 }, (_, index) => ({
-    fk_id_cajaTurno: cajas[index % cajas.length].pk_id_cajaTurno,
-    fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
-    fk_id_paquete:
-      index % 2 === 0 ? paquetes[index % paquetes.length].pk_id_paquete : null,
+//   const values = Array.from({ length: 20 }, (_, index) => ({
+//     fk_id_cajaTurno: cajas[index % cajas.length].pk_id_cajaTurno,
+//     fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
+//     fk_id_paquete:
+//       index % 2 === 0 ? paquetes[index % paquetes.length].pk_id_paquete : null,
 
-    tipoMovimiento: tiposMovimiento[index % tiposMovimiento.length],
-    metodoPago: metodosPago[index % metodosPago.length],
+//     tipoMovimiento: tiposMovimiento[index % tiposMovimiento.length],
+//     metodoPago: metodosPago[index % metodosPago.length],
 
-    monto: faker.number
-      .float({ min: 10, max: 250, fractionDigits: 2 })
-      .toString(),
-    descripcion:
-      index % 2 === 0
-        ? "Pago de envío de paquete"
-        : "Compra de material de escritorio",
-  }));
+//     monto: faker.number
+//       .float({ min: 10, max: 250, fractionDigits: 2 })
+//       .toString(),
+//     descripcion:
+//       index % 2 === 0
+//         ? "Pago de envío de paquete"
+//         : "Compra de material de escritorio",
+//   }));
 
-  return db.insert(schema.tbcajaMovimientos).values(values).returning();
-}
+//   return db.insert(schema.tbcajaMovimientos).values(values).returning();
+// }
 
 async function main() {
   try {
@@ -174,9 +174,7 @@ async function main() {
     console.log("Creando paquetes...");
     const paquetes = await seedPaquetes(usuarios, clientes);
 
-    console.log("Generando turnos de caja y movimientos financieros...");
-    const cajas = await seedCajaTurnos(usuarios);
-    await seedMovimientosCaja(cajas, usuarios, paquetes);
+
 
     console.log("✅ Seeder completado con éxito.");
   } catch (error) {
