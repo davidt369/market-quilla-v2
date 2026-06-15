@@ -65,7 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
         {
           title: "Caja",
-          url: `/caja`,
+          url: `/dashboard/caja`,
           icon: Money03Icon,
           permission: "registrar-caja",
         },
@@ -114,7 +114,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ]
 
   return (
-    <Sidebar className="border-r  backdrop-blur-lg" {...props}>
+    <Sidebar className="border-r backdrop-blur-lg" {...props}>
       {/* Header estilo SaaS moderno */}
       <SidebarHeader className="group-data-[collapsible=icon]:px-3 px-5 py-6 transition-all">
         <div className="flex items-center gap-3 select-none overflow-hidden">
