@@ -23,7 +23,7 @@ export default async function DashboardLayout({
       <AppSidebar />
       <SidebarInset>
         <AppHeader />
-        <main className="flex flex-1 flex-col gap-2 p-4 pb-28 sm:p-6 lg:p-8 bg-muted/30 md:pb-8">
+        <main className="flex flex-1 flex-col gap-4 p-4 pb-28 sm:p-6 md:gap-6 md:p-8 md:pb-8 lg:p-10 bg-muted/30 w-full max-w-screen-2xl mx-auto">
           {children}
         </main>
         <MobileTabBar />
