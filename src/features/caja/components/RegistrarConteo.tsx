@@ -41,6 +41,7 @@ import { calcularTotalDesglose } from "../lib/calculadora-utils";
 import { DEFAULT_DESGLOSE, fmt } from "../lib/caja.constants";
 import { DesgloseEfectivo } from "./DesgloseEfectivo";
 import { cn } from "@/shared/lib/utils";
+import { Textarea } from "@/shared/components/ui/textarea";
 
 export function RegistrarConteo({ saldoEsperado }: { saldoEsperado: number }) {
     const router = useRouter();
@@ -186,7 +187,7 @@ export function RegistrarConteo({ saldoEsperado }: { saldoEsperado: number }) {
                                                 </span>
                                             )}
                                         </Label>
-                                        <Input
+                                        <Textarea
                                             id="obs-arqueo"
                                             placeholder={
                                                 esSobrante ? "Ej: Cliente no reclamó su cambio..." :
@@ -194,7 +195,7 @@ export function RegistrarConteo({ saldoEsperado }: { saldoEsperado: number }) {
                                                         "Comentario opcional..."
                                             }
                                             value={field.state.value}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
+                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                                             className="bg-muted focus-visible:bg-background transition-colors"
                                         />
                                     </div>
