@@ -173,7 +173,9 @@ export const tbcajaTurnos = pgTable("tbcaja_turnos", {
   montoInicial: numeric("monto_inicial", { precision: 10, scale: 2 }).default(
     "0",
   ),
+  desgloseInicial: jsonb("desglose_inicial"),
   montoFinal: numeric("monto_final", { precision: 10, scale: 2 }),
+  desgloseFinal: jsonb("desglose_final"),
   cerrada: boolean("cerrada").default(false).notNull(),
 });
 
