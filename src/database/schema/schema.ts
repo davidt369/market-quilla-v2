@@ -95,9 +95,9 @@ export const tbpaquetes = pgTable(
       .references(() => tbclientes.pk_id_cliente, { onDelete: "restrict" }),
     fk_id_usuario: integer("fk_id_usuario").references(
       () => tbusuarios.pk_id_usuario,
-      { onDelete: "set null" },
+      { onDelete: "restrict" },
     ),
-    ubicacionAlmacen: varchar("ubicacion_almacen", { length: 50 }).notNull(),
+    ubicacionAlmacen: varchar("ubicacion_almacen", { length: 50 }).notNull().unique(),
     tipoPaquete: text("tipo_paquete").notNull(),
 
     estadoPago: estadoPagoEnum("estado_pago").default("pendiente").notNull(),
@@ -128,6 +128,10 @@ export const tbpaquetes = pgTable(
       // MEJORA: Índices para agilizar las búsquedas en el sistema
       index("idx_paquetes_ubicacion").on(table.ubicacionAlmacen),
       index("idx_paquetes_estado").on(table.estadoPaquete),
+      index("idx_paquetes_remitente").on(table.fk_id_remitente),
+      index("idx_paquetes_destinatario").on(table.fk_id_destinatario),
+      index("idx_paquetes_usuario").on(table.fk_id_usuario),
+      index("idx_paquetes_estado_pago").on(table.estadoPago),
     ]
   },
 );
@@ -177,6 +181,12 @@ export const tbcajaTurnos = pgTable("tbcaja_turnos", {
   montoFinal: numeric("monto_final", { precision: 10, scale: 2 }),
   desgloseFinal: jsonb("desglose_final"),
   cerrada: boolean("cerrada").default(false).notNull(),
+}, (table) => {
+  return [
+    index("idx_cajaturnos_usuario").on(table.fk_id_usuario),
+    index("idx_cajaturnos_fecha").on(table.fecha),
+    index("idx_cajaturnos_cerrada").on(table.cerrada),
+  ]
 });
 
 export const tbcajaMovimientos = pgTable("tbcaja_movimientos", {
@@ -188,17 +198,23 @@ export const tbcajaMovimientos = pgTable("tbcaja_movimientos", {
     .references(() => tbcajaTurnos.pk_id_cajaTurno, { onDelete: "restrict" }),
   fk_id_usuario: integer("fk_id_usuario").references(
     () => tbusuarios.pk_id_usuario,
-    { onDelete: "set null" },
+    { onDelete: "restrict" },
   ),
   fk_id_paquete: integer("fk_id_paquete").references(
     () => tbpaquetes.pk_id_paquete,
-    { onDelete: "set null" },
+    { onDelete: "restrict" },
   ),
   tipoMovimiento: tipoMovimientoEnum("tipo_movimiento").notNull(),
   metodoPago: metodoPagoEnum("metodo_pago").notNull(),
   monto: numeric("monto", { precision: 10, scale: 2 }).notNull(),
   descripcion: text("descripcion"),
   fecha: timestamp("fecha", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return [
+    index("idx_cajamov_cajaturno").on(table.fk_id_cajaTurno),
+    index("idx_cajamov_usuario").on(table.fk_id_usuario),
+    index("idx_cajamov_paquete").on(table.fk_id_paquete),
+  ]
 });
 
 export const tbauditoria = pgTable("tbauditoria", {
@@ -207,7 +223,7 @@ export const tbauditoria = pgTable("tbauditoria", {
     .generatedAlwaysAsIdentity(),
   fk_id_usuario: integer("fk_id_usuario").references(
     () => tbusuarios.pk_id_usuario,
-    { onDelete: "set null" },
+    { onDelete: "restrict" },
   ),
   accion: varchar("accion", { length: 20 }).notNull(),
   entidad: varchar("entidad", { length: 100 }).notNull(),
@@ -216,6 +232,12 @@ export const tbauditoria = pgTable("tbauditoria", {
   newValues: jsonb("new_values"),
   ip: varchar("ip", { length: 45 }),
   fecha: timestamp("fecha", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return [
+    index("idx_auditoria_usuario").on(table.fk_id_usuario),
+    index("idx_auditoria_entidad_id").on(table.entidad, table.entidadId),
+    index("idx_auditoria_fecha").on(table.fecha),
+  ]
 });
 
 // --- Zod Validation Schemas & Inferred Types ---

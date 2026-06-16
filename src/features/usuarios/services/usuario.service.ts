@@ -1,30 +1,21 @@
-import { db } from "@/database";
+import { db, auditable } from "@/database";
 import { tbusuarios } from "@/database/schema/schema";
 import { UsuarioInsert } from "../schemas/usuario.schema";
 
 import { eq } from "drizzle-orm";
 
-export async function createUsuario(
-    data: UsuarioInsert
-) {
+export const createUsuario = auditable(async (tx, data: UsuarioInsert) => {
     try {
-        // Validación previa
-        const usuarioExistente =
-            await db.query.tbusuarios.findFirst({
-                where: (u, { eq }) =>
-                    eq(u.nombre_usuario, data.nombre_usuario),
-                columns: {
-                    pk_id_usuario: true,
-                },
-            });
+        const usuarioExistente = await tx.query.tbusuarios.findFirst({
+            where: (u, { eq }) => eq(u.nombre_usuario, data.nombre_usuario),
+            columns: { pk_id_usuario: true },
+        });
 
         if (usuarioExistente) {
-            throw new Error(
-                "El nombre de usuario ya existe"
-            );
+            throw new Error("El nombre de usuario ya existe");
         }
 
-        const [usuario] = await db
+        const [newUsuario] = await tx
             .insert(tbusuarios)
             .values(data)
             .returning({
@@ -34,7 +25,7 @@ export async function createUsuario(
                 rol: tbusuarios.rol,
             });
 
-        return usuario;
+        return newUsuario;
     } catch (error: any) {
         // PostgreSQL unique constraint
         const constraint =
@@ -63,22 +54,18 @@ export async function createUsuario(
 
 
 
-        throw new Error(
-            "Ocurrió un error al crear el usuario"
-        );
+        throw new Error("Ocurrió un error al crear el usuario");
     }
-}
-export async function updateUsuario(
-    id: number,
-    data: Partial<UsuarioInsert>
-) {
+});
+
+export const updateUsuario = auditable(async (tx, id: number, data: Partial<UsuarioInsert>) => {
     try {
-        const [usuario] = await db
+        const [updatedUsuario] = await tx
             .update(tbusuarios)
             .set(data)
             .where(eq(tbusuarios.pk_id_usuario, id))
             .returning();
-        return usuario;
+        return updatedUsuario;
     } catch (error: any) {
         if (error.code === "23505") {
             throw new Error(
@@ -87,16 +74,16 @@ export async function updateUsuario(
         }
         throw error;
     }
-}
+});
 
-export async function deleteUsuario(id: number) {
-    const [usuario] = await db
+export const deleteUsuario = auditable(async (tx, id: number) => {
+    const [deletedUsuario] = await tx
         .update(tbusuarios)
         .set({ deletedAt: new Date() })
         .where(eq(tbusuarios.pk_id_usuario, id))
         .returning();
-    return usuario;
-}
+    return deletedUsuario;
+});
 
 export async function getUsuarios() {
     const usuarios = await db.query.tbusuarios.findMany({

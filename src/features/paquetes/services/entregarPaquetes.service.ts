@@ -1,5 +1,5 @@
 
-import { db } from "@/database";
+import { db, auditable } from "@/database";
 import { PaqueteInsert, PaqueteUpdate, PaqueteCompletoFormData } from "../schemas/paquetes.schema";
 import { tbpaquetes, tbclientes, tbcajaTurnos, tbcajaMovimientos } from "@/database/schema/schema";
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
@@ -14,14 +14,14 @@ import { handleDbErrorPaquete } from "./paquetes.service";
 
 
 
-export async function entregarPaquete(
+export const entregarPaquete = auditable(async (
+    tx,
     paqueteId: number,
     usuarioId: number,
     metodoPago?: "efectivo" | "qr",
     fotoEntregadoUrl?: string
-) {
+) => {
     try {
-        return await db.transaction(async (tx) => {
             // 1. Obtener paquete
             const paquete = await tx.query.tbpaquetes.findFirst({
                 where: and(
@@ -95,8 +95,7 @@ export async function entregarPaquete(
 
                 return updated;
             }
-        });
     } catch (error: any) {
         handleDbErrorPaquete(error);
     }
-}
+});

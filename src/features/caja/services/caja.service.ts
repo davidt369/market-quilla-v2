@@ -1,4 +1,4 @@
-import { db } from "@/database";
+import { db, auditable } from "@/database";
 import { tbcajaTurnos, tbcajaMovimientos, tbauditoria } from "@/database/schema/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 
@@ -104,10 +104,10 @@ export async function getCajaActiva(usuarioId: number) {
     }
 }
 
-export async function abrirCaja(usuarioId: number, montoInicial: number, desgloseInicial?: any) {
+export const abrirCaja = auditable(async (tx, usuarioId: number, montoInicial: number, desgloseInicial?: any) => {
     try {
         // Verificar que no haya una caja abierta
-        const activa = await db.query.tbcajaTurnos.findFirst({
+        const activa = await tx.query.tbcajaTurnos.findFirst({
             where: (ct, { eq, and }) => and(eq(ct.fk_id_usuario, usuarioId), eq(ct.cerrada, false))
         });
 
@@ -115,7 +115,7 @@ export async function abrirCaja(usuarioId: number, montoInicial: number, desglos
             throw new Error("El usuario ya tiene un turno de caja abierto.");
         }
 
-        const [turno] = await db.insert(tbcajaTurnos).values({
+        const [newTurno] = await tx.insert(tbcajaTurnos).values({
             fk_id_usuario: usuarioId,
             fecha: new Date().toISOString().split('T')[0], // yyyy-mm-dd
             montoInicial: montoInicial.toString(),
@@ -123,23 +123,24 @@ export async function abrirCaja(usuarioId: number, montoInicial: number, desglos
             cerrada: false,
         }).returning();
 
-        await logAuditoria(usuarioId, "APERTURA_CAJA", "tbcaja_turnos", turno.pk_id_cajaTurno, null, { montoInicial, desgloseInicial });
+        await logAuditoria(usuarioId, "APERTURA_CAJA", "tbcaja_turnos", newTurno.pk_id_cajaTurno, null, { montoInicial, desgloseInicial });
 
-        return turno;
+        return newTurno;
     } catch (error: any) {
         throw new Error(error.message || "Error al abrir caja");
     }
-}
+});
 
-export async function registrarMovimientoManual(
+export const registrarMovimientoManual = auditable(async (
+    tx,
     usuarioId: number, 
     tipoMovimiento: "ingreso" | "egreso",
     metodoPago: "efectivo" | "qr",
     monto: number,
     descripcion: string
-) {
+) => {
     try {
-        const activa = await db.query.tbcajaTurnos.findFirst({
+        const activa = await tx.query.tbcajaTurnos.findFirst({
             where: (ct, { eq, and }) => and(eq(ct.fk_id_usuario, usuarioId), eq(ct.cerrada, false))
         });
 
@@ -147,7 +148,7 @@ export async function registrarMovimientoManual(
             throw new Error("No hay un turno de caja abierto.");
         }
 
-        const [mov] = await db.insert(tbcajaMovimientos).values({
+        const [newMov] = await tx.insert(tbcajaMovimientos).values({
             fk_id_cajaTurno: activa.pk_id_cajaTurno,
             fk_id_usuario: usuarioId,
             tipoMovimiento,
@@ -156,13 +157,13 @@ export async function registrarMovimientoManual(
             descripcion,
         }).returning();
 
-        return mov;
+        return newMov;
     } catch (error: any) {
         throw new Error(error.message || "Error al registrar movimiento");
     }
-}
+});
 
-export async function cerrarCaja(usuarioId: number, montoFinalDeclarado: number, desgloseFinal?: any, observacion?: string) {
+export const cerrarCaja = auditable(async (tx, usuarioId: number, montoFinalDeclarado: number, desgloseFinal?: any, observacion?: string) => {
     try {
         const activa = await getCajaActiva(usuarioId);
 
@@ -173,7 +174,7 @@ export async function cerrarCaja(usuarioId: number, montoFinalDeclarado: number,
         const { efectivoEsperado, qrEsperado } = activa.resumen;
         const diferenciaEfectivo = montoFinalDeclarado - efectivoEsperado;
 
-        const [turnoCerrado] = await db.update(tbcajaTurnos)
+        const [updatedTurno] = await tx.update(tbcajaTurnos)
             .set({
                 cerrada: true,
                 horaCierre: new Date(),
@@ -188,7 +189,7 @@ export async function cerrarCaja(usuarioId: number, montoFinalDeclarado: number,
             usuarioId, 
             "CIERRE_CAJA", 
             "tbcaja_turnos", 
-            turnoCerrado.pk_id_cajaTurno, 
+            updatedTurno.pk_id_cajaTurno, 
             { efectivoEsperado, qrEsperado }, 
             { montoFinalDeclarado, desgloseFinal, diferencia: diferenciaEfectivo, observacion }
         );
@@ -199,17 +200,17 @@ export async function cerrarCaja(usuarioId: number, montoFinalDeclarado: number,
                 usuarioId,
                 "DESCUADRE_CAJA",
                 "tbcaja_turnos",
-                turnoCerrado.pk_id_cajaTurno,
+                updatedTurno.pk_id_cajaTurno,
                 { esperado: efectivoEsperado, declarado: montoFinalDeclarado },
                 { diferencia: diferenciaEfectivo, observacion }
             );
         }
 
-        return { turno: turnoCerrado, diferencia: diferenciaEfectivo, saldoEsperado: efectivoEsperado };
+        return { turno: updatedTurno, diferencia: diferenciaEfectivo, saldoEsperado: efectivoEsperado };
     } catch (error: any) {
         throw new Error(error.message || "Error al cerrar caja");
     }
-}
+});
 
 export async function realizarArqueo(
     usuarioId: number,

@@ -1,4 +1,4 @@
-import { db } from "@/database";
+import { db, auditable } from "@/database";
 import { PaqueteInsert, PaqueteUpdate, PaqueteCompletoFormData } from "../schemas/paquetes.schema";
 import { tbpaquetes, tbclientes, tbcajaTurnos, tbcajaMovimientos } from "@/database/schema/schema";
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
@@ -18,10 +18,10 @@ export function handleDbErrorPaquete(error: any): never {
     throw new Error(error.message || "Error interno al procesar la operación con paquetes.");
 }
 
-export async function createPaquete(data: PaqueteInsert) {
+export const createPaquete = auditable(async (tx, data: PaqueteInsert) => {
     try {
         if (data.ubicacionAlmacen) {
-            const paqueteExistente = await db.query.tbpaquetes.findFirst({
+            const paqueteExistente = await tx.query.tbpaquetes.findFirst({
                 where: (p, { eq, and, isNull }) =>
                     and(
                         eq(p.ubicacionAlmacen, data.ubicacionAlmacen!),
@@ -44,7 +44,7 @@ export async function createPaquete(data: PaqueteInsert) {
             data.momentoPago = "al_entregar";
         }
 
-        const [paquete] = await db
+        const [newPaquete] = await tx
             .insert(tbpaquetes)
             .values(data)
             .returning({
@@ -57,15 +57,14 @@ export async function createPaquete(data: PaqueteInsert) {
                 fotoEntregadoUrl: tbpaquetes.fotoEntregadoUrl,
             });
 
-        return paquete;
+        return newPaquete;
     } catch (error: any) {
         handleDbErrorPaquete(error);
     }
-}
+});
 
-export async function createPaqueteCompletoTransaction(data: PaqueteCompletoFormData, usuarioId: number) {
+export const createPaqueteCompletoTransaction = auditable(async (tx, data: PaqueteCompletoFormData, usuarioId: number) => {
     try {
-        return await db.transaction(async (tx) => {
             // 1. Manejar Remitente
             let remitenteId = data.remitente.pk_id_cliente;
             if (remitenteId) {
@@ -162,12 +161,11 @@ export async function createPaqueteCompletoTransaction(data: PaqueteCompletoForm
                 });
             }
 
-            return paquete;
-        });
+        return paquete;
     } catch (error: any) {
         handleDbErrorPaquete(error);
     }
-}
+});
 
 export async function getPaquetes({
     page = 1,
@@ -258,7 +256,7 @@ export async function getPaqueteById(id: number) {
     }
 }
 
-export async function updatePaquete(id: number, data: PaqueteUpdate) {
+export const updatePaquete = auditable(async (tx, id: number, data: PaqueteUpdate) => {
     try {
         const current = await getPaqueteById(id);
 
@@ -270,7 +268,7 @@ export async function updatePaquete(id: number, data: PaqueteUpdate) {
         }
 
         if (data.ubicacionAlmacen && data.ubicacionAlmacen !== current.ubicacionAlmacen) {
-            const paqueteExistente = await db.query.tbpaquetes.findFirst({
+            const paqueteExistente = await tx.query.tbpaquetes.findFirst({
                 where: (p, { eq, and, isNull }) =>
                     and(
                         eq(p.ubicacionAlmacen, data.ubicacionAlmacen!),
@@ -283,7 +281,7 @@ export async function updatePaquete(id: number, data: PaqueteUpdate) {
             }
         }
 
-        const [updated] = await db
+        const [updated] = await tx
             .update(tbpaquetes)
             .set(data)
             .where(and(eq(tbpaquetes.pk_id_paquete, id), isNull(tbpaquetes.deletedAt)))
@@ -297,11 +295,11 @@ export async function updatePaquete(id: number, data: PaqueteUpdate) {
     } catch (error: any) {
         handleDbErrorPaquete(error);
     }
-}
+});
 
-export async function deletePaquete(id: number) {
+export const deletePaquete = auditable(async (tx, id: number) => {
     try {
-        const [deleted] = await db
+        const [deleted] = await tx
             .update(tbpaquetes)
             .set({ deletedAt: new Date() })
             .where(and(eq(tbpaquetes.pk_id_paquete, id), isNull(tbpaquetes.deletedAt)))
@@ -315,5 +313,5 @@ export async function deletePaquete(id: number) {
     } catch (error: any) {
         handleDbErrorPaquete(error);
     }
-}
+});
 

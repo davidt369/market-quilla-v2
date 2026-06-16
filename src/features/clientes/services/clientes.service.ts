@@ -1,29 +1,23 @@
-import { db } from "@/database"
+import { db, auditable } from "@/database"
 import { tbclientes } from "@/database/schema/schema"
 import { ClienteInsert } from "../schemas/clientes.schema"
 
 import { eq, isNull, asc } from "drizzle-orm"
 
-export async function createCliente(
-  data: ClienteInsert
-) {
+export const createCliente = auditable(async (tx, data: ClienteInsert) => {
   try {
     if (data.ci_o_cel) {
-      const clienteExistente =
-        await db.query.tbclientes.findFirst({
-          where: (c, { eq }) =>
-            eq(c.ci_o_cel, data.ci_o_cel!),
-          columns: {
-            pk_id_cliente: true,
-          },
-        });
+      const clienteExistente = await tx.query.tbclientes.findFirst({
+        where: (c, { eq }) => eq(c.ci_o_cel, data.ci_o_cel!),
+        columns: { pk_id_cliente: true },
+      });
 
       if (clienteExistente) {
         throw new Error("El celular ya existe");
       }
     }
 
-    const [cliente] = await db
+    const [newCliente] = await tx
       .insert(tbclientes)
       .values(data)
       .returning({
@@ -33,7 +27,7 @@ export async function createCliente(
         ci_o_cel: tbclientes.ci_o_cel,
       });
 
-    return cliente;
+    return newCliente;
   } catch (error: any) {
     // PostgreSQL unique constraint (para CI únicos si es necesario)
     const constraint =
@@ -53,35 +47,32 @@ export async function createCliente(
 
     throw new Error("El cliente no se puede registrar, El CI/celular ya existe ");
   }
-}
+});
 
-export async function updateCliente(
-  id: number,
-  data: Partial<ClienteInsert>
-) {
+export const updateCliente = auditable(async (tx, id: number, data: Partial<ClienteInsert>) => {
   try {
-    const [cliente] = await db
+    const [updatedCliente] = await tx
       .update(tbclientes)
       .set(data)
       .where(eq(tbclientes.pk_id_cliente, id))
       .returning();
-    return cliente;
+    return updatedCliente;
   } catch (error: any) {
     if (error.code === "23505") {
       throw new Error("El cliente ya existe");
     }
     throw error;
   }
-}
+});
 
-export async function deleteCliente(id: number) {
-  const [cliente] = await db
+export const deleteCliente = auditable(async (tx, id: number) => {
+  const [deletedCliente] = await tx
     .update(tbclientes)
     .set({ deletedAt: new Date() })
     .where(eq(tbclientes.pk_id_cliente, id))
     .returning();
-  return cliente;
-}
+  return deletedCliente;
+});
 
 export async function getClientes() {
   return await db
