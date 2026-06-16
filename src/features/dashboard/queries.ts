@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/database";
 import { tbpaquetes, tbcajaMovimientos, tbcajaTurnos } from "@/database/schema/schema";
-import { and, eq, gte, lte, sum, sql } from "drizzle-orm";
+import { and, eq, gte, lte, sum, sql, desc } from "drizzle-orm";
 import { startOfDay, endOfDay } from "date-fns";
 
 export async function getDashboardMetrics(userId: string) {
@@ -90,6 +90,26 @@ export async function getDashboardMetrics(userId: string) {
     )
     .limit(1);
 
+  // 8. Cobros pendientes
+  const [cobrosPendientes] = await db
+    .select({ total: sum(tbpaquetes.precioBase) })
+    .from(tbpaquetes)
+    .where(eq(tbpaquetes.estadoPago, 'pendiente'));
+
+  // 9. Últimos movimientos
+  const ultimosMovimientos = await db
+    .select({
+      id: tbcajaMovimientos.pk_id_movimiento,
+      tipo: tbcajaMovimientos.tipoMovimiento,
+      metodo: tbcajaMovimientos.metodoPago,
+      monto: tbcajaMovimientos.monto,
+      descripcion: tbcajaMovimientos.descripcion,
+      fecha: tbcajaMovimientos.fecha,
+    })
+    .from(tbcajaMovimientos)
+    .orderBy(desc(tbcajaMovimientos.fecha))
+    .limit(5);
+
   return {
     paquetesHoy: paquetesHoy?.count || 0,
     paquetesEntregadosHoy: paquetesEntregadosHoy?.count || 0,
@@ -101,5 +121,7 @@ export async function getDashboardMetrics(userId: string) {
       return acc;
     }, { efectivo: 0, qr: 0 }),
     cajaActual: cajaActual || null,
+    cobrosPendientes: Number(cobrosPendientes?.total || 0),
+    ultimosMovimientos,
   };
 }
