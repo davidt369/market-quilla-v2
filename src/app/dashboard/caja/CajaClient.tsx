@@ -99,7 +99,7 @@ function CajaAbiertaView({
                     </div>
                 </CardContent>
             </Card>
-            <RegistrarConteo saldoEsperado={resumen.saldoEsperado} />
+            <RegistrarConteo resumen={resumen} />
         </div>
     );
 }

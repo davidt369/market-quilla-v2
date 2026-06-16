@@ -52,7 +52,7 @@ export function DesgloseEfectivo({
                 </CardHeader>
 
                 {/* 2 y 3. Tabla y Contenido usando componentes nativos de shadcn */}
-                <CardContent className="p-0 overflow-y-auto max-h-[320px]">
+                <CardContent className="p-0">
                     <Table>
                         <TableHeader className="bg-card sticky top-0 z-10 shadow-sm">
                             <TableRow>
