@@ -5,7 +5,17 @@ export type DesgloseType = {
 
 export interface CajaActivaResumen {
     fondoInicial: number;
-    ventasEfectivo: number;
-    totalEgresos: number;
-    saldoEsperado: number;
+    
+    // Efectivo
+    ingresosEfectivo: number;
+    egresosEfectivo: number;
+    efectivoEsperado: number;
+    
+    // QR
+    ingresosQR: number;
+    egresosQR: number;
+    qrEsperado: number;
+    
+    // Totales
+    totalSistema: number;
 }

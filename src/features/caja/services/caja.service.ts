@@ -59,30 +59,43 @@ export async function getCajaActiva(usuarioId: number) {
             orderBy: [desc(tbcajaMovimientos.fecha)],
         });
 
-        const ventasEfectivo = movimientos
+        const ingresosEfectivo = movimientos
             .filter((m) => m.tipoMovimiento === "ingreso" && m.metodoPago === "efectivo")
             .reduce((sum, m) => sum + Number(m.monto), 0);
 
-        const pagosQR = movimientos
+        const ingresosQR = movimientos
             .filter((m) => m.tipoMovimiento === "ingreso" && m.metodoPago === "qr")
             .reduce((sum, m) => sum + Number(m.monto), 0);
 
-        const totalEgresos = movimientos
-            .filter((m) => m.tipoMovimiento === "egreso")
+        const egresosEfectivo = movimientos
+            .filter((m) => m.tipoMovimiento === "egreso" && m.metodoPago === "efectivo")
             .reduce((sum, m) => sum + Number(m.monto), 0);
 
-        const saldoEsperado = Number(turno.montoInicial) + ventasEfectivo - totalEgresos; // Efectivo en gaveta
-        const totalSistema = saldoEsperado + pagosQR;
+        const egresosQR = movimientos
+            .filter((m) => m.tipoMovimiento === "egreso" && m.metodoPago === "qr")
+            .reduce((sum, m) => sum + Number(m.monto), 0);
+
+        const efectivoEsperado = Number(turno.montoInicial) + ingresosEfectivo - egresosEfectivo; // 💵 Lo que debe haber en la gaveta
+        const qrEsperado = ingresosQR - egresosQR; // 📲 Lo que debe estar en el banco/pasarela
+        const totalSistema = efectivoEsperado + qrEsperado;
 
         return {
             ...turno,
             movimientos,
             resumen: {
                 fondoInicial: Number(turno.montoInicial),
-                ventasEfectivo,
-                pagosQR,
-                totalEgresos,
-                saldoEsperado,
+                
+                // Efectivo
+                ingresosEfectivo,
+                egresosEfectivo,
+                efectivoEsperado,
+                
+                // QR
+                ingresosQR,
+                egresosQR,
+                qrEsperado,
+                
+                // Totales
                 totalSistema,
             }
         };
@@ -157,8 +170,8 @@ export async function cerrarCaja(usuarioId: number, montoFinalDeclarado: number,
             throw new Error("No hay un turno de caja abierto para cerrar.");
         }
 
-        const saldoEsperado = activa.resumen.saldoEsperado;
-        const diferencia = montoFinalDeclarado - saldoEsperado;
+        const { efectivoEsperado, qrEsperado } = activa.resumen;
+        const diferenciaEfectivo = montoFinalDeclarado - efectivoEsperado;
 
         const [turnoCerrado] = await db.update(tbcajaTurnos)
             .set({
@@ -176,23 +189,23 @@ export async function cerrarCaja(usuarioId: number, montoFinalDeclarado: number,
             "CIERRE_CAJA", 
             "tbcaja_turnos", 
             turnoCerrado.pk_id_cajaTurno, 
-            { saldoEsperado }, 
-            { montoFinalDeclarado, desgloseFinal, diferencia, observacion }
+            { efectivoEsperado, qrEsperado }, 
+            { montoFinalDeclarado, desgloseFinal, diferencia: diferenciaEfectivo, observacion }
         );
 
-        if (diferencia !== 0) {
+        if (diferenciaEfectivo !== 0) {
             // Registrar auditoría específica de descuadre
             await logAuditoria(
                 usuarioId,
                 "DESCUADRE_CAJA",
                 "tbcaja_turnos",
                 turnoCerrado.pk_id_cajaTurno,
-                { esperado: saldoEsperado, declarado: montoFinalDeclarado },
-                { diferencia, observacion }
+                { esperado: efectivoEsperado, declarado: montoFinalDeclarado },
+                { diferencia: diferenciaEfectivo, observacion }
             );
         }
 
-        return { turno: turnoCerrado, diferencia, saldoEsperado };
+        return { turno: turnoCerrado, diferencia: diferenciaEfectivo, saldoEsperado: efectivoEsperado };
     } catch (error: any) {
         throw new Error(error.message || "Error al cerrar caja");
     }
@@ -211,8 +224,10 @@ export async function realizarArqueo(
             throw new Error("No hay un turno de caja abierto para arquear.");
         }
 
-        const saldoEsperado = activa.resumen.saldoEsperado;
-        const diferencia = montoDeclarado - saldoEsperado;
+        const { efectivoEsperado, qrEsperado } = activa.resumen;
+        const diferenciaEfectivo = montoDeclarado - efectivoEsperado;
+        const estadoArqueo = diferenciaEfectivo === 0 ? "CUADRADO" : 
+                             diferenciaEfectivo > 0 ? "SOBRANTE" : "FALTANTE";
 
         // Registrar auditoría del arqueo
         await logAuditoria(
@@ -220,11 +235,24 @@ export async function realizarArqueo(
             "ARQUEO_CAJA",
             "tbcaja_turnos",
             activa.pk_id_cajaTurno,
-            { saldoEsperado },
-            { montoDeclarado, desglose, diferencia, observacion }
+            { efectivoEsperado, qrEsperado },
+            { 
+                montoDeclarado, 
+                desglose, 
+                diferenciaEfectivo, 
+                estadoArqueo,
+                observacion 
+            }
         );
 
-        return { turno: activa.pk_id_cajaTurno, diferencia, saldoEsperado, montoDeclarado };
+        return { 
+            turno: activa.pk_id_cajaTurno, 
+            estado: estadoArqueo,
+            diferenciaEfectivo, 
+            efectivoEsperado, 
+            montoDeclarado,
+            observacion: observacion || null
+        };
     } catch (error: any) {
         throw new Error(error.message || "Error al realizar el arqueo de caja");
     }
