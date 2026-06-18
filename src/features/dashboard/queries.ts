@@ -49,11 +49,13 @@ export async function getDashboardMetrics(userId: string) {
   const [ingresosHoy] = await db
     .select({ total: sum(tbcajaMovimientos.monto) })
     .from(tbcajaMovimientos)
+    .leftJoin(tbpaquetes, eq(tbcajaMovimientos.fk_id_paquete, tbpaquetes.pk_id_paquete))
     .where(
       and(
         eq(tbcajaMovimientos.tipoMovimiento, 'ingreso'),
         gte(tbcajaMovimientos.fecha, todayStart),
-        lte(tbcajaMovimientos.fecha, todayEnd)
+        lte(tbcajaMovimientos.fecha, todayEnd),
+        sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
       )
     );
 
@@ -61,11 +63,13 @@ export async function getDashboardMetrics(userId: string) {
   const [egresosHoy] = await db
     .select({ total: sum(tbcajaMovimientos.monto) })
     .from(tbcajaMovimientos)
+    .leftJoin(tbpaquetes, eq(tbcajaMovimientos.fk_id_paquete, tbpaquetes.pk_id_paquete))
     .where(
       and(
         eq(tbcajaMovimientos.tipoMovimiento, 'egreso'),
         gte(tbcajaMovimientos.fecha, todayStart),
-        lte(tbcajaMovimientos.fecha, todayEnd)
+        lte(tbcajaMovimientos.fecha, todayEnd),
+        sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
       )
     );
 
@@ -76,11 +80,13 @@ export async function getDashboardMetrics(userId: string) {
       total: sum(tbcajaMovimientos.monto),
     })
     .from(tbcajaMovimientos)
+    .leftJoin(tbpaquetes, eq(tbcajaMovimientos.fk_id_paquete, tbpaquetes.pk_id_paquete))
     .where(
       and(
         eq(tbcajaMovimientos.tipoMovimiento, 'ingreso'),
         gte(tbcajaMovimientos.fecha, todayStart),
-        lte(tbcajaMovimientos.fecha, todayEnd)
+        lte(tbcajaMovimientos.fecha, todayEnd),
+        sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
       )
     )
     .groupBy(tbcajaMovimientos.metodoPago);
@@ -119,6 +125,10 @@ export async function getDashboardMetrics(userId: string) {
       fecha: tbcajaMovimientos.fecha,
     })
     .from(tbcajaMovimientos)
+    .leftJoin(tbpaquetes, eq(tbcajaMovimientos.fk_id_paquete, tbpaquetes.pk_id_paquete))
+    .where(
+      sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
+    )
     .orderBy(desc(tbcajaMovimientos.fecha))
     .limit(5);
 

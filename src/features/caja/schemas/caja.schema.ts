@@ -45,6 +45,9 @@ export const cierreCajaSchema = z.object({
     montoFinalDeclarado: z.number()
         .min(0, "El monto final no puede ser negativo")
         .default(0),
+    montoQrDeclarado: z.number()
+        .min(0, "El monto QR no puede ser negativo")
+        .default(0),
     desgloseFinal: desgloseMonedasSchema.optional(),
     observacionDescuadre: z.string().optional(),
 });

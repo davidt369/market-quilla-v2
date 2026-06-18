@@ -65,6 +65,19 @@ export const createPaquete = auditable(async (tx, data: PaqueteInsert) => {
 
 export const createPaqueteCompletoTransaction = auditable(async (tx, data: PaqueteCompletoFormData, usuarioId: number) => {
     try {
+            // 0. Validar Caja Abierta
+            const turnoActivo = await tx.query.tbcajaTurnos.findFirst({
+                where: (ct, { eq, and }) =>
+                    and(
+                        eq(ct.fk_id_usuario, usuarioId),
+                        eq(ct.cerrada, false)
+                    ),
+            });
+
+            if (!turnoActivo) {
+                throw new Error("Debe tener una caja abierta para poder registrar paquetes.");
+            }
+
             // 1. Manejar Remitente
             let remitenteId = data.remitente.pk_id_cliente;
             if (remitenteId) {
@@ -134,19 +147,6 @@ export const createPaqueteCompletoTransaction = auditable(async (tx, data: Paque
             if (data.momentoPago === "al_registrar") {
                 if (!data.metodoPago) {
                     throw new Error("Se requiere especificar un método de pago al registrar un paquete pagado al instante.");
-                }
-
-                // Buscar turno de caja activo
-                const turnoActivo = await tx.query.tbcajaTurnos.findFirst({
-                    where: (ct, { eq, and }) =>
-                        and(
-                            eq(ct.fk_id_usuario, usuarioId),
-                            eq(ct.cerrada, false)
-                        ),
-                });
-
-                if (!turnoActivo) {
-                    throw new Error("No hay una caja abierta para este usuario. Debe abrir caja primero.");
                 }
 
                 // Registrar movimiento en caja

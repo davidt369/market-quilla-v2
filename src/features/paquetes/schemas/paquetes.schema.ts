@@ -35,8 +35,6 @@ export const paqueteListSchema = z.object({
     estadoPago: z.enum([
         "pendiente",
         "pagado",
-        "parcial",
-        "anulado",
     ]),
 
     momentoPago: z.enum([
@@ -46,10 +44,7 @@ export const paqueteListSchema = z.object({
 
     estadoPaquete: z.enum([
         "registrado",
-        "en_almacen",
         "entregado",
-        "devuelto",
-        "perdido",
     ]),
 
     fechaHoraRegistro: z.date(),

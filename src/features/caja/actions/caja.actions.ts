@@ -116,6 +116,7 @@ export async function cerrarCajaAction(
         const resultado = await cerrarCaja(
             usuarioId, 
             parsed.data.montoFinalDeclarado, 
+            parsed.data.montoQrDeclarado,
             parsed.data.desgloseFinal,
             parsed.data.observacionDescuadre
         );

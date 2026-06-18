@@ -54,6 +54,7 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
     const form = useForm({
         defaultValues: {
             desglose: { ...DEFAULT_DESGLOSE },
+            montoQrDeclarado: 0,
             observacion: "",
         },
         onSubmit: async () => {
@@ -62,6 +63,7 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
     });
 
     const desglose = useStore(form.store, (state) => state.values.desglose);
+    const montoQrDeclarado = useStore(form.store, (state) => state.values.montoQrDeclarado);
     const observacion = useStore(form.store, (state) => state.values.observacion);
     const totalContado = calcularTotalDesglose(desglose as any);
     const diferencia = totalContado - resumen.efectivoEsperado;
@@ -97,6 +99,7 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
         startTransition(async () => {
             const res = await cerrarCajaAction({}, {
                 montoFinalDeclarado: totalContado,
+                montoQrDeclarado: Number(montoQrDeclarado),
                 desgloseFinal: desglose as any,
                 observacionDescuadre: observacion,
             });
@@ -151,10 +154,25 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
                         </h4>
                     </CardHeader>
                     <CardContent className="p-4 flex flex-col justify-center text-sm flex-1">
-                        <p className="text-muted-foreground leading-relaxed">
-                            Monto cobrado mediante pasarelas y transferencias.
-                            Conciliar únicamente con el reporte del banco, no requiere conteo físico.
-                        </p>
+                        <form.Field
+                            name="montoQrDeclarado"
+                            children={(field: any) => (
+                                <div className="space-y-2">
+                                    <Label className="text-muted-foreground font-semibold">Monto Banco / Pasarela</Label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.10"
+                                        placeholder="Monto en banco..."
+                                        value={field.state.value || ""}
+                                        onChange={(e) => field.handleChange(Number(e.target.value))}
+                                    />
+                                    <p className="text-[10px] text-muted-foreground leading-tight">
+                                        Ingresa el monto exacto verificado en tu cuenta bancaria o reporte de pasarela.
+                                    </p>
+                                </div>
+                            )}
+                        />
                     </CardContent>
                 </Card>
 
