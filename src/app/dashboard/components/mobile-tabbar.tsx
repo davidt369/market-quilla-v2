@@ -12,38 +12,58 @@ import {
 } from "@hugeicons/core-free-icons"
 
 import { cn } from "@/shared/lib/utils"
+import { useAuthStore } from "@/shared/store/useAuthStore"
+import { PERMISSIONS } from "@/shared/config/permisos.constants"
 
-const tabs = [
+interface Tab {
+    title: string
+    url: string
+    icon: any
+    permission: string | null
+    primary?: boolean
+}
+
+const baseTabs: Tab[] = [
     {
         title: "Inicio",
         url: "/dashboard",
         icon: DashboardSquare01Icon,
+        permission: null,
     },
     {
         title: "Paquetes",
         url: "/dashboard/paquetes",
         icon: PackageIcon,
+        permission: PERMISSIONS.VER_PAQUETES_SIN_ENTREGAR,
     },
     {
         title: "Nuevo",
         url: "/dashboard/paquetes/nuevo",
         icon: AddCircleIcon,
+        permission: PERMISSIONS.REGISTRAR_PAQUETE,
         primary: true,
     },
     {
         title: "Caja",
-        url: "/caja",
+        url: "/dashboard/caja",
         icon: Money03Icon,
+        permission: PERMISSIONS.ACCESO_CAJA,
     },
     {
         title: "Usuarios",
         url: "/dashboard/usuarios",
         icon: UserGroupIcon,
+        permission: PERMISSIONS.GESTIONAR_USUARIOS,
     },
 ]
 
 export default function MobileTabBar() {
     const pathname = usePathname()
+    const hasPermission = useAuthStore((s) => s.hasPermission)
+
+    const visibleTabs = baseTabs.filter(
+        (tab) => !tab.permission || hasPermission(tab.permission)
+    )
 
     return (
         <>
@@ -52,7 +72,7 @@ export default function MobileTabBar() {
             <nav className="fixed inset-x-0 bottom-4 z-50 px-4 md:hidden">
                 <div className="mx-auto max-w-md">
                     <div className="flex items-center justify-between rounded-3xl border bg-background/90 p-2 shadow-xl backdrop-blur-xl">
-                        {tabs.map((tab) => {
+                        {visibleTabs.map((tab) => {
                             const active =
                                 pathname === tab.url ||
                                 (tab.url !== "/dashboard" &&

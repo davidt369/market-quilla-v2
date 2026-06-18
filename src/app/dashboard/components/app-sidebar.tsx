@@ -3,18 +3,19 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { HugeiconsIcon } from "@hugeicons/react"
 import {
-  DashboardSquare01Icon,
-  PackageIcon,
-  Money03Icon,
-  Store01Icon,
-  UserGroupIcon,
-  Building01Icon,
-  PinLocation01Icon,
-  ArrowRight01Icon,
-  Link01Icon
-} from "@hugeicons/core-free-icons"
+  LayoutDashboard,
+  Package,
+  Banknote,
+  Store,
+  Users,
+  Building,
+  MapPin,
+  ChevronRight,
+  ExternalLink,
+  Settings,
+  ShieldCheck
+} from "lucide-react"
 
 import {
   Sidebar,
@@ -35,6 +36,8 @@ import {
 } from "@/shared/components/ui/collapsible"
 import { Badge } from "@/shared/components/ui/badge"
 import { cn } from "@/shared/lib/utils"
+import { useAuthStore } from "@/shared/store/useAuthStore"
+import { PERMISSIONS } from "@/shared/config/permisos.constants"
 
 interface NavItem {
   title: string
@@ -52,6 +55,7 @@ interface NavGroup {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
+  const hasPermission = useAuthStore((s) => s.hasPermission)
 
   const navigationGroups: NavGroup[] = [
     {
@@ -60,14 +64,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Panel de Control",
           url: `/dashboard`,
-          icon: DashboardSquare01Icon,
+          icon: LayoutDashboard,
           permission: null,
         },
         {
           title: "Caja",
           url: `/dashboard/caja`,
-          icon: Money03Icon,
-          permission: "registrar-caja",
+          icon: Banknote,
+          permission: PERMISSIONS.ACCESO_CAJA,
         },
       ],
     },
@@ -77,20 +81,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Registrar Paquete",
           url: "/dashboard/paquetes/nuevo",
-          icon: PackageIcon,
-          permission: null,
+          icon: Package,
+          permission: PERMISSIONS.REGISTRAR_PAQUETE,
         },
         {
           title: "Paquetes Sin Entregar",
           url: "/dashboard/paquetes",
-          icon: PackageIcon,
-          permission: null,
+          icon: Package,
+          permission: PERMISSIONS.VER_PAQUETES_SIN_ENTREGAR,
         },
         {
           title: "Todos los paquetes",
           url: "/dashboard/paquetes/todos",
-          icon: PackageIcon,
-          permission: null,
+          icon: Package,
+          permission: PERMISSIONS.VER_TODOS_PAQUETES,
         },
       ],
     },
@@ -100,18 +104,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Clientes",
           url: "/dashboard/clientes",
-          icon: Store01Icon,
-          permission: null,
+          icon: Store,
+          permission: PERMISSIONS.GESTIONAR_CLIENTES,
         },
         {
           title: "Usuarios",
           url: "/dashboard/usuarios",
-          icon: UserGroupIcon,
-          permission: "gestionar-usuarios",
+          icon: Users,
+          permission: PERMISSIONS.GESTIONAR_USUARIOS,
+        },
+      ],
+    },
+    {
+      label: "Configuración",
+      items: [
+        {
+          title: "Permisos",
+          url: "/dashboard/configuracion/permisos",
+          icon: ShieldCheck,
+          permission: PERMISSIONS.CONFIGURAR_PERMISOS,
         },
       ],
     },
   ]
+
+  const filteredGroups = navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !item.permission || hasPermission(item.permission)
+      ),
+    }))
+    .filter((group) => group.items.length > 0)
 
   return (
     <Sidebar className="border-r backdrop-blur-lg" {...props}>
@@ -119,14 +143,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader className="group-data-[collapsible=icon]:px-3 px-5 py-6 transition-all">
         <div className="flex items-center gap-3 select-none overflow-hidden">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/25 shadow-[0_0_12px_rgba(var(--primary),0.05)]">
-            <HugeiconsIcon icon={Building01Icon} className="size-5 shrink-0 text-primary stroke-[2.5]" />
+            <Building className="size-5 shrink-0 text-primary stroke-[2.5]" />
           </div>
           <div className="flex flex-col min-w-0 overflow-hidden group-data-[collapsible=icon]:hidden">
             <span className="truncate text-base font-bold tracking-tight text-foreground/90">
               Market Quilla
             </span>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground/80 mt-0.5 truncate">
-              <HugeiconsIcon icon={PinLocation01Icon} className="size-3.5 shrink-0" />
+              <MapPin className="size-3.5 shrink-0" />
               <span className="truncate font-medium">Sucursal Quillacollo</span>
               <span className="relative flex size-1.5 ml-0.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -138,7 +162,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent className="px-3 py-2 scrollbar-hide">
-        {navigationGroups.map((group, index) => (
+        {filteredGroups.map((group, index) => (
           <Collapsible
             key={group.label}
             className="group/collapsible"
@@ -152,8 +176,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1"
               >
                 {group.label}
-                <HugeiconsIcon
-                  icon={ArrowRight01Icon}
+                <ChevronRight
                   className="ml-auto size-3.5 transition-transform duration-200 group-data-[open]/collapsible:rotate-90 group-data-[state=open]/collapsible:rotate-90"
                 />
               </SidebarGroupLabel>
@@ -185,8 +208,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                               )
                             }
                           >
-                            <HugeiconsIcon
-                              icon={Icon}
+                            <Icon
                               className={cn(
                                 "size-4 shrink-0 transition-transform duration-300",
                                 isActive ? "scale-110 stroke-[2.5]" : "group-hover/menu-button:scale-105 stroke-[2]"
@@ -194,8 +216,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             />
                             <span className="tracking-wide truncate">{item.title}</span>
                             {item.newTab ? (
-                              <HugeiconsIcon
-                                icon={Link01Icon}
+                              <ExternalLink
                                 className="ml-auto size-3.5 shrink-0 text-muted-foreground opacity-50 group-data-[collapsible=icon]:hidden"
                               />
                             ) : null}
