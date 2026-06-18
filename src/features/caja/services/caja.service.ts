@@ -1,5 +1,5 @@
 import { db, auditable } from "@/database";
-import { tbcajaTurnos, tbcajaMovimientos, tbauditoria } from "@/database/schema/schema";
+import { tbcajaTurnos, tbcajaMovimientos, tbauditoria, tbusuarios } from "@/database/schema/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 
 // Función auxiliar para registrar en auditoría
@@ -106,6 +106,9 @@ export async function getCajaActiva(usuarioId: number) {
 
 export const abrirCaja = auditable(async (tx, usuarioId: number, montoInicial: number, desgloseInicial?: any) => {
     try {
+        // Bloqueo pesimista a nivel de usuario para evitar race conditions al abrir caja en concurrencia
+        await tx.select().from(tbusuarios).where(eq(tbusuarios.pk_id_usuario, usuarioId)).for('update');
+
         // Verificar que no haya una caja abierta
         const activa = await tx.query.tbcajaTurnos.findFirst({
             where: (ct, { eq, and }) => and(eq(ct.fk_id_usuario, usuarioId), eq(ct.cerrada, false))

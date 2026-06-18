@@ -53,7 +53,7 @@ const baseTabs: Tab[] = [
         title: "Usuarios",
         url: "/dashboard/usuarios",
         icon: UserGroupIcon,
-        permission: PERMISSIONS.GESTIONAR_USUARIOS,
+        permission: PERMISSIONS.VER_USUARIOS,
     },
 ]
 

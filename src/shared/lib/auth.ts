@@ -139,58 +139,54 @@ export const {
       },
 
       async authorize(credentials) {
-        const { allowed, ip } = await checkRateLimit();
-        if (!allowed) {
-          return null; // Regresar null en lugar de Error evita el spam de CallbackRouteError
-        }
+        try {
+          const { allowed, ip } = await checkRateLimit();
+          if (!allowed) {
+            return null; // Regresar null en lugar de Error evita el spam de CallbackRouteError
+          }
 
-        if (
-          !credentials?.nombreUsuario ||
-          !credentials?.password
-        ) {
-          return null;
-        }
+          if (
+            !credentials?.nombreUsuario ||
+            !credentials?.password
+          ) {
+            return null;
+          }
 
-        const [usuario] = await db
-          .select()
-          .from(tbusuarios)
-          .where(
-            eq(
-              tbusuarios.nombre_usuario,
-              credentials.nombreUsuario as string
+          const [usuario] = await db
+            .select()
+            .from(tbusuarios)
+            .where(
+              eq(
+                tbusuarios.nombre_usuario,
+                credentials.nombreUsuario as string
+              )
             )
-          )
-          .limit(1);
+            .limit(1);
 
-        if (!usuario) {
-          return null;
-        }
+          if (!usuario) {
+            return null;
+          }
 
-        // Soft Delete
-        if (usuario.deletedAt) {
-          throw new Error(
-            "Usuario inactivo"
-          );
-        }
+          // Soft Delete
+          if (usuario.deletedAt) {
+            throw new Error(
+              "Usuario inactivo"
+            );
+          }
 
-        const passwordCorrecto =
-          await bcrypt.compare(
-            credentials.password as string,
-            usuario.password_hash
-          );
+          const passwordCorrecto =
+            await bcrypt.compare(
+              credentials.password as string,
+              usuario.password_hash
+            );
 
-        if (!passwordCorrecto) {
-          return null;
-        }
+          if (!passwordCorrecto) {
+            return null;
+          }
 
-        // Si el login fue exitoso, limpiamos los intentos fallidos
-        resetRateLimit(ip);
+          // Si el login fue exitoso, limpiamos los intentos fallidos
+          resetRateLimit(ip);
 
-        let permisos: string[] = [];
-
-        if (usuario.rol === "administrador") {
-          permisos = ["*"];
-        } else {
           const dbPermisos = await db
             .select({ codigo: tbpermisos.pk_id_permiso })
             .from(tbroles_permisos)
@@ -205,23 +201,27 @@ export const {
                 eq(tbpermisos.activo, true)
               )
             );
-          permisos = dbPermisos.map((p) => p.codigo);
+          const permisos = dbPermisos.map((p) => p.codigo);
+
+          return {
+            id: usuario.pk_id_usuario.toString(),
+
+            name:
+              usuario.nombre_completo,
+
+            nombreUsuario:
+              usuario.nombre_usuario,
+
+            rolBase:
+              usuario.rol,
+
+            permisos,
+          };
+        } catch (error: any) {
+          if (error.message === "Usuario inactivo") throw error;
+          console.error("Auth DB Error:", error);
+          throw new Error("Error interno durante la autenticación.");
         }
-
-        return {
-          id: usuario.pk_id_usuario.toString(),
-
-          name:
-            usuario.nombre_completo,
-
-          nombreUsuario:
-            usuario.nombre_usuario,
-
-          rolBase:
-            usuario.rol,
-
-          permisos,
-        };
       },
     }),
   ],
@@ -244,6 +244,35 @@ export const {
 
         token.nombreUsuario =
           authUser.nombreUsuario;
+      } else if (token?.sub) {
+        try {
+          const [usuarioDb] = await db
+            .select({ deletedAt: tbusuarios.deletedAt, rol: tbusuarios.rol })
+            .from(tbusuarios)
+            .where(eq(tbusuarios.pk_id_usuario, parseInt(token.sub)))
+            .limit(1);
+
+          if (!usuarioDb || usuarioDb.deletedAt) {
+             return {}; // Token inválido o cuenta desactivada (limpiamos token)
+          }
+
+          // Actualizamos rol y permisos en caso de que hayan cambiado
+          token.rolBase = usuarioDb.rol;
+          const dbPermisos = await db
+             .select({ codigo: tbpermisos.pk_id_permiso })
+             .from(tbroles_permisos)
+             .innerJoin(tbpermisos, eq(tbroles_permisos.fk_id_permiso, tbpermisos.pk_id_permiso))
+             .where(
+                 and(
+                     eq(tbroles_permisos.rol, usuarioDb.rol),
+                     eq(tbroles_permisos.activo, true),
+                     eq(tbpermisos.activo, true)
+                 )
+             );
+          token.permisos = dbPermisos.map(p => p.codigo);
+        } catch (error) {
+           console.error("Error validando token en DB:", error);
+        }
       }
 
       return token;
