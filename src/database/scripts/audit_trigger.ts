@@ -142,6 +142,41 @@ async function setupAuditTriggers() {
     `);
     console.log("✅ Trigger aplicado a la tabla 'tbcaja_turnos'.");
 
+    // 7. Aplicar el trigger a tbpermisos
+    await db.execute(sql`DROP TRIGGER IF EXISTS audit_permisos ON tbpermisos;`);
+    await db.execute(sql`
+      CREATE TRIGGER audit_permisos
+      AFTER INSERT OR UPDATE OR DELETE ON tbpermisos
+      FOR EACH ROW EXECUTE FUNCTION log_audit_event('pk_id_permiso');
+    `);
+    console.log("✅ Trigger aplicado a la tabla 'tbpermisos'.");
+
+    // 8. Aplicar el trigger a tbroles_permisos
+    await db.execute(sql`DROP TRIGGER IF EXISTS audit_roles_permisos ON tbroles_permisos;`);
+    await db.execute(sql`
+      CREATE TRIGGER audit_roles_permisos
+      AFTER INSERT OR UPDATE OR DELETE ON tbroles_permisos
+      FOR EACH ROW EXECUTE FUNCTION log_audit_event('fk_id_rol'); -- using one of the composite keys for entity_id
+    `);
+    console.log("✅ Trigger aplicado a la tabla 'tbroles_permisos'.");
+
+    // 9. Bloqueo de manipulación de la auditoría (Append-Only)
+    await db.execute(sql`
+      CREATE OR REPLACE FUNCTION prevent_audit_tampering()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        RAISE EXCEPTION '⛔ Seguridad: Los registros de auditoría son inmutables y no pueden ser modificados o eliminados.';
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+    await db.execute(sql`DROP TRIGGER IF EXISTS protect_audit_logs ON tbauditoria;`);
+    await db.execute(sql`
+      CREATE TRIGGER protect_audit_logs
+      BEFORE UPDATE OR DELETE ON tbauditoria
+      FOR EACH ROW EXECUTE FUNCTION prevent_audit_tampering();
+    `);
+    console.log("✅ Protección Append-Only aplicada a la tabla 'tbauditoria'.");
+
     console.log("🎉 Configuración de auditoría completada con éxito.");
     process.exit(0);
   } catch (error) {

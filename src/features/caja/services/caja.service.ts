@@ -157,7 +157,7 @@ export const abrirCaja = auditable(async (tx, usuarioId: number, montoInicial: n
             cerrada: false,
         }).returning();
 
-        await logAuditoria(tx, usuarioId, "APERTURA_CAJA", "tbcaja_turnos", newTurno.pk_id_cajaTurno, null, { montoInicial, desgloseInicial });
+
 
         return newTurno;
     } catch (error: any) {
@@ -233,16 +233,7 @@ export const cerrarCaja = auditable(async (tx, usuarioId: number, montoFinalDecl
             .where(eq(tbcajaTurnos.pk_id_cajaTurno, activa.pk_id_cajaTurno))
             .returning();
 
-        // Registrar auditoría de cierre
-        await logAuditoria(
-            tx,
-            usuarioId, 
-            "CIERRE_CAJA", 
-            "tbcaja_turnos", 
-            updatedTurno.pk_id_cajaTurno, 
-            { efectivoEsperado, qrEsperado }, 
-            { montoFinalDeclarado, montoQrDeclarado, desgloseFinal, diferenciaEfectivo, diferenciaQr, observacion }
-        );
+
 
         if (diferenciaEfectivo !== 0 || diferenciaQr !== 0) {
             // Registrar auditoría específica de descuadre
