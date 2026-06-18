@@ -10,6 +10,68 @@ import Credentials from "next-auth/providers/credentials";
 import { db } from "@/database";
 import { tbusuarios, tbroles_permisos, tbpermisos } from "@/database/schema/schema";
 
+import { headers } from "next/headers";
+
+// Simple in-memory rate limiter for login
+declare global {
+  var __rateLimitMap: Map<string, { count: number; timestamp: number }> | undefined;
+}
+const rateLimitMap = global.__rateLimitMap || new Map<string, { count: number; timestamp: number }>();
+if (process.env.NODE_ENV !== "production") global.__rateLimitMap = rateLimitMap;
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000; // 15 minutos
+
+export async function getRateLimitStatus(): Promise<{ remaining: number, waitMinutes: number }> {
+  try {
+    const headersList = await headers();
+    let ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
+    if (ip === "::1") ip = "127.0.0.1";
+    const now = Date.now();
+    const record = rateLimitMap.get(ip);
+    
+    if (!record || now - record.timestamp > WINDOW_MS) {
+       return { remaining: MAX_ATTEMPTS, waitMinutes: 0 };
+    }
+    
+    if (record.count >= MAX_ATTEMPTS) {
+       const waitMs = WINDOW_MS - (now - record.timestamp);
+       return { remaining: 0, waitMinutes: Math.ceil(waitMs / 60000) };
+    }
+    
+    return { remaining: MAX_ATTEMPTS - record.count, waitMinutes: 0 };
+  } catch (e) {
+    return { remaining: MAX_ATTEMPTS, waitMinutes: 0 };
+  }
+}
+
+async function checkRateLimit(): Promise<{ allowed: boolean; ip: string; remaining: number; waitMinutes: number }> {
+  let ip = "unknown";
+  try {
+    const headersList = await headers();
+    ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
+    if (ip === "::1") ip = "127.0.0.1";
+    const now = Date.now();
+    const record = rateLimitMap.get(ip);
+    
+    if (!record || now - record.timestamp > WINDOW_MS) {
+      rateLimitMap.set(ip, { count: 1, timestamp: now });
+      return { allowed: true, ip, remaining: MAX_ATTEMPTS - 1, waitMinutes: 0 };
+    }
+    if (record.count >= MAX_ATTEMPTS) {
+      const waitMs = WINDOW_MS - (now - record.timestamp);
+      return { allowed: false, ip, remaining: 0, waitMinutes: Math.ceil(waitMs / 60000) };
+    }
+    record.count += 1;
+    return { allowed: true, ip, remaining: MAX_ATTEMPTS - record.count, waitMinutes: 0 };
+  } catch (e) {
+    return { allowed: true, ip, remaining: MAX_ATTEMPTS, waitMinutes: 0 }; // En caso de error obteniendo headers, no bloqueamos
+  }
+}
+
+function resetRateLimit(ip: string) {
+  rateLimitMap.delete(ip);
+}
+
 // ==============================
 // NEXT AUTH TYPES
 // ==============================
@@ -49,6 +111,17 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
+  logger: {
+    error(error) {
+      if (error?.name === "CredentialsSignin") {
+        return;
+      }
+      console.error(error);
+    },
+    warn(code) {
+      console.warn(code);
+    },
+  },
   providers: [
     Credentials({
       name: "credentials",
@@ -66,6 +139,11 @@ export const {
       },
 
       async authorize(credentials) {
+        const { allowed, ip } = await checkRateLimit();
+        if (!allowed) {
+          return null; // Regresar null en lugar de Error evita el spam de CallbackRouteError
+        }
+
         if (
           !credentials?.nombreUsuario ||
           !credentials?.password
@@ -104,6 +182,9 @@ export const {
         if (!passwordCorrecto) {
           return null;
         }
+
+        // Si el login fue exitoso, limpiamos los intentos fallidos
+        resetRateLimit(ip);
 
         let permisos: string[] = [];
 

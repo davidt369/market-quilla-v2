@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { signIn, getSession } from "next-auth/react"
 import { redirect, useRouter } from "next/navigation"
+import { checkLoginStatusAction } from "../actions"
 
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/components/ui/button"
@@ -42,7 +43,13 @@ export function LoginForm({
     })
 
     if (result?.error) {
-      setError("Credenciales incorrectas o usuario inactivo.")
+      const status = await checkLoginStatusAction()
+      
+      if (status.remaining === 0) {
+        setError(`Demasiados intentos fallidos. Intenta de nuevo en ${status.waitMinutes} minutos.`)
+      } else {
+        setError(`Credenciales incorrectas o usuario inactivo. Te quedan ${status.remaining} intentos.`)
+      }
       setIsLoading(false)
     } else {
       redirect("/dashboard")

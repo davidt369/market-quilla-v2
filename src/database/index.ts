@@ -46,7 +46,7 @@ if (process.env.NODE_ENV !== "production") global.__pgPool = pool;
 
 // Manejo básico de errores del pool
 pool.on("error", (err) => {
-  console.error("[DB POOL] Error inesperado en el pool:", err.message);
+  console.error("[DB POOL] Error inesperado en el pool de conexiones. (Detalles omitidos por seguridad)");
 });
 
 // Eventos de conexión para monitoreo

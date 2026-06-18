@@ -91,7 +91,7 @@ export async function getClientes() {
 
 export async function getClienteById(id: number) {
   const cliente = await db.query.tbclientes.findFirst({
-    where: (c, { eq, isNull }) => eq(c.pk_id_cliente, id) && isNull(c.deletedAt),
+    where: (c, { eq, isNull, and }) => and(eq(c.pk_id_cliente, id), isNull(c.deletedAt)),
   });
 
   if (!cliente) return null;
