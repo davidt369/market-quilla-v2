@@ -10,6 +10,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -42,6 +43,32 @@ export const momentoPagoEnum = pgEnum("momento_pago_enum", [
   "al_registrar",
   "al_entregar",
 ]);
+
+// --- Tablas de Permisos Dinámicos ---
+
+export const tbpermisos = pgTable("tbpermisos", {
+  pk_id_permiso: varchar("pk_id_permiso", { length: 100 }).primaryKey(),
+  nombre: varchar("nombre", { length: 200 }).notNull(),
+  descripcion: text("descripcion"),
+  modulo: varchar("modulo", { length: 50 }).notNull(),
+  activo: boolean("activo").default(true).notNull(),
+});
+
+export const tbroles_permisos = pgTable(
+  "tbroles_permisos",
+  {
+    pk_id: integer("pk_id").primaryKey().generatedAlwaysAsIdentity(),
+    rol: rolBaseEnum("rol").notNull(),
+    fk_id_permiso: varchar("fk_id_permiso", { length: 100 })
+      .notNull()
+      .references(() => tbpermisos.pk_id_permiso, { onDelete: "cascade" }),
+    activo: boolean("activo").default(true).notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_rol_permiso").on(table.rol, table.fk_id_permiso),
+    index("idx_rolpermisos_rol").on(table.rol),
+  ]
+);
 
 // --- Tablas ---
 
@@ -153,6 +180,18 @@ export const paquetesRelations = relations(tbpaquetes, ({ one }) => ({
   usuarioRegistro: one(tbusuarios, {
     fields: [tbpaquetes.fk_id_usuario],
     references: [tbusuarios.pk_id_usuario],
+  }),
+}));
+
+export const permisosRelations = relations(tbpermisos, ({ many }) => ({
+  rolesAsignados: many(tbroles_permisos),
+}));
+
+export const rolesPermisosRelations = relations(tbroles_permisos, ({ one }) => ({
+  permiso: one(tbpermisos, {
+    fields: [tbroles_permisos.fk_id_permiso],
+    references: [tbpermisos.pk_id_permiso],
+    relationName: "permiso_asignado",
   }),
 }));
 
@@ -272,3 +311,13 @@ export const insertAuditoriaSchema = createInsertSchema(tbauditoria);
 export const selectAuditoriaSchema = createSelectSchema(tbauditoria);
 export type Auditoria = typeof tbauditoria.$inferSelect;
 export type NewAuditoria = typeof tbauditoria.$inferInsert;
+
+export const insertPermisoSchema = createInsertSchema(tbpermisos);
+export const selectPermisoSchema = createSelectSchema(tbpermisos);
+export type Permiso = typeof tbpermisos.$inferSelect;
+export type NewPermiso = typeof tbpermisos.$inferInsert;
+
+export const insertRolPermisoSchema = createInsertSchema(tbroles_permisos);
+export const selectRolPermisoSchema = createSelectSchema(tbroles_permisos);
+export type RolPermiso = typeof tbroles_permisos.$inferSelect;
+export type NewRolPermiso = typeof tbroles_permisos.$inferInsert;
