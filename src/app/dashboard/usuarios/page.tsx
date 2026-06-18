@@ -1,4 +1,6 @@
 import { Metadata } from "next"
+import { redirect } from "next/navigation"
+import { auth } from "@/shared/lib/auth"
 import { UserTableWrapper } from "../../../features/usuarios/components/user-table-wrapper"
 import { getUsuarios } from "@/features/usuarios/services/usuario.service";
 
@@ -8,6 +10,16 @@ export const metadata: Metadata = {
 }
 
 export default async function UsuariosPage() {
+  const session = await auth()
+
+  if (!session?.user) {
+    redirect("/login")
+  }
+
+  if (session.user.rolBase !== "administrador" && !session.user.permisos?.includes("gestionar-usuarios")) {
+    redirect("/dashboard")
+  }
+
   const usuarios = await getUsuarios();
   return (
     <div className="h-full flex flex-col space-y-8">
