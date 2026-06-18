@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/database";
 import { tbpaquetes, tbcajaMovimientos, tbcajaTurnos } from "@/database/schema/schema";
-import { and, eq, gte, lte, sum, sql, desc } from "drizzle-orm";
+import { and, eq, gte, lte, sum, sql, desc, isNull } from "drizzle-orm";
 import { startOfDay, endOfDay } from "date-fns";
 
 export async function getDashboardMetrics(userId: string) {
@@ -16,7 +16,8 @@ export async function getDashboardMetrics(userId: string) {
     .where(
       and(
         gte(tbpaquetes.fechaHoraRegistro, todayStart),
-        lte(tbpaquetes.fechaHoraRegistro, todayEnd)
+        lte(tbpaquetes.fechaHoraRegistro, todayEnd),
+        isNull(tbpaquetes.deletedAt)
       )
     );
 
@@ -28,7 +29,8 @@ export async function getDashboardMetrics(userId: string) {
       and(
         eq(tbpaquetes.estadoPaquete, 'entregado'),
         gte(tbpaquetes.fechaHoraEntrega, todayStart),
-        lte(tbpaquetes.fechaHoraEntrega, todayEnd)
+        lte(tbpaquetes.fechaHoraEntrega, todayEnd),
+        isNull(tbpaquetes.deletedAt)
       )
     );
 
@@ -36,7 +38,12 @@ export async function getDashboardMetrics(userId: string) {
   const [paquetesSinEntregar] = await db
     .select({ count: sql<number>`cast(count(*) as integer)` })
     .from(tbpaquetes)
-    .where(eq(tbpaquetes.estadoPaquete, 'registrado'));
+    .where(
+      and(
+        eq(tbpaquetes.estadoPaquete, 'registrado'),
+        isNull(tbpaquetes.deletedAt)
+      )
+    );
 
   // 4. Ingresos hoy
   const [ingresosHoy] = await db
@@ -94,7 +101,12 @@ export async function getDashboardMetrics(userId: string) {
   const [cobrosPendientes] = await db
     .select({ total: sum(tbpaquetes.precioBase) })
     .from(tbpaquetes)
-    .where(eq(tbpaquetes.estadoPago, 'pendiente'));
+    .where(
+      and(
+        eq(tbpaquetes.estadoPago, 'pendiente'),
+        isNull(tbpaquetes.deletedAt)
+      )
+    );
 
   // 9. Últimos movimientos
   const ultimosMovimientos = await db

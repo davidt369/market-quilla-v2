@@ -85,15 +85,9 @@ async function seedPaquetes(
       fk_id_destinatario: destinatario.pk_id_cliente,
       fk_id_usuario: usuarios[index % usuarios.length].pk_id_usuario,
 
-      codigoPaquete: `LUN-${String(index + 1).padStart(3, "0")}`,
       ubicacionAlmacen: `MT/${faker.number.int({ min: 1, max: 5 })}/${faker.number.int({ min: 100, max: 999 })}`, // Para la ficha amarilla
-
-      descripcion: faker.commerce.productDescription(),
       tipoPaquete: tipos[index % tipos.length],
-      peso: faker.number
-        .float({ min: 0.5, max: 20, fractionDigits: 2 })
-        .toString(),
-      costoEnvio: faker.number
+      precioBase: faker.number
         .float({ min: 15, max: 150, fractionDigits: 2 })
         .toString(), // En Drizzle es mejor pasar Numeric como string
 

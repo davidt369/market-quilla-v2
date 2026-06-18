@@ -13,13 +13,19 @@ export async function uploadEvidenciaToPocketBase(paqueteId: number, file: File)
         throw new Error("Error interno de configuración del almacenamiento de imágenes.");
     }
 
-    const pbRes = await fetch(`${pbUrl}/api/collections/paquete_evidencia/records`, {
-        method: "POST",
-        headers: {
-            "Authorization": pbToken.startsWith("Bearer ") ? pbToken : `Bearer ${pbToken}`,
-        },
-        body: pbFormData,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+
+    try {
+        const pbRes = await fetch(`${pbUrl}/api/collections/paquete_evidencia/records`, {
+            method: "POST",
+            headers: {
+                "Authorization": pbToken.startsWith("Bearer ") ? pbToken : `Bearer ${pbToken}`,
+            },
+            body: pbFormData,
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
 
     if (pbRes.ok) {
         const pbData = await pbRes.json();
@@ -28,5 +34,12 @@ export async function uploadEvidenciaToPocketBase(paqueteId: number, file: File)
         const errorText = await pbRes.text();
         console.error("PocketBase upload failed:", errorText);
         throw new Error("Error al subir la evidencia fotográfica a PocketBase.");
+    }
+    } catch (e: any) {
+        clearTimeout(timeoutId);
+        if (e.name === 'AbortError') {
+            throw new Error("Timeout en la conexión a PocketBase.");
+        }
+        throw e;
     }
 }

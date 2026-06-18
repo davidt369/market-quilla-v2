@@ -77,8 +77,17 @@ export const entregarPaquete = auditable(async (
                         fechaHoraEntrega: new Date(),
                         ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
                     })
-                    .where(eq(tbpaquetes.pk_id_paquete, paqueteId))
+                    .where(
+                        and(
+                            eq(tbpaquetes.pk_id_paquete, paqueteId),
+                            eq(tbpaquetes.estadoPaquete, "registrado")
+                        )
+                    )
                     .returning();
+
+                if (!updated) {
+                    throw new Error(`El paquete con ID ${paqueteId} ya fue entregado o modificado.`);
+                }
 
                 return updated;
             } else {
@@ -90,8 +99,17 @@ export const entregarPaquete = auditable(async (
                         fechaHoraEntrega: new Date(),
                         ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
                     })
-                    .where(eq(tbpaquetes.pk_id_paquete, paqueteId))
+                    .where(
+                        and(
+                            eq(tbpaquetes.pk_id_paquete, paqueteId),
+                            eq(tbpaquetes.estadoPaquete, "registrado")
+                        )
+                    )
                     .returning();
+
+                if (!updated) {
+                    throw new Error(`El paquete con ID ${paqueteId} ya fue entregado o modificado.`);
+                }
 
                 return updated;
             }
