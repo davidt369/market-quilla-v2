@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -60,9 +61,17 @@ const baseTabs: Tab[] = [
 export default function MobileTabBar() {
     const pathname = usePathname()
     const hasPermission = useAuthStore((s) => s.hasPermission)
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+    const permissions = useAuthStore((s) => s.permissions)
+
+    const [isMounted, setIsMounted] = React.useState(false)
+
+    React.useEffect(() => {
+        setIsMounted(true)
+    }, [])
 
     const visibleTabs = baseTabs.filter(
-        (tab) => !tab.permission || hasPermission(tab.permission)
+        (tab) => !tab.permission || (isMounted && hasPermission(tab.permission))
     )
 
     return (

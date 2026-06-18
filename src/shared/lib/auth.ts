@@ -227,7 +227,7 @@ export const {
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         const authUser = user as {
           id: string;
@@ -244,7 +244,7 @@ export const {
 
         token.nombreUsuario =
           authUser.nombreUsuario;
-      } else if (token?.sub) {
+      } else if (token?.sub && trigger === "update") {
         try {
           const [usuarioDb] = await db
             .select({ deletedAt: tbusuarios.deletedAt, rol: tbusuarios.rol })

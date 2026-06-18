@@ -56,6 +56,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
   const hasPermission = useAuthStore((s) => s.hasPermission)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const permissions = useAuthStore((s) => s.permissions)
 
   const navigationGroups: NavGroup[] = [
     {
@@ -128,11 +130,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ]
 
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const filteredGroups = navigationGroups
     .map((group) => ({
       ...group,
       items: group.items.filter(
-        (item) => !item.permission || hasPermission(item.permission)
+        (item) => !item.permission || (isMounted && hasPermission(item.permission))
       ),
     }))
     .filter((group) => group.items.length > 0)

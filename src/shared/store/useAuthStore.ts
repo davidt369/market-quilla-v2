@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AuthState {
   userId: string | null;
@@ -11,69 +12,57 @@ interface AuthState {
   setAuthData: (session: any) => void;
   clearAuthData: () => void;
 
-  hasPermission: (
-    permission: string
-  ) => boolean;
+  hasPermission: (permission: string) => boolean;
 }
 
-export const useAuthStore =
-  create<AuthState>((set, get) => ({
-    userId: null,
-    name: null,
-    rolBase: null,
-    permissions: [],
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      userId: null,
+      name: null,
+      rolBase: null,
+      permissions: [],
 
-    isAuthenticated: false,
+      isAuthenticated: false,
 
-    setAuthData: (
-      session
-    ) => {
-      if (!session?.user) return;
+      setAuthData: (session) => {
+        if (!session?.user) return;
 
-      set({
-        userId:
-          session.user.id ?? null,
+        const currentStore = get();
 
-        name:
-          session.user.name ??
-          null,
+        set({
+          userId: session.user.id || currentStore.userId,
+          name: session.user.name || currentStore.name,
+          rolBase: session.user.rolBase || currentStore.rolBase,
+          permissions:
+            session.user.permisos && session.user.permisos.length > 0
+              ? session.user.permisos
+              : currentStore.permissions,
+          isAuthenticated: true,
+        });
+      },
 
-        rolBase:
-          session.user.rolBase ??
-          null,
+      clearAuthData: () =>
+        set({
+          userId: null,
+          name: null,
+          rolBase: null,
+          permissions: [],
+          isAuthenticated: false,
+        }),
 
-        permissions:
-          session.user
-            .permisos ?? [],
+      hasPermission: (permission) => {
+        const { permissions, rolBase } = get();
 
-        isAuthenticated: true,
-      });
-    },
+        if (rolBase === "administrador" || permissions.includes("*")) {
+          return true;
+        }
 
-    clearAuthData: () =>
-      set({
-        userId: null,
-        name: null,
-        rolBase: null,
-        permissions: [],
-
-        isAuthenticated: false,
-      }),
-
-    hasPermission: (
-      permission
-    ) => {
-      const {
-        permissions,
-        rolBase,
-      } = get();
-
-      if (rolBase === "administrador" || permissions.includes("*")) {
-        return true;
-      }
-
-      return permissions.includes(
-        permission
-      );
-    },
-  }));
+        return permissions.includes(permission);
+      },
+    }),
+    {
+      name: "auth-store", // name of the item in the storage (must be unique)
+    }
+  )
+);
