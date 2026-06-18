@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { signIn, getSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { redirect, useRouter } from "next/navigation"
 
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/components/ui/button"
@@ -44,6 +44,8 @@ export function LoginForm({
     if (result?.error) {
       setError("Credenciales incorrectas o usuario inactivo.")
       setIsLoading(false)
+    } else {
+      redirect("/dashboard")
     }
   }
 
