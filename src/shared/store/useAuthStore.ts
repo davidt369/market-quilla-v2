@@ -68,10 +68,7 @@ export const useAuthStore =
         rolBase,
       } = get();
 
-      if (
-        rolBase ===
-        "administrador"
-      ) {
+      if (rolBase === "administrador" || permissions.includes("*")) {
         return true;
       }
 

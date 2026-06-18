@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 import NextAuth, {
   type DefaultSession,
@@ -8,7 +8,7 @@ import NextAuth, {
 import Credentials from "next-auth/providers/credentials";
 
 import { db } from "@/database";
-import { tbusuarios } from "@/database/schema/schema";
+import { tbusuarios, tbroles_permisos, tbpermisos } from "@/database/schema/schema";
 
 // ==============================
 // NEXT AUTH TYPES
@@ -105,6 +105,28 @@ export const {
           return null;
         }
 
+        let permisos: string[] = [];
+
+        if (usuario.rol === "administrador") {
+          permisos = ["*"];
+        } else {
+          const dbPermisos = await db
+            .select({ codigo: tbpermisos.pk_id_permiso })
+            .from(tbroles_permisos)
+            .innerJoin(
+              tbpermisos,
+              eq(tbroles_permisos.fk_id_permiso, tbpermisos.pk_id_permiso)
+            )
+            .where(
+              and(
+                eq(tbroles_permisos.rol, usuario.rol),
+                eq(tbroles_permisos.activo, true),
+                eq(tbpermisos.activo, true)
+              )
+            );
+          permisos = dbPermisos.map((p) => p.codigo);
+        }
+
         return {
           id: usuario.pk_id_usuario.toString(),
 
@@ -117,7 +139,7 @@ export const {
           rolBase:
             usuario.rol,
 
-          permisos: [],
+          permisos,
         };
       },
     }),
