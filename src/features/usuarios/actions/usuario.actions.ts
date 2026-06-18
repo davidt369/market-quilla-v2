@@ -2,6 +2,8 @@
 
 import { usuarioFormSchema, usuarioFormUpdateSchema } from "../schemas/usuario.schema";
 import { createUsuario, updateUsuario, deleteUsuario } from "../services/usuario.service";
+import { requirePermission } from "@/shared/lib/auth-utils";
+import { PERMISSIONS } from "@/shared/config/permisos.constants";
 import bcrypt from "bcrypt";
 import { revalidatePath } from "next/cache";
 
@@ -14,6 +16,7 @@ export async function saveUsuarioAction(
     prevState: ActionState,
     formData: FormData
 ): Promise<ActionState> {
+    await requirePermission(PERMISSIONS.GESTIONAR_USUARIOS);
     if (formData.get("id_usuario")) {
         return updateUsuarioAction(prevState, formData);
     }
@@ -75,6 +78,7 @@ export async function updateUsuarioAction(
     formData: FormData
 ): Promise<ActionState> {
     try {
+        await requirePermission(PERMISSIONS.GESTIONAR_USUARIOS);
         const id_usuario = Number(formData.get("id_usuario"));
 
         const parsed = usuarioFormUpdateSchema.safeParse({
@@ -124,6 +128,7 @@ export async function updateUsuarioAction(
 
 export async function deleteUsuarioAction(id_usuario: number): Promise<ActionState> {
     try {
+        await requirePermission(PERMISSIONS.GESTIONAR_USUARIOS);
         await deleteUsuario(id_usuario);
         revalidatePath("/dashboard/usuarios");
         return {

@@ -3,6 +3,8 @@
 import { clienteFormSchema, clienteFormUpdateSchema } from "../schemas/clientes.schema"
 import { createCliente, updateCliente, deleteCliente, getClientes } from "../services/clientes.service"
 import { revalidatePath } from "next/cache"
+import { requirePermission } from "@/shared/lib/auth-utils"
+import { PERMISSIONS } from "@/shared/config/permisos.constants"
 
 export type ActionState = {
   success: boolean;
@@ -19,6 +21,7 @@ export async function saveClienteAction(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requirePermission(PERMISSIONS.GESTIONAR_CLIENTES);
   if (formData.get("pk_id_cliente")) {
     return updateClienteAction(prevState, formData)
   }
@@ -67,6 +70,7 @@ export async function updateClienteAction(
   formData: FormData
 ): Promise<ActionState> {
   try {
+    await requirePermission(PERMISSIONS.GESTIONAR_CLIENTES);
     const pk_id_cliente = Number(formData.get("pk_id_cliente"))
 
     const parsed = clienteFormUpdateSchema.safeParse({
@@ -111,6 +115,7 @@ export async function updateClienteAction(
 
 export async function deleteClienteAction(id_pk_cliente: number): Promise<ActionState> {
   try {
+    await requirePermission(PERMISSIONS.GESTIONAR_CLIENTES);
     await deleteCliente(id_pk_cliente)
     revalidatePath("/dashboard/clientes")
     return {
@@ -130,6 +135,7 @@ export async function deleteClienteAction(id_pk_cliente: number): Promise<Action
 
 export async function getClientesAction(): Promise<ClientesResult> {
   try {
+    await requirePermission(PERMISSIONS.GESTIONAR_CLIENTES);
     const clientes = await getClientes()
     return {
       success: true,
@@ -158,6 +164,7 @@ export async function registrarClienteInlineAction(
   empresa?: string
 ): Promise<InlineClientState> {
   try {
+    await requirePermission(PERMISSIONS.GESTIONAR_CLIENTES);
     if (!nombre_completo || !ci_o_cel) {
       return { error: "Nombre y CI/Celular son obligatorios." };
     }

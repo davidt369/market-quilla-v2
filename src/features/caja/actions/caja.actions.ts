@@ -1,18 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/shared/lib/auth";
-import { 
-    abrirCaja, 
-    cerrarCaja, 
-    registrarMovimientoManual, 
+import { requirePermission } from "@/shared/lib/auth-utils";
+import {
+    abrirCaja,
+    cerrarCaja,
+    registrarMovimientoManual,
     getCajaActiva,
     realizarArqueo,
     getUltimoTurnoCerrado
 } from "../services/caja.service";
-import { 
-    aperturaCajaSchema, 
-    cierreCajaSchema, 
+import {
+    aperturaCajaSchema,
+    cierreCajaSchema,
     movimientoManualSchema,
     arqueoCajaSchema,
     AperturaCajaFormData,
@@ -20,6 +20,7 @@ import {
     MovimientoManualFormData,
     ArqueoCajaFormData
 } from "../schemas/caja.schema";
+import { PERMISSIONS } from "@/shared/config/permisos.constants";
 
 export type ActionState = {
     error?: string;
@@ -40,14 +41,8 @@ export async function abrirCajaAction(
             };
         }
 
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para abrir la caja.",
-            };
-        }
-        
-        const usuarioId = parseInt(session.user.id);
+        const session = await requirePermission(PERMISSIONS.ABRIR_CAJA);
+        const usuarioId = parseInt(session.id);
 
         const turno = await abrirCaja(usuarioId, parsed.data.montoInicial, parsed.data.desgloseInicial);
 
@@ -78,14 +73,8 @@ export async function registrarMovimientoManualAction(
             };
         }
 
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para registrar movimientos.",
-            };
-        }
-
-        const usuarioId = parseInt(session.user.id);
+        const session = await requirePermission(PERMISSIONS.REGISTRAR_MOVIMIENTO_MANUAL);
+        const usuarioId = parseInt(session.id);
 
         const mov = await registrarMovimientoManual(
             usuarioId,
@@ -121,14 +110,8 @@ export async function cerrarCajaAction(
             };
         }
 
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para cerrar la caja.",
-            };
-        }
-
-        const usuarioId = parseInt(session.user.id);
+        const session = await requirePermission(PERMISSIONS.CERRAR_CAJA);
+        const usuarioId = parseInt(session.id);
 
         const resultado = await cerrarCaja(
             usuarioId, 
@@ -153,12 +136,8 @@ export async function cerrarCajaAction(
 
 export async function getEstadoCajaAction(): Promise<ActionState> {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { error: "No autenticado" };
-        }
-
-        const usuarioId = parseInt(session.user.id);
+        const session = await requirePermission(PERMISSIONS.ACCESO_CAJA);
+        const usuarioId = parseInt(session.id);
         const caja = await getCajaActiva(usuarioId);
 
         return {
@@ -174,12 +153,8 @@ export async function getEstadoCajaAction(): Promise<ActionState> {
 
 export async function getUltimoTurnoCerradoAction(): Promise<ActionState> {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { error: "No autenticado" };
-        }
-
-        const usuarioId = parseInt(session.user.id);
+        const session = await requirePermission(PERMISSIONS.ACCESO_CAJA);
+        const usuarioId = parseInt(session.id);
         const turno = await getUltimoTurnoCerrado(usuarioId);
 
         return {
@@ -206,14 +181,8 @@ export async function realizarArqueoAction(
             };
         }
 
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para realizar el arqueo.",
-            };
-        }
-
-        const usuarioId = parseInt(session.user.id);
+        const session = await requirePermission(PERMISSIONS.REALIZAR_ARQUEO);
+        const usuarioId = parseInt(session.id);
 
         const resultado = await realizarArqueo(
             usuarioId,

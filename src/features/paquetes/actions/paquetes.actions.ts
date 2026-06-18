@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createPaquete, createPaqueteCompletoTransaction, deletePaquete, updatePaquete } from "../services/paquetes.service";
 import { PaqueteCompletoFormData, paqueteCompletoFormSchema, PaqueteUpdate, paqueteUpdateSchema } from "../schemas/paquetes.schema";
-import { auth } from "@/shared/lib/auth";
+import { requirePermission } from "@/shared/lib/auth-utils";
+import { PERMISSIONS } from "@/shared/config/permisos.constants";
 import { entregarPaquete } from "../services/entregarPaquetes.service";
 import { uploadEvidenciaToPocketBase } from "../services/pocketbase.service";
 
@@ -18,7 +19,6 @@ export async function registrarPaqueteAction(
     formData: PaqueteCompletoFormData
 ): Promise<ActionState> {
     try {
-        // Validación con Zod en el servidor
         const parsed = paqueteCompletoFormSchema.safeParse(formData);
 
         if (!parsed.success) {
@@ -27,13 +27,8 @@ export async function registrarPaqueteAction(
             };
         }
 
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para registrar un paquete.",
-            };
-        }
-        const usuarioId = parseInt(session.user.id);
+        const session = await requirePermission(PERMISSIONS.REGISTRAR_PAQUETE);
+        const usuarioId = parseInt(session.id);
 
         const paquete = await createPaqueteCompletoTransaction(parsed.data, usuarioId);
 
@@ -54,19 +49,8 @@ export async function entregarPaqueteAction(
     formData: FormData
 ): Promise<ActionState> {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para realizar esta acción.",
-            };
-        }
-
-        const usuarioId = parseInt(session.user.id);
-        if (isNaN(usuarioId)) {
-            return {
-                error: "Identificador de usuario inválido en la sesión.",
-            };
-        }
+        const session = await requirePermission(PERMISSIONS.ENTREGAR_PAQUETE);
+        const usuarioId = parseInt(session.id);
 
         const paqueteIdStr = formData.get("paqueteId") as string;
         if (!paqueteIdStr) return { error: "ID de paquete requerido" };
@@ -103,13 +87,7 @@ export async function entregarPaqueteAction(
 
 export async function deletePaqueteAction(id: number): Promise<ActionState> {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para realizar esta acción.",
-            };
-        }
-
+        await requirePermission(PERMISSIONS.ELIMINAR_PAQUETE);
         const result = await deletePaquete(id);
         revalidatePath("/dashboard/paquetes");
 
@@ -126,12 +104,7 @@ export async function deletePaqueteAction(id: number): Promise<ActionState> {
 
 export async function updatePaqueteAction(id: number, data: PaqueteUpdate): Promise<ActionState> {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return {
-                error: "Debe iniciar sesión para realizar esta acción.",
-            };
-        }
+        await requirePermission(PERMISSIONS.EDITAR_PAQUETE);
 
         // Validación con Zod
         const parsed = paqueteUpdateSchema.safeParse(data);
