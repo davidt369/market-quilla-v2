@@ -199,6 +199,9 @@ export const registrarMovimientoManual = auditable(async (
 
 export const cerrarCaja = auditable(async (tx, usuarioId: number, montoFinalDeclarado: number, montoQrDeclarado: number, desgloseFinal?: any, observacion?: string) => {
     try {
+        // Bloqueo pesimista a nivel de usuario para evitar race conditions al cerrar caja en concurrencia
+        await tx.select().from(tbusuarios).where(eq(tbusuarios.pk_id_usuario, usuarioId)).for('update');
+
         const activa = await getCajaActiva(usuarioId);
 
         if (!activa) {
@@ -262,6 +265,9 @@ export async function realizarArqueo(
 ) {
     try {
         return await db.transaction(async (tx) => {
+            // Bloqueo pesimista a nivel de usuario para evitar race conditions al arquear
+            await tx.select().from(tbusuarios).where(eq(tbusuarios.pk_id_usuario, usuarioId)).for('update');
+
             const activa = await getCajaActiva(usuarioId);
 
             if (!activa) {
