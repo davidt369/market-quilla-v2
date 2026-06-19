@@ -122,10 +122,10 @@ export type PaqueteFormData =
     z.infer<typeof paqueteFormSchema>;
 
 export const clienteFormSubSchema = z.object({
-    pk_id_cliente: z.number().optional(),
-    nombre_completo: z.string().trim().min(1, "El nombre es requerido"),
-    ci_o_cel: z.string().trim().min(1, "El CI/Celular es requerido"),
-    empresa: z.string().trim().optional(),
+    pk_id_cliente: z.coerce.number().int().positive().optional(),
+    nombre_completo: z.string().trim().min(1, "El nombre es requerido").max(100, "Nombre demasiado largo"),
+    ci_o_cel: z.string().trim().min(1, "El CI/Celular es requerido").max(50, "CI/Celular demasiado largo"),
+    empresa: z.string().trim().max(100, "Nombre de empresa demasiado largo").optional(),
 });
 
 export const paqueteCompletoFormSchema = z.object({
@@ -151,7 +151,9 @@ export const paqueteCompletoFormSchema = z.object({
 
     precioBase: z.coerce
         .number()
+        .finite("El precio debe ser un número válido")
         .min(0, "El precio no puede ser negativo")
+        .max(10000, "Precio demasiado alto")
         .default(3.00),
 
     metodoPago: z.enum(["efectivo", "qr"]).optional(),
