@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { calcularPrecioFinal } from "../lib/paquetes.utils";
 import { AlertCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
 
 export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -120,9 +121,14 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                         <div className="flex-1 border-b border-foreground/30 text-[10px] sm:text-xs px-1 sm:px-2 font-bold text-center whitespace-nowrap text-primary flex items-center justify-center gap-1">
                             Bs. {precioFinal.toFixed(2)}
                             {recargoAplicado && (
-                                <span title={`Recargo acumulado por demora (${calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas} ${calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas === 1 ? 'semana' : 'semanas'})`}>
-                                    <AlertCircle className="h-3 w-3 text-destructive animate-pulse" />
-                                </span>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <AlertCircle className="h-3 w-3 text-destructive animate-pulse cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Recargo acumulado por demora ({calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas} {calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas === 1 ? 'semana' : 'semanas'})</p>
+                                    </TooltipContent>
+                                </Tooltip>
                             )}
                         </div>
                     </div>

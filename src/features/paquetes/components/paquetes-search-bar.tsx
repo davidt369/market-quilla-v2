@@ -28,6 +28,10 @@ export default function PaquetesSearchBar() {
     const debouncedQuery = useDebounce(query, 500);
 
     React.useEffect(() => {
+        const currentQ = searchParams.get("q") || "";
+        // Prevenir bucle infinito: solo hacer push si el query ha cambiado realmente
+        if (debouncedQuery === currentQ) return;
+
         const currentParams = new URLSearchParams(Array.from(searchParams.entries()));
         if (debouncedQuery) {
             currentParams.set("q", debouncedQuery);
@@ -35,7 +39,6 @@ export default function PaquetesSearchBar() {
             currentParams.delete("q");
         }
         
-        // Mantener la página actual o resetear si quieres
         router.push(`/dashboard/paquetes?${currentParams.toString()}`);
     }, [debouncedQuery, router, searchParams]);
 
