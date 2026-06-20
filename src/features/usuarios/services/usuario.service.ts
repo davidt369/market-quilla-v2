@@ -2,7 +2,7 @@ import { db, auditable } from "@/database";
 import { tbusuarios } from "@/database/schema/schema";
 import { UsuarioInsert } from "../schemas/usuario.schema";
 
-import { eq } from "drizzle-orm";
+import { eq, isNull, and, ne, asc } from "drizzle-orm";
 
 export const createUsuario = auditable(async (tx, data: UsuarioInsert) => {
     try {
@@ -86,19 +86,19 @@ export const deleteUsuario = auditable(async (tx, id: number) => {
 });
 
 export async function getUsuarios() {
-    const usuarios = await db.query.tbusuarios.findMany({
-        where: (usuarios, { isNull }) =>
-            isNull(usuarios.deletedAt),
-
-        orderBy: (usuarios, { asc }) => [
-            asc(usuarios.createdAt),
-        ],
-    });
-
-    return usuarios.map((u) => ({
-        id_usuario: u.pk_id_usuario,
-        nombre_completo: u.nombre_completo,
-        nombre_usuario: u.nombre_usuario,
-        rol: u.rol,
-    }));
+    return await db
+        .select({
+            id_usuario: tbusuarios.pk_id_usuario,
+            nombre_completo: tbusuarios.nombre_completo,
+            nombre_usuario: tbusuarios.nombre_usuario,
+            rol: tbusuarios.rol,
+        })
+        .from(tbusuarios)
+        .where(
+            and(
+                isNull(tbusuarios.deletedAt),
+                ne(tbusuarios.rol, "administrador")
+            )
+        )
+        .orderBy(asc(tbusuarios.createdAt));
 }

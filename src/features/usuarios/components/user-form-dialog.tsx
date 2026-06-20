@@ -145,9 +145,6 @@ export function UserFormDialog({
 
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="administrador">
-                    Administrador
-                  </SelectItem>
 
                   <SelectItem value="supervisor">
                     Supervisor
@@ -157,9 +154,6 @@ export function UserFormDialog({
                     Recepcionista
                   </SelectItem>
 
-                  <SelectItem value="cajero">
-                    Cajero
-                  </SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
