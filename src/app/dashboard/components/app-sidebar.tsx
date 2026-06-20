@@ -136,6 +136,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     setIsMounted(true)
   }, [])
 
+  // Buscar el mejor match para la ruta activa (el que tenga la URL más larga que coincida con el pathname)
+  const bestMatchUrl = React.useMemo(() => {
+    const matches = navigationGroups
+      .flatMap((g) => g.items)
+      .filter((item) => pathname === item.url || pathname.startsWith(`${item.url}/`));
+    
+    matches.sort((a, b) => b.url.length - a.url.length);
+    return matches[0]?.url;
+  }, [pathname, navigationGroups]);
+
   const filteredGroups = navigationGroups
     .map((group) => ({
       ...group,
@@ -192,9 +202,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarGroupContent>
                   <SidebarMenu className="gap-1 mt-1">
                     {group.items.map((item) => {
-                      const isActive =
-                        pathname === item.url ||
-                        (item.url !== "/dashboard" && pathname.startsWith(item.url))
+                      const isActive = item.url === bestMatchUrl;
                       const Icon = item.icon
 
                       return (

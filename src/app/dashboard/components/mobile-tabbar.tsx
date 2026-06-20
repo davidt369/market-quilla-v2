@@ -9,12 +9,13 @@ import {
     PackageIcon,
     AddCircleIcon,
     Money03Icon,
-    UserGroupIcon,
+    Menu01Icon,
 } from "@hugeicons/core-free-icons"
 
 import { cn } from "@/shared/lib/utils"
 import { useAuthStore } from "@/shared/store/useAuthStore"
 import { PERMISSIONS } from "@/shared/config/permisos.constants"
+import { useSidebar } from "@/shared/components/ui/sidebar"
 
 interface Tab {
     title: string
@@ -32,7 +33,7 @@ const baseTabs: Tab[] = [
         permission: null,
     },
     {
-        title: "Paquetes",
+        title: "Sin Entregar",
         url: "/dashboard/paquetes",
         icon: PackageIcon,
         permission: PERMISSIONS.VER_PAQUETES_SIN_ENTREGAR,
@@ -50,12 +51,6 @@ const baseTabs: Tab[] = [
         icon: Money03Icon,
         permission: PERMISSIONS.ACCESO_CAJA,
     },
-    {
-        title: "Usuarios",
-        url: "/dashboard/usuarios",
-        icon: UserGroupIcon,
-        permission: PERMISSIONS.VER_USUARIOS,
-    },
 ]
 
 export default function MobileTabBar() {
@@ -63,6 +58,7 @@ export default function MobileTabBar() {
     const hasPermission = useAuthStore((s) => s.hasPermission)
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
     const permissions = useAuthStore((s) => s.permissions)
+    const { setOpenMobile } = useSidebar()
 
     const [isMounted, setIsMounted] = React.useState(false)
 
@@ -140,6 +136,20 @@ export default function MobileTabBar() {
                             </Link>
                         )
                     })}
+
+                    {/* Botón de Menú Extra para abrir el Sidebar Móvil */}
+                    <button
+                        onClick={() => setOpenMobile(true)}
+                        className="flex flex-col items-center justify-center min-w-[64px] transition-all text-muted-foreground hover:text-foreground/80"
+                    >
+                        <HugeiconsIcon
+                            icon={Menu01Icon}
+                            className="size-[26px] stroke-2 transition-all"
+                        />
+                        <span className="mt-1 text-[10px] font-medium">
+                            Menú
+                        </span>
+                    </button>
                 </div>
             </nav>
         </>
