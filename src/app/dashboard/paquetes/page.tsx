@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { Plus, PackageCheck } from "lucide-react";
+import { Plus, PackageCheck, Wallet } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
 import PaquetesCard from "@/features/paquetes/components/paquetes-card";
 import { getPaquetesSinEntregar } from "@/features/paquetes/services/paquetesSinEntregar.service";
 import PaquetesSearchBar from "@/features/paquetes/components/paquetes-search-bar";
+import { getEstadoCajaAction } from "@/features/caja/actions/caja.actions";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
+import { CajaCerradaAlert } from "@/features/caja/components/caja-cerrada-alert";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +23,18 @@ export default async function PaquetesPage({
     const q = resolvedSearchParams.q || "";
 
     const data = await getPaquetesSinEntregar({ page, limit, q });
-
     const paquetes = data?.data || [];
 
+    // Validar estado de la caja
+    const estadoCaja = await getEstadoCajaAction();
+    const isCajaAbierta = estadoCaja.success && !!estadoCaja.data;
+
+    if (!isCajaAbierta) {
+        return <CajaCerradaAlert volverUrl="/dashboard" mensaje="Para gestionar paquetes y realizar cobros, debes tener una caja abierta activa en tu turno." />;
+    }
+
     return (
-        <div className="space-y-8 max-w-7xl mx-auto w-full">
+        <div className="space-y-6 max-w-7xl mx-auto w-full">
             {/* Header */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div>
@@ -46,7 +56,7 @@ export default async function PaquetesPage({
 
 
             {/* Cards Grid - Mobile First, 4 Columnas en monitores grandes */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 items-stretch mt-4">
                 {paquetes.length === 0 ? (
                     <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground bg-white dark:bg-zinc-950 border rounded-3xl border-dashed">
                         <PackageCheck className="h-12 w-12 text-zinc-300 dark:text-zinc-700 mb-4" />

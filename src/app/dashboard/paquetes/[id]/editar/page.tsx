@@ -45,10 +45,10 @@ export default async function EditarPaquetePage({ params }: { params: Promise<{ 
     };
 
     return (
-        <PaqueteForm 
-            initialClientes={clientes} 
-            initialData={initialData} 
-            packageId={id} 
+        <PaqueteForm
+            initialClientes={clientes}
+            initialData={initialData}
+            packageId={id}
             isPagado={isPagado}
         />
     );
