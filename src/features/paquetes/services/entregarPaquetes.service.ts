@@ -4,6 +4,7 @@ import { PaqueteInsert, PaqueteUpdate, PaqueteCompletoFormData } from "../schema
 import { tbpaquetes, tbclientes, tbcajaTurnos, tbcajaMovimientos } from "@/database/schema/schema";
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { handleDbErrorPaquete } from "./paquetes.service";
+import { calcularPrecioFinal } from "../lib/paquetes.utils";
 
 
 
@@ -57,15 +58,21 @@ export const entregarPaquete = auditable(async (
                 throw new Error("Se requiere especificar un método de pago para registrar la entrega de un paquete pendiente.");
             }
 
-            // Registrar movimiento en caja
+            const { precioFinal, recargoAplicado, semanasPasadas } = calcularPrecioFinal(
+                paquete.precioBase,
+                paquete.fechaHoraRegistro,
+                paquete.estadoPago
+            );
+
+            // Registrar movimiento en caja con el precioFinal
             await tx.insert(tbcajaMovimientos).values({
                 fk_id_cajaTurno: turnoActivo.pk_id_cajaTurno,
                 fk_id_usuario: usuarioId,
                 fk_id_paquete: paqueteId,
                 tipoMovimiento: "ingreso",
                 metodoPago: metodoPago,
-                monto: paquete.precioBase,
-                descripcion: `Cobro por entrega de paquete TRK-${paqueteId.toString().padStart(4, "0")}`,
+                monto: String(precioFinal),
+                descripcion: `Cobro por entrega de paquete TRK-${paqueteId.toString().padStart(4, "0")} ${recargoAplicado ? `(Recargo por ${semanasPasadas} semana${semanasPasadas === 1 ? '' : 's'} de demora)` : ''}`,
             });
 
             // Actualizar paquete a entregado y pagado
@@ -74,6 +81,7 @@ export const entregarPaquete = auditable(async (
                 .set({
                     estadoPaquete: "entregado",
                     estadoPago: "pagado",
+                    precioBase: String(precioFinal), // Actualizamos el precio al cobrado final para el registro
                     fechaHoraEntrega: new Date(),
                     ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
                 })

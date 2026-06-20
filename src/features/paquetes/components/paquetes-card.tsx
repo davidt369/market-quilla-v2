@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import ModalEntregaPaquete from "./modal-entrega-paquete";
 import { Card, CardContent, CardFooter } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
+import { calcularPrecioFinal } from "../lib/paquetes.utils";
+import { AlertCircle } from "lucide-react";
 
 export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -17,6 +19,8 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
 
     const isEntregado = pkg.estadoPaquete === "entregado";
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
+
+    const { precioFinal, recargoAplicado } = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago);
 
     const handleConfirm = async () => {
         setIsSubmitting(true);
@@ -113,15 +117,22 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                             {formatBoliviaDateTime(pkg.fechaHoraRegistro).split(",")[0]}
                         </div>
                         <span className="font-bold text-[10px] sm:text-xs uppercase shrink-0 text-foreground/80">COSTO</span>
-                        <div className="flex-1 border-b border-foreground/30 text-[10px] sm:text-xs px-1 sm:px-2 font-bold text-center whitespace-nowrap text-primary">
-                            Bs. {Number(pkg.precioBase).toFixed(2)}
+                        <div className="flex-1 border-b border-foreground/30 text-[10px] sm:text-xs px-1 sm:px-2 font-bold text-center whitespace-nowrap text-primary flex items-center justify-center gap-1">
+                            Bs. {precioFinal.toFixed(2)}
+                            {recargoAplicado && (
+                                <span title={`Recargo acumulado por demora (${calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas} ${calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas === 1 ? 'semana' : 'semanas'})`}>
+                                    <AlertCircle className="h-3 w-3 text-destructive animate-pulse" />
+                                </span>
+                            )}
                         </div>
                     </div>
 
                     <div className="flex items-end gap-2">
                         <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">PAGO</span>
                         <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-bold flex items-center justify-between">
-                            <span>{isPendiente ? "Por Pagar" : "Pagado"}</span>
+                            <span className={recargoAplicado ? "text-destructive" : ""}>
+                                {isPendiente ? "Por Pagar" : "Pagado"}
+                            </span>
                             {!isPendiente && (
                                 <span className="text-[10px] sm:text-xs bg-foreground text-background px-1.5 py-0.5 ml-2 leading-none uppercase font-bold rounded-sm">Cobrado</span>
                             )}
@@ -143,16 +154,16 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                     <Button
                         disabled
                         variant="secondary"
-                        className="w-full h-11 sm:h-12 text-xs sm:text-sm font-bold uppercase tracking-wider"
+                        className="w-full h-auto py-2.5 sm:py-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider"
                     >
                         Entregado
                     </Button>
                 ) : (
                     <Button
                         onClick={() => setIsOpen(true)}
-                        className="w-full h-11 sm:h-12 text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors bg-foreground text-background hover:bg-foreground/90"
+                        className={`w-full h-auto py-2.5 sm:py-3 text-[10px] sm:text-[11px] md:text-xs font-bold uppercase tracking-wider transition-colors whitespace-normal text-center leading-tight min-h-[44px] ${recargoAplicado ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-foreground text-background hover:bg-foreground/90"}`}
                     >
-                        Entregar Paquete
+                        {recargoAplicado ? "Entregar Paquete (Con Recargo)" : "Entregar Paquete"}
                     </Button>
                 )}
             </CardFooter>
