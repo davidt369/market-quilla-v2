@@ -55,42 +55,42 @@ export function TipoPaqueteSection() {
                     <Field data-invalid={fieldState.invalid} className="mb-4">
                         <FieldLabel>Ubicación Almacén</FieldLabel>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
                             {/* Día automático */}
                             <Input
                                 value={diaActual}
                                 readOnly
-                                className="w-20 text-center font-semibold bg-muted/40 cursor-default"
+                                className="flex-1 min-w-[60px] sm:max-w-[80px] text-center font-semibold bg-muted/40 cursor-default"
                             />
 
-                            <span className="text-muted-foreground font-medium">/</span>
+                            <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
 
                             {/* N° Caja */}
                             <Input
                                 value={nCaja}
                                 onChange={(e) => setNCaja(e.target.value)}
                                 placeholder="N°Caja"
-                                className="w-24 text-center font-medium"
+                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
                             />
 
-                            <span className="text-muted-foreground font-medium">/</span>
+                            <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
 
                             {/*Codigo */}
                             <Input
                                 value={nPaquete}
                                 onChange={(e) => setNPaquete(e.target.value)}
                                 placeholder="Codigo"
-                                className="w-24 text-center font-medium"
+                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
                             />
 
-                            <span className="text-muted-foreground font-medium">/</span>
+                            <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
 
                             {/* Extra */}
                             <Input
                                 value={extra}
                                 onChange={(e) => setExtra(e.target.value)}
                                 placeholder="Extra"
-                                className="w-24 text-center font-medium"
+                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
                             />
                         </div>
 

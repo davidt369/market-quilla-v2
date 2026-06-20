@@ -76,13 +76,13 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
     const submitData = async (data: PaqueteCompletoFormData) => {
         setIsSubmitting(true);
         try {
-            const result = packageId 
+            const result = packageId
                 ? await actualizarPaqueteCompletoAction(packageId, data)
                 : await registrarPaqueteAction({}, data);
 
             if (result.success) {
                 toast.success(packageId ? "Paquete actualizado" : "Paquete registrado exitosamente", {
-                    description: packageId 
+                    description: packageId
                         ? `El paquete ha sido actualizado correctamente.`
                         : `El paquete de ${data.remitente.nombre_completo} ha sido procesado.`,
                     icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />
@@ -125,10 +125,10 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
 
     return (
         <FormProvider {...form}>
-            <div className="w-full p-4 sm:p-6 pb-32 lg:pb-12 animate-in fade-in duration-500">
+            <div className="w-full mx-auto pb-32 lg:pb-12 animate-in fade-in duration-500">
 
                 {/* ── Page Header (Enterprise Style) ── */}
-                <div className="mb-8 border-b pb-6">
+                <div className="mb-6 sm:mb-8 border-b pb-6 px-4 sm:px-6 sm:pt-6">
                     <button
                         onClick={() => router.back()}
                         className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 w-fit"
@@ -162,7 +162,7 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                 <form
                     id="paquete-form"
                     onSubmit={form.handleSubmit(onSubmit)}
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-6 lg:gap-8 items-start sm:px-6"
                 >
                     {/* ── COLUMNA IZQUIERDA (Personas) ── */}
                     <div className="flex flex-col gap-6 lg:col-span-6 xl:col-span-5">
@@ -184,7 +184,7 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                 </form>
 
                 {/* ── ACTION BAR (Sticky Móvil, Anclado Escritorio) ── */}
-                <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/85 backdrop-blur-md border-t shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:static lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:mt-10 lg:border-t-0 lg:pt-6">
+                <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pb-28 bg-background/85 backdrop-blur-md border-t shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:static lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:mt-10 lg:border-t-0 lg:pt-6">
                     <div className="max-w-7xl mx-auto flex flex-col-reverse sm:flex-row justify-end gap-3 lg:border-t lg:pt-6">
                         <Button
                             type="button"

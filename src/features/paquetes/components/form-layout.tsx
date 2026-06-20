@@ -9,7 +9,7 @@ export function SectionCard({
 }) {
     return (
         <div
-            className={`rounded-xl border border-border/40 bg-background p-5 shadow-sm ${className}`}
+            className={`border-y sm:border-x sm:rounded-xl border-border/40 bg-background p-4 sm:p-5 shadow-sm sm:shadow-none ${className}`}
         >
             {children}
         </div>
