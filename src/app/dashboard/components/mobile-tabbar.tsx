@@ -76,69 +76,70 @@ export default function MobileTabBar() {
 
     return (
         <>
-            <div className="h-24 md:hidden" />
+            <div className="h-16 md:hidden" />
 
-            <nav className="fixed inset-x-0 bottom-4 z-50 px-4 md:hidden">
-                <div className="mx-auto max-w-md">
-                    <div className="flex items-center justify-between rounded-3xl border bg-background/90 p-2 shadow-xl backdrop-blur-xl">
-                        {visibleTabs.map((tab) => {
-                            const active =
-                                pathname === tab.url ||
-                                (tab.url !== "/dashboard" &&
-                                    pathname.startsWith(tab.url))
+            <nav className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-background border-t border-border/50 pb-[env(safe-area-inset-bottom)]">
+                <div className="flex h-14 items-center justify-around px-2">
+                    {visibleTabs.map((tab) => {
+                        const active =
+                            pathname === tab.url ||
+                            (tab.url !== "/dashboard" &&
+                                pathname.startsWith(tab.url))
 
-                            const Icon = tab.icon
+                        const Icon = tab.icon
 
-                            if (tab.primary) {
-                                return (
-                                    <Link
-                                        key={tab.url}
-                                        href={tab.url}
-                                        className="relative -mt-10"
-                                    >
-                                        <div className="flex size-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg ring-4 ring-background transition-transform active:scale-95">
-                                            <HugeiconsIcon
-                                                icon={Icon}
-                                                className="size-7 stroke-[2.5]"
-                                            />
-                                        </div>
-                                    </Link>
-                                )
-                            }
-
+                        if (tab.primary) {
                             return (
                                 <Link
                                     key={tab.url}
                                     href={tab.url}
-                                    className={cn(
-                                        "flex min-w-[60px] flex-col items-center justify-center rounded-2xl px-3 py-2 transition-all",
-                                        active
-                                            ? "bg-primary/10 text-primary"
-                                            : "text-muted-foreground"
-                                    )}
+                                    className="flex flex-col items-center justify-center transition-transform active:scale-95 px-2"
                                 >
-                                    <HugeiconsIcon
-                                        icon={Icon}
-                                        className={cn(
-                                            "size-5 transition-all",
-                                            active && "scale-110"
-                                        )}
-                                    />
-
-                                    <span
-                                        className={cn(
-                                            "mt-1 text-[11px]",
-                                            active
-                                                ? "font-semibold"
-                                                : "font-medium"
-                                        )}
-                                    >
+                                    <div className="flex h-8 w-12 items-center justify-center rounded-[10px] bg-foreground text-background shadow-sm">
+                                        <HugeiconsIcon
+                                            icon={Icon}
+                                            className="size-5 stroke-[2.5]"
+                                        />
+                                    </div>
+                                    <span className="mt-1 text-[10px] font-semibold text-foreground">
                                         {tab.title}
                                     </span>
                                 </Link>
                             )
-                        })}
-                    </div>
+                        }
+
+                        return (
+                            <Link
+                                key={tab.url}
+                                href={tab.url}
+                                className={cn(
+                                    "flex flex-col items-center justify-center min-w-[64px] transition-all",
+                                    active
+                                        ? "text-foreground"
+                                        : "text-muted-foreground hover:text-foreground/80"
+                                )}
+                            >
+                                <HugeiconsIcon
+                                    icon={Icon}
+                                    className={cn(
+                                        "size-[26px] transition-all",
+                                        active ? "stroke-[2.5]" : "stroke-2"
+                                    )}
+                                />
+
+                                <span
+                                    className={cn(
+                                        "mt-1 text-[10px]",
+                                        active
+                                            ? "font-semibold"
+                                            : "font-medium"
+                                    )}
+                                >
+                                    {tab.title}
+                                </span>
+                            </Link>
+                        )
+                    })}
                 </div>
             </nav>
         </>
