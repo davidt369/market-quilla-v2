@@ -11,7 +11,7 @@ import {
     paqueteCompletoFormSchema,
     PaqueteCompletoFormData,
 } from "@/features/paquetes/schemas/paquetes.schema";
-import { registrarPaqueteAction } from "@/features/paquetes/actions/paquetes.actions";
+import { registrarPaqueteAction, actualizarPaqueteCompletoAction } from "@/features/paquetes/actions/paquetes.actions";
 
 import { Button } from "@/shared/components/ui/button";
 import { PaqueteConfirmDialog } from "./paquete-confirm-dialog";
@@ -25,11 +25,14 @@ import { InformacionPagoSection } from "./informacion-pago-section";
 
 interface PaqueteFormProps {
     initialClientes: ClienteBase[];
+    initialData?: PaqueteCompletoFormData;
+    packageId?: number;
+    isPagado?: boolean;
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
+export function PaqueteForm({ initialClientes, initialData, packageId, isPagado = false }: PaqueteFormProps) {
     const router = useRouter();
     const [clientes, setClientes] = React.useState<ClienteBase[]>(initialClientes);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -41,7 +44,7 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
 
     const form = useForm<PaqueteCompletoFormData>({
         resolver: zodResolver(paqueteCompletoFormSchema as any),
-        defaultValues: {
+        defaultValues: initialData || {
             remitente: {
                 nombre_completo: "",
                 ci_o_cel: "",
@@ -59,6 +62,12 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
         },
     });
 
+    React.useEffect(() => {
+        if (initialData) {
+            form.reset(initialData);
+        }
+    }, [initialData, form]);
+
     const onSubmit = async (data: PaqueteCompletoFormData) => {
         setPendingData(data);
         setConfirmModalOpen(true);
@@ -67,18 +76,22 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
     const submitData = async (data: PaqueteCompletoFormData) => {
         setIsSubmitting(true);
         try {
-            const result = await registrarPaqueteAction({}, data);
+            const result = packageId 
+                ? await actualizarPaqueteCompletoAction(packageId, data)
+                : await registrarPaqueteAction({}, data);
 
             if (result.success) {
-                toast.success("Paquete registrado exitosamente", {
-                    description: `El paquete de ${data.remitente.nombre_completo} ha sido procesado.`,
+                toast.success(packageId ? "Paquete actualizado" : "Paquete registrado exitosamente", {
+                    description: packageId 
+                        ? `El paquete ha sido actualizado correctamente.`
+                        : `El paquete de ${data.remitente.nombre_completo} ha sido procesado.`,
                     icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 });
-                form.reset();
+                if (!packageId) form.reset();
                 router.push("/dashboard/paquetes");
             } else {
-                toast.error("Error al registrar", {
-                    description: result.error || "No se pudo registrar el paquete. Verifique los datos e intente nuevamente.",
+                toast.error(packageId ? "Error al actualizar" : "Error al registrar", {
+                    description: result.error || "No se pudo procesar la solicitud. Verifique los datos e intente nuevamente.",
                     icon: <AlertCircle className="h-5 w-5 text-destructive" />
                 });
             }
@@ -132,10 +145,10 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
                                 <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm border border-primary/10">
                                     <PackageOpen className="h-6 w-6 text-primary" />
                                 </div>
-                                Nuevo Registro de Paquete
+                                {packageId ? "Editar Registro de Paquete" : "Nuevo Registro de Paquete"}
                             </h1>
                             <p className="mt-2 text-muted-foreground max-w-2xl text-sm md:text-base">
-                                Ingrese los detalles operativos del envío. Busque clientes existentes para autocompletar la información.
+                                {packageId ? "Modifique los detalles operativos del envío." : "Ingrese los detalles operativos del envío. Busque clientes existentes para autocompletar la información."}
                             </p>
                         </div>
                         {/* Indicador opcional de estado de formulario */}
@@ -166,7 +179,7 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
                     {/* ── COLUMNA DERECHA (Detalles y Pago) ── */}
                     <div className="flex flex-col gap-6 lg:col-span-6 xl:col-span-7">
                         <TipoPaqueteSection />
-                        <InformacionPagoSection />
+                        <InformacionPagoSection isPagado={isPagado} />
                     </div>
                 </form>
 
@@ -193,6 +206,8 @@ export function PaqueteForm({ initialClientes }: PaqueteFormProps) {
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Procesando...
                                 </>
+                            ) : packageId ? (
+                                "Guardar Cambios"
                             ) : (
                                 "Registrar Paquete"
                             )}

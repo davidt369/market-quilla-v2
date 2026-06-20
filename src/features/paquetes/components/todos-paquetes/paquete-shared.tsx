@@ -72,10 +72,12 @@ export function ActionsMenu({
                 <DropdownMenuGroup>
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onEdit}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar
-                    </DropdownMenuItem>
+                    {estadoPaquete !== "entregado" && (
+                        <DropdownMenuItem onClick={onEdit}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                        </DropdownMenuItem>
+                    )}
                     {estadoPaquete !== "entregado" && (
                         <DropdownMenuItem onClick={onDeliver} className="text-emerald-600 focus:text-emerald-600">
                             <Truck className="mr-2 h-4 w-4" />

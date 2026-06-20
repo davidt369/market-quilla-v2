@@ -24,11 +24,13 @@ export function TipoPaqueteSection() {
         const initialValue = getValues("ubicacionAlmacen") || "";
         if (initialValue.includes("/")) {
             const parts = initialValue.split("/");
-            if (parts.length >= 4) {
+            if (parts.length >= 2) {
                 setNCaja(parts[1] || "");
                 setNPaquete(parts[2] || "");
                 setExtra(parts[3] || "");
             }
+        } else {
+            setExtra(initialValue);
         }
     }, [getValues]);
 

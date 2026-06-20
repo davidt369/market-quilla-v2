@@ -10,13 +10,16 @@ import { usePaquetesActions } from "./use-paquetes-actions";
 import { getPaquetesColumns } from "./paquetes-list-columns";
 import { PaquetesListFilters } from "./paquetes-list-filters";
 import { DeletePaqueteModal } from "./modals/delete-paquete-modal";
-import { EditPaqueteModal } from "./modals/edit-paquete-modal";
+
 
 type PaquetesListClientProps = {
     data: PaqueteListItem[];
 };
 
+import { useRouter } from "next/navigation";
+
 export function PaquetesListClient({ data }: PaquetesListClientProps) {
+    const router = useRouter();
     const actions = usePaquetesActions();
     const [estadoFilter, setEstadoFilter] = React.useState("all");
 
@@ -27,11 +30,11 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
 
     const columns = React.useMemo(
         () => getPaquetesColumns({
-            onEdit: actions.openEdit,
+            onEdit: (pkg) => router.push(`/dashboard/paquetes/${pkg.pk_id_paquete}/editar`),
             onDelete: actions.setPackageToDelete,
             onDeliver: actions.setPackageToDeliver,
         }),
-        [actions.openEdit, actions.setPackageToDelete, actions.setPackageToDeliver]
+        [router, actions.setPackageToDelete, actions.setPackageToDeliver]
     );
 
     return (
@@ -60,7 +63,7 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
                 mobileCard={(row) => (
                     <PaqueteMobileCard
                         paquete={row}
-                        onEdit={() => actions.openEdit(row)}
+                        onEdit={() => router.push(`/dashboard/paquetes/${row.pk_id_paquete}/editar`)}
                         onDelete={() => actions.setPackageToDelete(row.pk_id_paquete)}
                         onDeliver={() => actions.setPackageToDeliver(row)}
                     />
@@ -72,16 +75,6 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
                 onClose={() => actions.setPackageToDelete(null)}
                 onConfirm={actions.confirmDelete}
                 isDeleting={actions.isDeleting}
-            />
-
-            <EditPaqueteModal
-                isOpen={!!actions.packageToEdit}
-                onClose={() => actions.setPackageToEdit(null)}
-                onConfirm={actions.confirmEdit}
-                isEditing={actions.isEditing}
-                packageToEdit={actions.packageToEdit}
-                editForm={actions.editForm}
-                setEditForm={actions.setEditForm}
             />
 
             {actions.packageToDeliver && (

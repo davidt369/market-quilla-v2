@@ -16,7 +16,7 @@ import {
 } from "@/shared/components/ui/select";
 import { SectionCard, SectionTitle } from "./form-layout";
 
-export function InformacionPagoSection() {
+export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolean }) {
     const { control, watch } = useFormContext<PaqueteCompletoFormData>();
     const momentoPago = watch("momentoPago");
 
@@ -24,6 +24,12 @@ export function InformacionPagoSection() {
         <SectionCard>
             <div className="mb-5 flex items-center justify-between">
                 <SectionTitle icon={Coins}>Información de Pago</SectionTitle>
+                {isPagado && (
+                    <span className="text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        Ya cobrado
+                    </span>
+                )}
             </div>
 
             <Controller
@@ -38,6 +44,7 @@ export function InformacionPagoSection() {
                             name={field.name}
                             value={field.value ?? ""}
                             onValueChange={field.onChange}
+                            disabled={isPagado}
                         >
                             <SelectTrigger id={field.name} aria-invalid={fieldState.invalid} className="w-full">
                                 <SelectValue placeholder="Seleccione cuándo pagará" />
@@ -89,8 +96,9 @@ export function InformacionPagoSection() {
                                     inputMode="decimal"
                                     step="0.10"
                                     min="0"
-                                    className="pl-10 pr-3 w-full text-right font-semibold tabular-nums text-base sm:text-sm h-11 sm:h-10"
+                                    className={`pl-10 pr-3 w-full text-right font-semibold tabular-nums text-base sm:text-sm h-11 sm:h-10 ${isPagado ? "bg-slate-100 dark:bg-slate-900 cursor-not-allowed" : ""}`}
                                     aria-invalid={fieldState.invalid}
+                                    disabled={isPagado}
                                 />
                             </div>
                             {fieldState.invalid ? (

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createPaquete, createPaqueteCompletoTransaction, deletePaquete, updatePaquete } from "../services/paquetes.service";
+import { createPaquete, createPaqueteCompletoTransaction, deletePaquete, updatePaquete, updatePaqueteCompletoTransaction } from "../services/paquetes.service";
 import { PaqueteCompletoFormData, paqueteCompletoFormSchema, PaqueteUpdate, paqueteUpdateSchema } from "../schemas/paquetes.schema";
 import { requirePermission } from "@/shared/lib/auth-utils";
 import { PERMISSIONS } from "@/shared/config/permisos.constants";
@@ -41,6 +41,37 @@ export async function registrarPaqueteAction(
     } catch (error: any) {
         return {
             error: error.message || "Error inesperado al registrar el paquete completo.",
+        };
+    }
+}
+
+export async function actualizarPaqueteCompletoAction(
+    id: number,
+    formData: PaqueteCompletoFormData
+): Promise<ActionState> {
+    try {
+        const parsed = paqueteCompletoFormSchema.safeParse(formData);
+
+        if (!parsed.success) {
+            return {
+                error: "Datos inválidos: " + parsed.error.issues.map(i => i.message).join(", "),
+            };
+        }
+
+        const session = await requirePermission(PERMISSIONS.EDITAR_PAQUETE);
+        const usuarioId = parseInt(session.id);
+
+        const paquete = await updatePaqueteCompletoTransaction(id, parsed.data, usuarioId);
+
+        revalidatePath("/dashboard/paquetes");
+
+        return {
+            success: true,
+            data: paquete,
+        };
+    } catch (error: any) {
+        return {
+            error: error.message || "Error inesperado al actualizar el paquete completo.",
         };
     }
 }
