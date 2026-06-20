@@ -155,6 +155,39 @@ export function UserTableWrapper({
         columns={columns}
         rows={initialData}
         rowKey="id_usuario"
+        mobileCard={(row) => (
+          <div className="border rounded-lg p-4 space-y-3 bg-card shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-semibold text-base truncate">{row.nombre_completo}</div>
+              <Badge variant="outline" className="shrink-0">{row.rol}</Badge>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Usuario:</span> {row.nombre_usuario}
+            </div>
+            <div className="flex gap-2 justify-end pt-3 mt-1 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedUser(row);
+                  setIsFormOpen(true);
+                }}
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground border-transparent"
+                onClick={() => handleDelete(row)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar
+              </Button>
+            </div>
+          </div>
+        )}
       />
     </div>
 
