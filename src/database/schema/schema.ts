@@ -166,7 +166,7 @@ export const tbpaquetes = pgTable(
 // --- MEJORA PRINCIPAL: Definición de Relaciones en Drizzle ---
 // Esto permite hacer consultas de tipo: db.query.tbpaquetes.findFirst({ with: { remitente: true } })
 
-export const paquetesRelations = relations(tbpaquetes, ({ one }) => ({
+export const paquetesRelations = relations(tbpaquetes, ({ one, many }) => ({
   remitente: one(tbclientes, {
     fields: [tbpaquetes.fk_id_remitente],
     references: [tbclientes.pk_id_cliente],
@@ -181,6 +181,7 @@ export const paquetesRelations = relations(tbpaquetes, ({ one }) => ({
     fields: [tbpaquetes.fk_id_usuario],
     references: [tbusuarios.pk_id_usuario],
   }),
+  movimientosCaja: many(tbcajaMovimientos),
 }));
 
 export const permisosRelations = relations(tbpermisos, ({ many }) => ({
@@ -255,6 +256,13 @@ export const tbcajaMovimientos = pgTable("tbcaja_movimientos", {
     index("idx_cajamov_paquete").on(table.fk_id_paquete),
   ]
 });
+
+export const cajaMovimientosRelations = relations(tbcajaMovimientos, ({ one }) => ({
+  paquete: one(tbpaquetes, {
+    fields: [tbcajaMovimientos.fk_id_paquete],
+    references: [tbpaquetes.pk_id_paquete],
+  }),
+}));
 
 export const tbauditoria = pgTable("tbauditoria", {
   pk_id_auditoria: integer("pk_id_auditoria")
