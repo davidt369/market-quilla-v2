@@ -137,17 +137,9 @@ export const abrirCaja = auditable(async (tx, usuarioId: number, montoInicial: n
             throw new Error("El usuario ya tiene un turno de caja abierto.");
         }
 
-        // Traspaso de turno: Validar que el monto inicial coincida con el final del turno anterior
-        const ultimoTurno = await tx.query.tbcajaTurnos.findFirst({
-            where: (ct, { eq }) => eq(ct.cerrada, true),
-            orderBy: (ct, { desc }) => [desc(ct.horaCierre)],
-        });
-
-        if (ultimoTurno && ultimoTurno.montoFinal !== null) {
-            if (Number(ultimoTurno.montoFinal) !== montoInicial) {
-                throw new Error(`El monto inicial (${montoInicial} Bs) no coincide con el monto final del turno anterior (${ultimoTurno.montoFinal} Bs).`);
-            }
-        }
+        // Nota: Se elimina la restricción de que el monto inicial debe coincidir
+        // exactamente con el monto final del último turno, ya que el usuario puede
+        // depositar dinero al banco o traer nuevo cambio para el día.
 
         const [newTurno] = await tx.insert(tbcajaTurnos).values({
             fk_id_usuario: usuarioId,

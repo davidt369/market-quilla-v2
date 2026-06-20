@@ -294,7 +294,7 @@ export function AbrirCajaForm() {
                 <Button
                     size="lg"
                     className="bg-amber-500 hover:bg-amber-600 text-white font-semibold w-full sm:w-auto shadow-sm transition-colors"
-                    disabled={montoTotal === 0 || isPending}
+                    disabled={isPending}
                     onClick={handleAbrirCaja}
                 >
                     {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Unlock className="w-4 h-4 mr-2" />}
