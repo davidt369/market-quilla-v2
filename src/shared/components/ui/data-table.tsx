@@ -64,6 +64,7 @@ export type TipoDato = "texto" | "numero" | "fecha"
 export interface DataTableColumnDef<TData>
   extends Omit<ColumnDef<TData, unknown>, "header" | "size"> {
   accessorKey?: keyof TData & string
+  accessorFn?: (originalRow: TData, index: number) => any
   id?: string
   header: React.ReactNode
   dataType?: TipoDato
@@ -120,11 +121,7 @@ export function DataTable<TData extends Record<string, unknown>>({
     pageSize: rowsPerPageOptions[0],
   })
 
-  const filteredData = React.useMemo(() => {
-    if (!globalFilter.trim()) return rows
-    const s = globalFilter.toLowerCase().trim()
-    return rows.filter((row) => extraerValores(row).toLowerCase().includes(s))
-  }, [rows, globalFilter])
+  // Se elimina el filteredData manual para usar el de la tabla
 
   const tanstackColumns = React.useMemo<ColumnDef<TData, unknown>[]>(() => {
     return columnsDef.map((col, idx) => ({
@@ -148,22 +145,40 @@ export function DataTable<TData extends Record<string, unknown>>({
   }, [columnsDef])
 
   const table = useReactTable({
-    data: filteredData,
+    data: rows,
     columns: tanstackColumns,
     state: { sorting, pagination, globalFilter },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getRowId: (row) => String(row[rowKey] ?? Math.random()),
-    manualFiltering: true,
+    globalFilterFn: (row, columnId, filterValue) => {
+      // Búsqueda global personalizada que incluye los valores crudos
+      const s = filterValue.toLowerCase().trim()
+      
+      // Buscar en los valores de las columnas definidos por accessorKey/accessorFn
+      for (const col of row.getAllCells()) {
+        const val = col.getValue()
+        if (val !== null && val !== undefined && String(val).toLowerCase().includes(s)) {
+          return true
+        }
+      }
+      
+      // Búsqueda de respaldo en el objeto original (por si hay datos anidados que no están en columnas)
+      const rawText = extraerValores(row.original).toLowerCase()
+      if (rawText.includes(s)) return true
+
+      return false
+    },
   })
 
   const pageRows = table.getRowModel().rows
   const { pageIndex, pageSize } = table.getState().pagination
-  const totalRows = filteredData.length
+  const totalRows = table.getFilteredRowModel().rows.length
   const pageCount = Math.max(1, Math.ceil(totalRows / pageSize))
   const startRow = totalRows === 0 ? 0 : pageIndex * pageSize + 1
   const endRow = Math.min((pageIndex + 1) * pageSize, totalRows)

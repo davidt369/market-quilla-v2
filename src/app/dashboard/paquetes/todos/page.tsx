@@ -1,4 +1,6 @@
-import { PaqueteListItem, PaquetesListClient } from "@/features/paquetes/components/todos-paquetes/paquetes-list-client";
+
+import { PaquetesListClient } from "@/features/paquetes/components/todos-paquetes/paquetes-list-client";
+import { PaqueteListItem } from "@/features/paquetes/components/todos-paquetes/paquetes.types";
 import { getPaquetes } from "@/features/paquetes/services/paquetes.service";
 
 export const dynamic = "force-dynamic";
