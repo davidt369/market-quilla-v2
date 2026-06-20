@@ -23,15 +23,6 @@ export async function getPaquetesSinEntregar({
 
         const filters = [isNull(tbpaquetes.deletedAt)];
 
-        if (q) {
-            filters.push(
-                or(
-                    ilike(tbpaquetes.ubicacionAlmacen, `%${q}%`),
-                    ilike(tbpaquetes.tipoPaquete, `%${q}%`)
-                )!
-            );
-        }
-
         if (estadoPaquete) {
             filters.push(eq(tbpaquetes.estadoPaquete, estadoPaquete as any));
         }
@@ -40,31 +31,41 @@ export async function getPaquetesSinEntregar({
             filters.push(eq(tbpaquetes.estadoPago, estadoPago as any));
         }
         // Solo paquetes que no han sido entregados
-        if(!estadoPaquete) {
+        if (!estadoPaquete) {
             filters.push(eq(tbpaquetes.estadoPaquete, "registrado"));
         }
 
         const data = await db.query.tbpaquetes.findMany({
             where: and(...filters),
-            limit,
-            offset,
             orderBy: [desc(tbpaquetes.fechaHoraRegistro)],
             with: {
                 remitente: { columns: { nombre_completo: true, ci_o_cel: true, empresa: true } },
                 destinatario: { columns: { nombre_completo: true, ci_o_cel: true, empresa: true } },
-
             },
         });
 
-        const allFiltered = await db.query.tbpaquetes.findMany({
-            where: and(...filters),
-            columns: { pk_id_paquete: true }
-        });
+        // Búsqueda en memoria para filtrar por relaciones (clientes) de forma rápida
+        let filteredData = data;
+        if (q) {
+            const query = q.toLowerCase();
+            filteredData = data.filter((pkg) => {
+                return (
+                    pkg.ubicacionAlmacen?.toLowerCase().includes(query) ||
+                    pkg.tipoPaquete?.toLowerCase().includes(query) ||
+                    pkg.remitente?.nombre_completo.toLowerCase().includes(query) ||
+                    pkg.remitente?.ci_o_cel.toLowerCase().includes(query) ||
+                    pkg.destinatario?.nombre_completo.toLowerCase().includes(query) ||
+                    pkg.destinatario?.ci_o_cel.toLowerCase().includes(query)
+                );
+            });
+        }
+
+        const allFiltered = filteredData.map(p => ({ pk_id_paquete: p.pk_id_paquete }));
 
         const total = allFiltered.length;
 
         return {
-            data,
+            data: filteredData,
             meta: {
                 total,
                 page,

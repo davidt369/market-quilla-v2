@@ -1,48 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/shared/components/ui/button";
-import {
-    Card,
-    CardHeader,
-    CardContent,
-    CardFooter,
-    CardDescription
-} from "@/shared/components/ui/card";
-import { Badge } from "@/shared/components/ui/badge";
+import Image from "next/image";
 import { formatBoliviaDateTime } from "@/shared/lib/timezone";
-import { AlertCircle, Calendar, Flag, MapPin, PackageCheck, Truck, Coins, CreditCard, QrCode, Banknote } from "lucide-react";
 import { entregarPaqueteAction } from "@/features/paquetes/actions/paquetes.actions";
 import { toast } from "sonner";
 import ModalEntregaPaquete from "./modal-entrega-paquete";
-
-const getPaymentBadge = (status: string) => {
-    switch (status?.toLowerCase()) {
-        case "pagado":
-            return (
-                <Badge
-                    variant="secondary"
-                    className="flex items-center gap-1 bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700 hover:bg-indigo-100/80 dark:bg-indigo-900/40 dark:text-indigo-400"
-                >
-                    <PackageCheck className="h-3.5 w-3.5" />
-                    Pagado
-                </Badge>
-            );
-        case "pendiente":
-            return (
-                <Badge variant="destructive" className="flex items-center gap-1 px-2 py-0.5 text-xs">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    Pendiente
-                </Badge>
-            );
-        default:
-            return (
-                <Badge variant="outline" className="flex items-center gap-1 px-2 py-0.5 text-xs capitalize">
-                    {status}
-                </Badge>
-            );
-    }
-}
+import { Card, CardContent, CardFooter } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
 
 export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -81,102 +46,116 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     };
 
     return (
-        <>
-            <Card className="w-full flex flex-col overflow-hidden rounded-xl shadow-sm transition-all hover:shadow-md">
-
-                {/* Header Compacto */}
-                <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-3 space-y-0">
-                    <div className="flex items-center gap-2">
-                        <CardDescription>
-                            Ubicación
-                        </CardDescription>
-
-                        <Badge variant="secondary" className="font-mono font-semibold">
-                            {pkg.ubicacionAlmacen}
-                        </Badge>
-                    </div>
-                    {getPaymentBadge(pkg.estadoPago)}
-                </CardHeader>
-
-                {/* Contenido Principal */}
-                <CardContent className="flex flex-col gap-4 p-4 pt-0">
-
-                    {/* Timeline Origen / Destino Minimalista */}
-                    <div className="flex flex-col gap-0 rounded-lg border bg-muted/10 p-3">
-
-                        {/* Remitente */}
-                        <div className="flex items-start gap-3">
-                            <div className="flex flex-col items-center mt-0.5">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                <div className="h-5 w-px bg-border my-1"></div> {/* Conector vertical */}
-                            </div>
-                            <div className="flex flex-col pb-3 min-w-0">
-                                <span className="text-sm font-semibold leading-none text-foreground/90 truncate">
-                                    De: {pkg.remitente?.nombre_completo}
-                                </span>
-                                <span className="text-xs text-muted-foreground mt-1.5 truncate">
-                                    CI/Cel: {pkg.remitente?.ci_o_cel}
-                                    {pkg.remitente?.empresa && <span className="ml-1 opacity-70">• {pkg.remitente.empresa}</span>}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Destinatario */}
-                        <div className="flex items-start gap-3">
-                            <div className="flex flex-col items-center mt-0.5">
-                                <Flag className="h-4 w-4 text-amber-500" />
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-semibold leading-none text-foreground/90 truncate">
-                                    Para: {pkg.destinatario?.nombre_completo}
-                                </span>
-                                <span className="text-xs text-muted-foreground mt-1.5 truncate">
-                                    CI/Cel: {pkg.destinatario?.ci_o_cel}
-                                    {pkg.destinatario?.empresa && <span className="ml-1 opacity-70">• {pkg.destinatario.empresa}</span>}
-                                </span>
-                            </div>
+        <Card className="flex flex-col h-full overflow-hidden border-2 border-border shadow-sm font-sans transition-all hover:shadow-md">
+            <CardContent className="p-4 sm:p-5 flex-1 flex flex-col gap-4">
+                {/* Contenedor flex para logo y UBIC lado a lado */}
+                <div className="flex items-start justify-between gap-4">
+                    {/* Caja UBIC - ocupa el espacio restante */}
+                    <div className="flex-1 border-[3px] border-foreground p-1.5 sm:p-2 flex items-end">
+                        <span className="font-bold text-lg sm:text-xl mr-2 leading-none text-foreground">UBIC:</span>
+                        <div className="flex-1 border-b-[2px] border-dashed border-foreground/60 text-base sm:text-lg font-semibold leading-none px-2 whitespace-nowrap overflow-hidden text-ellipsis text-foreground">
+                            {pkg.ubicacionAlmacen || "\u00A0"}
                         </div>
                     </div>
 
-                    {/* Metadatos (Registro y Costo en una sola línea adaptable) */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5">
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Calendar className="h-3.5 w-3.5 opacity-70" />
-                            <span className="font-medium">{formatBoliviaDateTime(pkg.fechaHoraRegistro)}</span>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-lg font-bold tracking-tight">
-                                {Number(pkg.precioBase).toLocaleString("es-BO")}
-                            </span>
-                            <span className="text-xs font-medium text-muted-foreground">
-                                Bs.
-                            </span>
+                    {/* Logo */}
+                    <div className="text-primary font-bold text-xl leading-none text-right tracking-tight flex-shrink-0">
+                        <Image
+                            src="/market-quilla-600px.webp"
+                            alt="Logo"
+                            width={54}
+                            height={54}
+                            className="dark:brightness-110 sm:w-[60px] sm:h-[60px]"
+                        />
+                    </div>
+                </div>
+
+                {/* Líneas de datos */}
+                <div className="space-y-3 mt-1 text-foreground">
+                    <div className="flex items-end gap-2">
+                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">DE</span>
+                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                            {pkg.remitente?.nombre_completo || "\u00A0"}
                         </div>
                     </div>
 
-                </CardContent>
+                    <div className="flex items-end gap-2">
+                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">EMPRESA</span>
+                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                            {pkg.remitente?.empresa || "\u00A0"}
+                        </div>
+                    </div>
 
-                {/* Footer / Acción integrado sin padding superior extra */}
-                <CardFooter className="p-4 pt-0 mt-auto ">
-                    {isEntregado ? (
-                        <Button
-                            disabled
-                            className="w-full bg-muted text-muted-foreground cursor-not-allowed font-semibold"
-                        >
-                            <PackageCheck className="mr-2 h-4 w-4" />
-                            Entregado
-                        </Button>
-                    ) : (
-                        <Button
-                            onClick={() => setIsOpen(true)}
-                            className="w-full bg-amber-500 font-semibold text-amber-950 hover:bg-amber-600 transition-colors my-2"
-                        >
-                            <Truck className="mr-2 h-4 w-4" />
-                            Entregar Paquete
-                        </Button>
-                    )}
-                </CardFooter>
-            </Card>
+                    <div className="flex items-end gap-2">
+                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">CI/CEL</span>
+                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium">
+                            {pkg.remitente?.ci_o_cel || "\u00A0"}
+                        </div>
+                    </div>
+
+                    <div className="flex items-end gap-2 mt-4">
+                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">PARA</span>
+                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                            {pkg.destinatario?.nombre_completo || "\u00A0"}
+                        </div>
+                    </div>
+
+                    <div className="flex items-end gap-2">
+                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">CI/CEL</span>
+                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium">
+                            {pkg.destinatario?.ci_o_cel || "\u00A0"}
+                        </div>
+                    </div>
+
+                    <div className="flex items-end gap-2 mt-4">
+                        <span className="font-bold text-[10px] sm:text-xs uppercase shrink-0 text-foreground/80">FECHA</span>
+                        <div className="flex-1 border-b border-foreground/30 text-[10px] sm:text-xs px-1 sm:px-2 font-medium text-center whitespace-nowrap">
+                            {formatBoliviaDateTime(pkg.fechaHoraRegistro).split(",")[0]}
+                        </div>
+                        <span className="font-bold text-[10px] sm:text-xs uppercase shrink-0 text-foreground/80">COSTO</span>
+                        <div className="flex-1 border-b border-foreground/30 text-[10px] sm:text-xs px-1 sm:px-2 font-bold text-center whitespace-nowrap text-primary">
+                            Bs. {Number(pkg.precioBase).toFixed(2)}
+                        </div>
+                    </div>
+
+                    <div className="flex items-end gap-2">
+                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">PAGO</span>
+                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-bold flex items-center justify-between">
+                            <span>{isPendiente ? "Por Pagar" : "Pagado"}</span>
+                            {!isPendiente && (
+                                <span className="text-[10px] sm:text-xs bg-foreground text-background px-1.5 py-0.5 ml-2 leading-none uppercase font-bold rounded-sm">Cobrado</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex items-end gap-2">
+                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">TIPO DE PAQUETE</span>
+                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                            {pkg.tipoPaquete || "\u00A0"}
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+
+            {/* Acciones */}
+            <CardFooter className="bg-muted/30 border-t border-border p-3 sm:p-4 mt-auto">
+                {isEntregado ? (
+                    <Button
+                        disabled
+                        variant="secondary"
+                        className="w-full h-11 sm:h-12 text-xs sm:text-sm font-bold uppercase tracking-wider"
+                    >
+                        Entregado
+                    </Button>
+                ) : (
+                    <Button
+                        onClick={() => setIsOpen(true)}
+                        className="w-full h-11 sm:h-12 text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors bg-foreground text-background hover:bg-foreground/90"
+                    >
+                        Entregar Paquete
+                    </Button>
+                )}
+            </CardFooter>
 
             <ModalEntregaPaquete
                 isOpen={isOpen}
@@ -197,6 +176,6 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                 isSubmitting={isSubmitting}
                 handleConfirm={handleConfirm}
             />
-        </>
+        </Card>
     );
 }
