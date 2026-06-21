@@ -7,6 +7,7 @@ import { PaqueteListItem } from "./paquetes.types";
 import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared";
 import { formatBoliviaDateTime } from "@/shared/lib/timezone";
 import { ViewEvidenciaModal } from "./modals/view-evidencia-modal";
+import { calcularPrecioFinal } from "../../lib/paquetes.utils";
 
 interface GetColumnsProps {
     onEdit: (pkg: PaqueteListItem) => void;
@@ -100,9 +101,13 @@ export const getPaquetesColumns = ({
         {
             id: "metodoPago",
             header: "Método",
-            accessorFn: (row: PaqueteListItem) => `${row.movimientosCaja?.[0]?.metodoPago || ""} ${row.momentoPago === "al_registrar" ? "Remitente" : "Destinatario"}`,
+            accessorFn: (row: PaqueteListItem) => {
+                const metodo = row.movimientosCaja && row.movimientosCaja.length > 0 ? row.movimientosCaja[row.movimientosCaja.length - 1].metodoPago : "";
+                return `${metodo} ${row.momentoPago === "al_registrar" ? "Remitente" : "Destinatario"}`;
+            },
             cell: ({ row }: { row: any }) => {
-                const metodo = row.original.movimientosCaja?.[0]?.metodoPago;
+                const movimientos = row.original.movimientosCaja || [];
+                const metodo = movimientos.length > 0 ? movimientos[movimientos.length - 1].metodoPago : undefined;
                 return (
                     <div className="flex flex-col gap-1.5">
                         <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
@@ -181,13 +186,42 @@ export const getPaquetesColumns = ({
             ),
             align: "center",
             dataType: "numero",
-            cell: ({ row }: { row: any }) => (
-                <div className="text-center w-full">
-                    <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm tabular-nums">
-                        {Number(row.original.precioBase).toFixed(2)}
-                    </span>
-                </div>
-            ),
+            cell: ({ row }: { row: any }) => {
+                const pkg = row.original;
+                
+                if (pkg.estadoPaquete === "registrado") {
+                    const pricing = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago);
+                    return (
+                        <div className="flex flex-col items-center justify-center w-full gap-1">
+                            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm tabular-nums">
+                                {Number(pricing.precioFinal).toFixed(2)}
+                            </span>
+                            {pricing.recargoAplicado && (
+                                <span className="text-[10px] font-semibold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                    + Recargo ({pricing.semanasPasadas} sem)
+                                </span>
+                            )}
+                        </div>
+                    );
+                } else {
+                    const movMulta = pkg.movimientosCaja?.find((m: any) => m.descripcion?.includes("Recargo") || m.descripcion?.includes("MULTA"));
+                    return (
+                        <div className="flex flex-col items-center justify-center w-full gap-1">
+                            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm tabular-nums">
+                                {Number(pkg.precioBase).toFixed(2)}
+                            </span>
+                            {movMulta && (
+                                <span 
+                                    className="text-[10px] font-semibold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded whitespace-nowrap cursor-help"
+                                    title={movMulta.descripcion}
+                                >
+                                    Con Recargo
+                                </span>
+                            )}
+                        </div>
+                    );
+                }
+            },
         },
         {
             id: "actions",

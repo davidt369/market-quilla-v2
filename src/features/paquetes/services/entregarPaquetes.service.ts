@@ -52,75 +52,55 @@ export const entregarPaquete = auditable(async (
             throw new Error(`El paquete con ID ${paqueteId} ya se encuentra entregado.`);
         }
 
-        // 2. Si el pago es pendiente, registrar cobro e ingreso a caja
-        if (paquete.estadoPago === "pendiente") {
+        const { precioFinal, recargoAplicado, semanasPasadas, saldoPendiente } = calcularPrecioFinal(
+            paquete.precioBase,
+            paquete.fechaHoraRegistro,
+            paquete.estadoPago
+        );
+
+        // 2. Si hay saldo pendiente (ya sea porque no pagó nada, o por la multa de demora)
+        if (saldoPendiente > 0) {
             if (!metodoPago) {
-                throw new Error("Se requiere especificar un método de pago para registrar la entrega de un paquete pendiente.");
+                throw new Error("Se requiere especificar un método de pago para registrar el cobro pendiente.");
             }
 
-            const { precioFinal, recargoAplicado, semanasPasadas } = calcularPrecioFinal(
-                paquete.precioBase,
-                paquete.fechaHoraRegistro,
-                paquete.estadoPago
-            );
-
-            // Registrar movimiento en caja con el precioFinal
+            // Registrar movimiento en caja con el saldoPendiente exacto a cobrar hoy
             await tx.insert(tbcajaMovimientos).values({
                 fk_id_cajaTurno: turnoActivo.pk_id_cajaTurno,
                 fk_id_usuario: usuarioId,
                 fk_id_paquete: paqueteId,
                 tipoMovimiento: "ingreso",
                 metodoPago: metodoPago,
-                monto: String(precioFinal),
-                descripcion: `Cobro por entrega de paquete TRK-${paqueteId.toString().padStart(4, "0")} ${recargoAplicado ? `(Recargo por ${semanasPasadas} semana${semanasPasadas === 1 ? '' : 's'} de demora)` : ''}`,
+                monto: String(saldoPendiente),
+                descripcion: paquete.estadoPago === "pendiente"
+                    ? `Cobro por entrega de paquete TRK-${paqueteId.toString().padStart(4, "0")} ${recargoAplicado ? `(Recargo por ${semanasPasadas} semana(s) de demora)` : ''}`
+                    : `Cobro de MULTA por demora (${semanasPasadas} semana(s)) en paquete pagado TRK-${paqueteId.toString().padStart(4, "0")}`,
             });
-
-            // Actualizar paquete a entregado y pagado
-            const [updated] = await tx
-                .update(tbpaquetes)
-                .set({
-                    estadoPaquete: "entregado",
-                    estadoPago: "pagado",
-                    precioBase: String(precioFinal), // Actualizamos el precio al cobrado final para el registro
-                    fechaHoraEntrega: new Date(),
-                    ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
-                })
-                .where(
-                    and(
-                        eq(tbpaquetes.pk_id_paquete, paqueteId),
-                        eq(tbpaquetes.estadoPaquete, "registrado")
-                    )
-                )
-                .returning();
-
-            if (!updated) {
-                throw new Error(`El paquete con ID ${paqueteId} ya fue entregado o modificado.`);
-            }
-
-            return updated;
-        } else {
-            // Si ya estaba pagado (ej. al_registrar), sólo actualizamos a entregado
-            const [updated] = await tx
-                .update(tbpaquetes)
-                .set({
-                    estadoPaquete: "entregado",
-                    fechaHoraEntrega: new Date(),
-                    ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
-                })
-                .where(
-                    and(
-                        eq(tbpaquetes.pk_id_paquete, paqueteId),
-                        eq(tbpaquetes.estadoPaquete, "registrado")
-                    )
-                )
-                .returning();
-
-            if (!updated) {
-                throw new Error(`El paquete con ID ${paqueteId} ya fue entregado o modificado.`);
-            }
-
-            return updated;
         }
+
+        // 3. Actualizar paquete a entregado y pagado
+        const [updated] = await tx
+            .update(tbpaquetes)
+            .set({
+                estadoPaquete: "entregado",
+                estadoPago: "pagado",
+                precioBase: String(precioFinal), // Actualizamos el precio al costo final (base + multa)
+                fechaHoraEntrega: new Date(),
+                ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
+            })
+            .where(
+                and(
+                    eq(tbpaquetes.pk_id_paquete, paqueteId),
+                    eq(tbpaquetes.estadoPaquete, "registrado")
+                )
+            )
+            .returning();
+
+        if (!updated) {
+            throw new Error(`El paquete con ID ${paqueteId} ya fue entregado o modificado.`);
+        }
+
+        return updated;
     } catch (error: any) {
         handleDbErrorPaquete(error);
     }

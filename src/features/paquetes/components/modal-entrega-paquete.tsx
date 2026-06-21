@@ -10,6 +10,9 @@ import {
 import { Truck, QrCode, Banknote, PackageCheck, Camera, Image as ImageIcon } from "lucide-react";
 import * as React from "react";
 
+import { calcularPrecioFinal } from "../lib/paquetes.utils";
+import { AlertCircle } from "lucide-react";
+
 type Props = {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
@@ -27,6 +30,9 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const cameraInputRef = React.useRef<HTMLInputElement>(null);
+
+    const pricing = calcularPrecioFinal(pkg?.precioBase, pkg?.fechaHoraRegistro, pkg?.estadoPago);
+    const tieneDeuda = pricing.saldoPendiente > 0;
 
     React.useEffect(() => {
         if (!file) {
@@ -67,39 +73,60 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-lg">
                             <Truck className="h-5 w-5 text-primary" />
-                            {isPendiente ? "Confirmar Entrega" : "Confirmar Entrega"}
+                            {tieneDeuda ? "Cobrar y Entregar" : "Confirmar Entrega Física"}
                         </DialogTitle>
                         <DialogDescription className="text-xs text-muted-foreground mt-1">
-                            {isPendiente
-                                ? "Este paquete requiere registrar el cobro en caja antes de ser entregado."
-                                : "Este paquete ya fue pagado al registrar. Confirme para registrar la entrega física."}
+                            {tieneDeuda
+                                ? (isPendiente 
+                                    ? "Este paquete requiere registrar el cobro en caja antes de ser entregado."
+                                    : `Este paquete fue pagado, pero tiene un recargo por ${pricing.semanasPasadas} semana(s) de almacenaje.`)
+                                : "Este paquete ya no tiene deudas. Confirme para registrar la evidencia de entrega."}
                         </DialogDescription>
                     </DialogHeader>
 
                     {/* Detalle del Monto a Cobrar */}
-                    {isPendiente && (
+                    {tieneDeuda && (
                         <div className="my-2 rounded-xl bg-slate-50 dark:bg-zinc-900/60 p-4 border border-dashed border-border/80">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-muted-foreground">Monto Total a Cobrar:</span>
-                                <div className="flex items-baseline gap-0.5">
-                                    <span className="text-xl font-bold tracking-tight text-foreground">
-                                        {Number(pkg.precioBase).toLocaleString("es-BO", { minimumFractionDigits: 2 })}
-                                    </span>
-                                    <span className="text-xs font-semibold text-muted-foreground">Bs.</span>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-medium text-muted-foreground">Monto Base:</span>
+                                    <span className="text-xs font-semibold text-muted-foreground">{Number(pricing.precioOriginal).toLocaleString("es-BO", { minimumFractionDigits: 2 })} Bs.</span>
+                                </div>
+                                {pricing.recargoAplicado && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-medium text-destructive flex items-center gap-1">
+                                            <AlertCircle className="w-3.5 h-3.5" /> 
+                                            Recargo ({pricing.semanasPasadas} sem):
+                                        </span>
+                                        <span className="text-xs font-semibold text-destructive">+{(pricing.precioFinal - pricing.precioOriginal).toLocaleString("es-BO", { minimumFractionDigits: 2 })} Bs.</span>
+                                    </div>
+                                )}
+                                {!isPendiente && pricing.recargoAplicado && (
+                                    <div className="flex items-center justify-between border-t border-dashed pt-2 mt-1">
+                                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Ya Pagado (Al registrar):</span>
+                                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">-{Number(pricing.precioOriginal).toLocaleString("es-BO", { minimumFractionDigits: 2 })} Bs.</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between border-t border-border pt-2 mt-1">
+                                    <span className="text-sm font-bold text-foreground">Saldo a Cobrar Hoy:</span>
+                                    <div className="flex items-baseline gap-0.5">
+                                        <span className="text-xl font-bold tracking-tight text-primary">
+                                            {Number(pricing.saldoPendiente).toLocaleString("es-BO", { minimumFractionDigits: 2 })}
+                                        </span>
+                                        <span className="text-xs font-semibold text-primary">Bs.</span>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Selector de Método de Pago */}
                             <div className="mt-4">
                                 <span className="text-xs font-semibold text-foreground block mb-2">
-                                    Método de Pago:
+                                    Método de Pago para el Saldo:
                                 </span>
                                 <div className="grid grid-cols-2 gap-2">
                                     {[
                                         { value: "efectivo", label: "Efectivo", icon: Banknote },
                                         { value: "qr", label: "Pago QR", icon: QrCode },
-                                        // { value: "transferencia", label: "Transferencia", icon: Coins },
-                                        // { value: "tarjeta", label: "Tarjeta", icon: CreditCard },
                                     ].map((item) => {
                                         const IconComponent = item.icon;
                                         const isSelected = metodoPago === item.value;
@@ -123,11 +150,11 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                         </div>
                     )}
 
-                    {!isPendiente && (
+                    {!tieneDeuda && (
                         <div className="my-2 rounded-xl bg-slate-50 dark:bg-zinc-900/60 p-4 border border-dashed border-border/80 flex items-center justify-between">
                             <span className="text-xs font-medium text-muted-foreground">Estado de Pago:</span>
-                            <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">
-                                <PackageCheck className="w-3.5 h-3.5 mr-1" /> Ya fue Pagado al Registrar
+                            <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50">
+                                <PackageCheck className="w-3.5 h-3.5 mr-1" /> Todo Pagado
                             </span>
                         </div>
                     )}

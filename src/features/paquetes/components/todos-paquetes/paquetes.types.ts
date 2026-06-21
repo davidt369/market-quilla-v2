@@ -5,5 +5,5 @@ export type PaqueteListItem = Paquete & {
     remitente: { nombre_completo: string; ci_o_cel: string; empresa: string | null };
     destinatario: { nombre_completo: string; ci_o_cel: string; empresa: string | null };
     usuarioRegistro?: { nombre_completo: string } | null;
-    movimientosCaja?: { metodoPago: "efectivo" | "qr" }[];
+    movimientosCaja?: { metodoPago: "efectivo" | "qr"; descripcion: string | null; monto: string }[];
 };

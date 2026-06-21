@@ -308,7 +308,7 @@ export async function getPaquetes({
                 remitente: { columns: { nombre_completo: true, ci_o_cel: true, empresa: true } },
                 destinatario: { columns: { nombre_completo: true, ci_o_cel: true, empresa: true } },
                 usuarioRegistro: { columns: { nombre_completo: true } },
-                movimientosCaja: { columns: { metodoPago: true }, limit: 1 },
+                movimientosCaja: { columns: { metodoPago: true, descripcion: true, monto: true } },
             },
         });
 
