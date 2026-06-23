@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ExternalLink,
   Settings,
-  ShieldCheck
+  ShieldCheck,
+  BarChart3
 } from "lucide-react"
 
 import {
@@ -74,6 +75,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: `/dashboard/caja`,
           icon: Banknote,
           permission: PERMISSIONS.ACCESO_CAJA,
+        },
+        {
+          title: "Reportes",
+          url: `/dashboard/reportes`,
+          icon: BarChart3,
+          permission: null,
         },
       ],
     },

@@ -16,6 +16,7 @@ import { cn } from "@/shared/lib/utils"
 import { useAuthStore } from "@/shared/store/useAuthStore"
 import { PERMISSIONS } from "@/shared/config/permisos.constants"
 import { useSidebar } from "@/shared/components/ui/sidebar"
+import { BarChart3 } from "lucide-react"
 
 interface Tab {
     title: string
@@ -23,6 +24,7 @@ interface Tab {
     icon: any
     permission: string | null
     primary?: boolean
+    isLucide?: boolean
 }
 
 const baseTabs: Tab[] = [
@@ -31,6 +33,13 @@ const baseTabs: Tab[] = [
         url: "/dashboard",
         icon: DashboardSquare01Icon,
         permission: null,
+    },
+    {
+        title: "Reportes",
+        url: "/dashboard/reportes",
+        icon: BarChart3,
+        permission: null,
+        isLucide: true,
     },
     {
         title: "Sin Entregar",
@@ -115,13 +124,17 @@ export default function MobileTabBar() {
                                         : "text-muted-foreground hover:text-foreground/80"
                                 )}
                             >
-                                <HugeiconsIcon
-                                    icon={Icon}
-                                    className={cn(
-                                        "size-[26px] transition-all",
-                                        active ? "stroke-[2.5]" : "stroke-2"
-                                    )}
-                                />
+                                {tab.isLucide ? (
+                                    <Icon className={cn("size-6 transition-all", active ? "stroke-[2.5]" : "stroke-2")} />
+                                ) : (
+                                    <HugeiconsIcon
+                                        icon={Icon}
+                                        className={cn(
+                                            "size-[26px] transition-all",
+                                            active ? "stroke-[2.5]" : "stroke-2"
+                                        )}
+                                    />
+                                )}
 
                                 <span
                                     className={cn(

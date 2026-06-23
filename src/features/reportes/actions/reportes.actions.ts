@@ -1,0 +1,37 @@
+"use server";
+
+import { 
+    getIngresosFinancierosService, 
+    getFlujoPaquetesService, 
+    getTopClientesService 
+} from "../services/reportes.service";
+
+export async function getDashboardReportesAction(fechaInicioISO: string, fechaFinISO: string) {
+    try {
+        const fechaInicio = new Date(fechaInicioISO);
+        const fechaFin = new Date(fechaFinISO);
+        
+        // Ajustamos la fecha fin para incluir todo el día (hasta las 23:59:59.999)
+        fechaFin.setHours(23, 59, 59, 999);
+
+        const range = { fechaInicio, fechaFin };
+
+        const [ingresos, flujo, topClientes] = await Promise.all([
+            getIngresosFinancierosService(range),
+            getFlujoPaquetesService(range),
+            getTopClientesService(range)
+        ]);
+
+        return {
+            success: true,
+            data: {
+                ingresos,
+                flujo,
+                topClientes
+            }
+        };
+    } catch (error: any) {
+        console.error("Error al obtener reportes:", error);
+        return { success: false, error: "No se pudieron cargar los reportes" };
+    }
+}
