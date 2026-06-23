@@ -80,7 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Reportes",
           url: `/dashboard/reportes`,
           icon: BarChart3,
-          permission: null,
+          permission: PERMISSIONS.VER_REPORTES,
         },
       ],
     },

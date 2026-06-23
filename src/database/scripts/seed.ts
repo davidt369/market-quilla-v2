@@ -2,6 +2,7 @@ import "dotenv/config";
 import { faker } from "@faker-js/faker";
 import bcrypt from "bcrypt";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { sql } from "drizzle-orm";
 import { reset } from "drizzle-seed";
 import { Pool } from "pg";
 import * as schema from "../schema/schema";
@@ -107,6 +108,9 @@ async function seedPaquetes(
 }
 
 async function seedPermisos() {
+  await db.execute(sql`ALTER TABLE "tbpermisos" DISABLE TRIGGER USER;`);
+  await db.execute(sql`ALTER TABLE "tbroles_permisos" DISABLE TRIGGER USER;`);
+
   await db.delete(schema.tbroles_permisos);
   await db.delete(schema.tbpermisos);
 
@@ -128,6 +132,7 @@ async function seedPermisos() {
     { pk_id_permiso: "ver-usuarios", nombre: "Ver Usuarios", descripcion: "Ver listado de usuarios", modulo: "usuarios" },
     { pk_id_permiso: "gestionar-usuarios", nombre: "Gestionar Usuarios", descripcion: "Crear, editar y eliminar usuarios", modulo: "usuarios" },
     { pk_id_permiso: "configurar-permisos", nombre: "Configurar Permisos", descripcion: "Acceder a la matriz de permisos", modulo: "configuracion" },
+    { pk_id_permiso: "ver-reportes", nombre: "Ver Reportes", descripcion: "Ver reportes y estadísticas", modulo: "reportes" },
   ];
 
   await db.insert(schema.tbpermisos).values(permisos).onConflictDoNothing();
@@ -161,6 +166,9 @@ async function seedPermisos() {
     }));
     await db.insert(schema.tbroles_permisos).values(assignments).onConflictDoNothing();
   }
+
+  await db.execute(sql`ALTER TABLE "tbpermisos" ENABLE TRIGGER USER;`);
+  await db.execute(sql`ALTER TABLE "tbroles_permisos" ENABLE TRIGGER USER;`);
 }
 
 // async function seedCajaTurnos(usuarios: Array<{ pk_id_usuario: number }>) {

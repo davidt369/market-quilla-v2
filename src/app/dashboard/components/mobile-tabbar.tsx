@@ -38,7 +38,7 @@ const baseTabs: Tab[] = [
         title: "Reportes",
         url: "/dashboard/reportes",
         icon: BarChart3,
-        permission: null,
+        permission: PERMISSIONS.VER_REPORTES,
         isLucide: true,
     },
     {

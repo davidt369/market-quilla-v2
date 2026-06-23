@@ -16,6 +16,7 @@ export const PERMISSIONS = {
   VER_USUARIOS: "ver-usuarios",
   GESTIONAR_USUARIOS: "gestionar-usuarios",
   CONFIGURAR_PERMISOS: "configurar-permisos",
+  VER_REPORTES: "ver-reportes",
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSIONS;
@@ -39,6 +40,7 @@ export const PERMISSION_LABELS: Record<PermissionValue, string> = {
   [PERMISSIONS.VER_USUARIOS]: "Ver Usuarios",
   [PERMISSIONS.GESTIONAR_USUARIOS]: "Gestionar Usuarios",
   [PERMISSIONS.CONFIGURAR_PERMISOS]: "Configurar Permisos",
+  [PERMISSIONS.VER_REPORTES]: "Ver Reportes",
 };
 
 export const PERMISSION_MODULES = [
@@ -48,6 +50,7 @@ export const PERMISSION_MODULES = [
   "clientes",
   "usuarios",
   "configuracion",
+  "reportes",
 ] as const;
 
 export type PermissionModule = (typeof PERMISSION_MODULES)[number];
@@ -73,6 +76,7 @@ export const PERMISSIONS_BY_MODULE: Record<PermissionModule, PermissionValue[]> 
   clientes: [PERMISSIONS.GESTIONAR_CLIENTES],
   usuarios: [PERMISSIONS.VER_USUARIOS, PERMISSIONS.GESTIONAR_USUARIOS],
   configuracion: [PERMISSIONS.CONFIGURAR_PERMISOS],
+  reportes: [PERMISSIONS.VER_REPORTES],
 };
 
 export const MODULE_LABELS: Record<PermissionModule, string> = {
@@ -82,6 +86,7 @@ export const MODULE_LABELS: Record<PermissionModule, string> = {
   clientes: "Clientes",
   usuarios: "Usuarios",
   configuracion: "Configuración",
+  reportes: "Reportes",
 };
 
 export type RolBase = "administrador" | "supervisor" | "recepcionista" | "cajero";
