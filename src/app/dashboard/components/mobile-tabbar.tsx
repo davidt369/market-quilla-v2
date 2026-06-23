@@ -34,13 +34,13 @@ const baseTabs: Tab[] = [
         icon: DashboardSquare01Icon,
         permission: null,
     },
-    {
-        title: "Reportes",
-        url: "/dashboard/reportes",
-        icon: BarChart3,
-        permission: PERMISSIONS.VER_REPORTES,
-        isLucide: true,
-    },
+    // {
+    //     title: "Reportes",
+    //     url: "/dashboard/reportes",
+    //     icon: BarChart3,
+    //     permission: PERMISSIONS.VER_REPORTES,
+    //     isLucide: true,
+    // },
     {
         title: "Sin Entregar",
         url: "/dashboard/paquetes",
