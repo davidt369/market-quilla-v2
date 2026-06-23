@@ -56,7 +56,7 @@ export default async function PaquetesPage({
 
 
             {/* Cards Grid - Mobile First, 4 Columnas en monitores grandes */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 items-stretch mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-max gap-5 items-start mt-6">
                 {paquetes.length === 0 ? (
                     <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground bg-white dark:bg-zinc-950 border rounded-3xl border-dashed">
                         <PackageCheck className="h-12 w-12 text-zinc-300 dark:text-zinc-700 mb-4" />

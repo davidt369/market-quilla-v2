@@ -14,6 +14,28 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/
 import { useReactToPrint } from "react-to-print";
 import { ThermalReceipt } from "./registrar-paquete/thermal-receipt";
 
+// Subcomponente auxiliar para mantener el código limpio y consistente
+const FilaDato = ({
+    label,
+    value,
+    children,
+    className = ""
+}: {
+    label: string;
+    value?: string | number;
+    children?: React.ReactNode;
+    className?: string
+}) => (
+    <div className={`flex items-end gap-2 ${className}`}>
+        <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-foreground/70 tracking-wide">
+            {label}
+        </span>
+        <div className="flex-1 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-medium overflow-hidden whitespace-nowrap text-ellipsis min-h-[20px]">
+            {children || value || "\u00A0"}
+        </div>
+    </div>
+);
+
 export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -28,7 +50,11 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const isEntregado = pkg.estadoPaquete === "entregado";
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
 
-    const { precioFinal, recargoAplicado } = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago);
+    const { precioFinal, recargoAplicado, semanasPasadas } = calcularPrecioFinal(
+        pkg.precioBase,
+        pkg.fechaHoraRegistro,
+        pkg.estadoPago
+    );
 
     const handleConfirm = async () => {
         setIsSubmitting(true);
@@ -58,140 +84,110 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     };
 
     return (
-        <Card className="flex flex-col h-full overflow-hidden border-2 border-border shadow-sm font-sans transition-all hover:shadow-md">
-            <CardContent className="p-4 sm:p-5 flex-1 flex flex-col gap-4">
-                {/* Contenedor flex para logo y UBIC lado a lado */}
-                <div className="flex items-start justify-between gap-4">
-                    {/* Caja UBIC - ocupa el espacio restante */}
-                    <div className="flex-1 border-[3px] border-foreground p-1.5 sm:p-2 flex items-end">
-                        <span className="font-bold text-lg sm:text-xl mr-2 leading-none text-foreground">UBIC:</span>
-                        <div className="flex-1 border-b-[2px] border-dashed border-foreground/60 text-base sm:text-lg font-semibold leading-none px-2 whitespace-nowrap overflow-hidden text-ellipsis text-foreground">
+        <Card className="flex flex-col h-full overflow-hidden border border-border shadow-sm font-sans transition-all hover:shadow-md bg-card">
+            <CardContent className="p-4 sm:p-6 flex-1 flex flex-col gap-5">
+
+                {/* Cabecera: UBIC y Botón Imprimir */}
+                <div className="flex items-stretch justify-between gap-3">
+                    <div className="flex-1 border-2 border-foreground/90 rounded-md p-2 flex items-center bg-muted/10">
+                        <span className="font-black text-lg sm:text-xl mr-2 text-foreground">UBIC:</span>
+                        <div className="flex-1 border-b-2 border-dashed border-foreground/40 text-base sm:text-lg font-bold px-2 whitespace-nowrap overflow-hidden text-ellipsis">
                             {pkg.ubicacionAlmacen || "\u00A0"}
                         </div>
                     </div>
 
-                    {/* Botón Imprimir */}
-                    <div className="flex-shrink-0 flex items-center">
-                        <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="h-[54px] w-[54px] sm:h-[60px] sm:w-[60px] rounded-xl border-[2px] border-foreground hover:bg-muted"
-                            onClick={handlePrint}
-                            title="Imprimir ticket"
-                        >
-                            <Printer className="h-6 w-6 sm:h-7 sm:w-7 text-foreground" />
-                        </Button>
-                    </div>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-auto w-[54px] sm:w-[60px] rounded-md border-2 border-foreground/90 hover:bg-muted shrink-0 flex items-center justify-center"
+                        onClick={handlePrint}
+                        title="Imprimir ticket"
+                    >
+                        <Printer className="h-6 w-6 text-foreground" />
+                    </Button>
                 </div>
 
-                {/* Líneas de datos */}
-                <div className="space-y-3 mt-1 text-foreground">
-                    <div className="flex items-end gap-2">
-                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">DE</span>
-                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
-                            {pkg.remitente?.nombre_completo || "\u00A0"}
-                        </div>
-                    </div>
+                {/* Formulario / Ticket de Datos */}
+                <div className="flex flex-col gap-2.5 text-foreground">
+                    {/* Sección Remitente */}
+                    <FilaDato label="DE" value={pkg.remitente?.nombre_completo} />
+                    <FilaDato label="EMPRESA" value={pkg.remitente?.empresa} />
+                    <FilaDato label="CI/CEL" value={pkg.remitente?.ci_o_cel} />
 
-                    <div className="flex items-end gap-2">
-                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">EMPRESA</span>
-                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
-                            {pkg.remitente?.empresa || "\u00A0"}
-                        </div>
-                    </div>
+                    {/* Sección Destinatario */}
+                    <FilaDato label="PARA" value={pkg.destinatario?.nombre_completo} className="mt-3" />
+                    <FilaDato label="CI/CEL" value={pkg.destinatario?.ci_o_cel} />
 
-                    <div className="flex items-end gap-2">
-                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">CI/CEL</span>
-                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium">
-                            {pkg.remitente?.ci_o_cel || "\u00A0"}
-                        </div>
-                    </div>
-
-                    <div className="flex items-end gap-2 mt-4">
-                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">PARA</span>
-                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
-                            {pkg.destinatario?.nombre_completo || "\u00A0"}
-                        </div>
-                    </div>
-
-                    <div className="flex items-end gap-2">
-                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">CI/CEL</span>
-                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium">
-                            {pkg.destinatario?.ci_o_cel || "\u00A0"}
-                        </div>
-                    </div>
-
-                    <div className="flex items-end gap-2 mt-4">
-                        <span className="font-bold text-[10px] sm:text-xs uppercase shrink-0 text-foreground/80">FECHA</span>
-                        <div className="flex-1 border-b border-foreground/30 text-[10px] sm:text-xs px-1 sm:px-2 font-medium text-center whitespace-nowrap">
+                    {/* Sección Detalles de Pago y Fecha */}
+                    <div className="flex items-end gap-2 mt-3">
+                        <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-foreground/70">FECHA</span>
+                        <div className="flex-1 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-medium text-center whitespace-nowrap">
                             {formatBoliviaDateTime(pkg.fechaHoraRegistro).split(",")[0]}
                         </div>
-                        <span className="font-bold text-[10px] sm:text-xs uppercase shrink-0 text-foreground/80">COSTO</span>
-                        <div className="flex-1 border-b border-foreground/30 text-[10px] sm:text-xs px-1 sm:px-2 font-bold text-center whitespace-nowrap text-primary flex items-center justify-center gap-1">
+
+                        <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-foreground/70 ml-2">COSTO</span>
+                        <div className="flex-1 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-bold text-center whitespace-nowrap text-amber-600 flex items-center justify-center gap-1">
                             Bs. {precioFinal.toFixed(2)}
                             {recargoAplicado && (
                                 <Tooltip>
                                     <TooltipTrigger>
-                                        <AlertCircle className="h-3 w-3 text-destructive animate-pulse cursor-help" />
+                                        <AlertCircle className="h-3.5 w-3.5 text-destructive animate-pulse cursor-help" />
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p>Recargo acumulado por demora ({calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas} {calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago).semanasPasadas === 1 ? 'semana' : 'semanas'})</p>
+                                        <p>Recargo por demora ({semanasPasadas} {semanasPasadas === 1 ? 'semana' : 'semanas'})</p>
                                     </TooltipContent>
                                 </Tooltip>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex items-end gap-2">
-                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">PAGO</span>
-                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-bold flex items-center justify-between">
-                            <span className={recargoAplicado ? "text-destructive" : ""}>
+                    <FilaDato label="PAGO">
+                        <div className="flex items-center justify-between w-full">
+                            <span className={`font-bold ${recargoAplicado ? "text-destructive" : ""}`}>
                                 {isPendiente ? "Por Pagar" : "Pagado"}
                             </span>
                             {!isPendiente && (
-                                <span className="text-[10px] sm:text-xs bg-foreground text-background px-1.5 py-0.5 ml-2 leading-none uppercase font-bold rounded-sm">Cobrado</span>
+                                <span className="text-[10px] bg-foreground text-background px-2 py-0.5 leading-tight uppercase font-bold rounded-sm tracking-widest">
+                                    Cobrado
+                                </span>
                             )}
                         </div>
-                    </div>
+                    </FilaDato>
 
-                    <div className="flex items-end gap-2">
-                        <span className="font-bold text-xs sm:text-sm uppercase shrink-0 text-foreground/80">TIPO DE PAQUETE</span>
-                        <div className="flex-1 border-b border-foreground/30 text-xs sm:text-sm px-2 font-medium overflow-hidden whitespace-nowrap text-ellipsis">
-                            {pkg.tipoPaquete || "\u00A0"}
-                        </div>
-                    </div>
+                    <FilaDato label="TIPO DE PAQUETE" value={pkg.tipoPaquete} />
                 </div>
             </CardContent>
 
-            {/* Acciones */}
-            <CardFooter className="bg-muted/30 border-t border-border p-3 sm:p-4 mt-auto">
+            {/* Pie de Tarjeta: Acciones */}
+            <CardFooter className="bg-muted/40 border-t border-border p-4 mt-auto">
                 {isEntregado ? (
                     <Button
                         disabled
                         variant="secondary"
-                        className="w-full h-auto py-2.5 sm:py-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider"
+                        className="w-full h-11 text-xs font-bold uppercase tracking-wider bg-muted text-muted-foreground"
                     >
                         Entregado
                     </Button>
                 ) : (
                     <Button
                         onClick={() => setIsOpen(true)}
-                        className={`w-full h-auto py-2.5 sm:py-3 text-[10px] sm:text-[11px] md:text-xs font-bold uppercase tracking-wider transition-colors whitespace-normal text-center leading-tight min-h-[44px] ${recargoAplicado ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-foreground text-background hover:bg-foreground/90"}`}
+                        className={`w-full h-11 text-xs font-bold uppercase tracking-wider transition-all shadow-sm
+                            ${recargoAplicado
+                                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                : "bg-zinc-900 text-zinc-50 hover:bg-zinc-800"
+                            }`}
                     >
                         {recargoAplicado ? "Entregar Paquete (Con Recargo)" : "Entregar Paquete"}
                     </Button>
                 )}
             </CardFooter>
 
+            {/* Modales y Elementos Ocultos */}
             <ModalEntregaPaquete
                 isOpen={isOpen}
                 setIsOpen={(open) => {
-                    if (!open) {
-                        setIsOpen(false);
-                        setEvidenciaFile(null);
-                    } else {
-                        setIsOpen(true);
-                    }
+                    setIsOpen(open);
+                    if (!open) setEvidenciaFile(null);
                 }}
                 pkg={pkg}
                 isPendiente={isPendiente}
@@ -202,7 +198,8 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                 isSubmitting={isSubmitting}
                 handleConfirm={handleConfirm}
             />
-            <div style={{ display: "none" }}>
+
+            <div className="hidden">
                 <ThermalReceipt ref={receiptRef} data={pkg} paperWidth="50mm" />
             </div>
         </Card>

@@ -52,7 +52,7 @@ export default async function Home() {
           <div className="flex items-center gap-3 sm:gap-6">
             <BtnTheme />
             <Link href="/login">
-              <Button variant="ghost" className="hidden sm:inline-flex font-medium">
+              <Button variant="ghost" className="font-medium px-2 sm:px-4">
                 Iniciar sesión
               </Button>
             </Link>

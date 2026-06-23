@@ -2,6 +2,7 @@ import { Package } from "lucide-react"
 import { LoginForm } from "./components/login-form"
 import { redirect } from "next/navigation"
 import { auth } from "@/shared/lib/auth"
+import { InstallPwaButton } from "@/shared/components/pwa/install-pwa-button"
 
 export default async function LoginPage() {
 
@@ -44,8 +45,12 @@ export default async function LoginPage() {
           <span className="text-foreground">Market Quilla</span>
         </div> */}
 
-        <div className="flex w-full flex-col justify-center items-center sm:w-[450px] mx-auto mt-12 lg:mt-0">
+        <div className="flex w-full flex-col justify-center items-center sm:w-[450px] mx-auto mt-12 lg:mt-0 gap-6">
           <LoginForm className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700" />
+          
+          <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150">
+            <InstallPwaButton />
+          </div>
         </div>
       </div>
     </div>
