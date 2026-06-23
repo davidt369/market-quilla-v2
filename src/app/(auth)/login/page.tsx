@@ -29,9 +29,9 @@ export default async function LoginPage() {
         <div className="absolute bottom-16 left-16 right-16 z-20">
           <blockquote className="space-y-5 text-slate/120 max-w-xl dark:text-primary/90">
             <Package className="size-10 text-slate/80 mb-6 dark:text-primary/80" />
-            <p className="text-3xl font-medium tracking-tight leading-snug">
+            {/* <p className="text-3xl font-medium tracking-tight leading-snug">
               &ldquo;Una solución robusta y rápida para la gestión de envíos, sucursales y finanzas. Todo en un solo lugar.&rdquo;
-            </p>
+            </p> */}
             <footer className="text-base text-zinc-400 font-medium tracking-wide uppercase">Market Quilla</footer>
           </blockquote>
         </div>

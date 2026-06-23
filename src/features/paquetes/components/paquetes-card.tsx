@@ -9,14 +9,21 @@ import ModalEntregaPaquete from "./modal-entrega-paquete";
 import { Card, CardContent, CardFooter } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { calcularPrecioFinal } from "../lib/paquetes.utils";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Printer } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
+import { useReactToPrint } from "react-to-print";
+import { ThermalReceipt } from "./registrar-paquete/thermal-receipt";
 
 export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr">("efectivo");
     const [evidenciaFile, setEvidenciaFile] = React.useState<File | null>(null);
+
+    const receiptRef = React.useRef<HTMLDivElement>(null);
+    const handlePrint = useReactToPrint({
+        contentRef: receiptRef,
+    });
 
     const isEntregado = pkg.estadoPaquete === "entregado";
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
@@ -63,15 +70,17 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                         </div>
                     </div>
 
-                    {/* Logo */}
-                    <div className="text-primary font-bold text-xl leading-none text-right tracking-tight flex-shrink-0">
-                        <Image
-                            src="/market-quilla-600px.webp"
-                            alt="Logo"
-                            width={54}
-                            height={54}
-                            className="dark:brightness-110 sm:w-[60px] sm:h-[60px]"
-                        />
+                    {/* Botón Imprimir */}
+                    <div className="flex-shrink-0 flex items-center">
+                        <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-[54px] w-[54px] sm:h-[60px] sm:w-[60px] rounded-xl border-[2px] border-foreground hover:bg-muted"
+                            onClick={handlePrint}
+                            title="Imprimir ticket"
+                        >
+                            <Printer className="h-6 w-6 sm:h-7 sm:w-7 text-foreground" />
+                        </Button>
                     </div>
                 </div>
 
@@ -193,6 +202,9 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                 isSubmitting={isSubmitting}
                 handleConfirm={handleConfirm}
             />
+            <div style={{ display: "none" }}>
+                <ThermalReceipt ref={receiptRef} data={pkg} paperWidth="50mm" />
+            </div>
         </Card>
     );
 }

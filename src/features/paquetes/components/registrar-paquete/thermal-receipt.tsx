@@ -30,7 +30,7 @@ export const ThermalReceipt = React.forwardRef<HTMLDivElement, ThermalReceiptPro
                     </div>
                     <div className="flex-shrink-0">
                         {/* Se reduce el logo para que quepa en 50mm */}
-                        <Image
+                        <img
                             src="/market-quilla-600px.webp"
                             alt="Logo"
                             width={35}
@@ -59,7 +59,7 @@ export const ThermalReceipt = React.forwardRef<HTMLDivElement, ThermalReceiptPro
                     )}
 
                     <div className="flex items-end gap-1">
-                        <span className="font-bold uppercase shrink-0">TEL:</span>
+                        <span className="font-bold uppercase shrink-0">CEL/CI:</span>
                         <div className="flex-1 border-b border-black font-medium px-1">
                             {/* @ts-ignore */}
                             {data?.remitente?.ci_o_cel || data?.remitente?.celular || "\u00A0"}
@@ -74,37 +74,30 @@ export const ThermalReceipt = React.forwardRef<HTMLDivElement, ThermalReceiptPro
                     </div>
 
                     <div className="flex items-end gap-1">
-                        <span className="font-bold uppercase shrink-0">TEL:</span>
+                        <span className="font-bold uppercase shrink-0">CEL/CI:</span>
                         <div className="flex-1 border-b border-black font-medium px-1">
                             {/* @ts-ignore */}
                             {data?.destinatario?.ci_o_cel || data?.destinatario?.celular || "\u00A0"}
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-end gap-x-2 gap-y-1 mt-2">
-                        <div className="flex items-end gap-1">
-                            <span className="font-bold uppercase shrink-0">FECHA:</span>
-                            <div className="w-16 border-b border-black font-medium text-center">
-                                {new Date().toLocaleDateString("es-BO")}
+                    <div className="flex items-end justify-between gap-1 mt-2 w-full overflow-hidden">
+                        <div className="flex items-end shrink-0">
+                            <span className="font-bold uppercase">FECHA:</span>
+                            <div className="border-b border-black font-medium text-center px-1">
+                                {new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "2-digit" })}
                             </div>
                         </div>
-                        <div className="flex items-end gap-1">
-                            <span className="font-bold uppercase shrink-0">CST:</span>
-                            <div className="w-16 border-b border-black font-bold text-center">
-                                {data?.precioBase ? `Bs. ${data.precioBase.toFixed(2)}` : "\u00A0"}
+                        <div className="flex items-end flex-1 min-w-0 ml-1">
+                            <span className="font-bold uppercase shrink-0">COSTO:</span>
+                            <div className="flex-1 border-b border-black font-bold text-center px-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                                {data?.precioBase != null ? `Bs. ${Number(data.precioBase).toFixed(2)}` : "\u00A0"}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-end gap-1">
-                        <span className="font-bold uppercase shrink-0">PAGO:</span>
-                        <div className="flex-1 border-b border-black font-medium px-1">
-                            {data?.momentoPago === "al_registrar" ? "Pagado" : "Por Pagar"} {data?.metodoPago ? `(${data.metodoPago.toUpperCase()})` : ""}
-                        </div>
-                    </div>
-
-                    <div className="flex items-end gap-1">
-                        <span className="font-bold uppercase shrink-0">TIPO:</span>
+                    <div className="flex items-end gap-1 mt-2">
+                        <span className="font-bold uppercase shrink-0">TIPO DE PAQUETE:</span>
                         <div className="flex-1 border-b border-black font-medium px-1">
                             {/* @ts-ignore */}
                             {data?.tipoPaquete || data?.tipo || "\u00A0"}
