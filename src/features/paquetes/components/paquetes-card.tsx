@@ -30,7 +30,7 @@ const FilaDato = ({
         <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-foreground/70 tracking-wide">
             {label}
         </span>
-        <div className="flex-1 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-medium overflow-hidden whitespace-nowrap text-ellipsis min-h-[20px]">
+        <div className="flex-1 min-w-0 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-medium break-words min-h-[20px]">
             {children || value || "\u00A0"}
         </div>
     </div>
@@ -84,14 +84,17 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     };
 
     return (
-        <Card className="flex flex-col h-full overflow-hidden border border-border shadow-sm font-sans transition-all hover:shadow-md bg-card">
+        <Card className="flex flex-col h-fit overflow-hidden border border-border shadow-sm font-sans transition-all hover:shadow-md bg-card">
             <CardContent className="p-4 sm:p-6 flex-1 flex flex-col gap-5">
 
                 {/* Cabecera: UBIC y Botón Imprimir */}
                 <div className="flex items-stretch justify-between gap-3">
-                    <div className="flex-1 border-2 border-foreground/90 rounded-md p-2 flex items-center bg-muted/10">
-                        <span className="font-black text-lg sm:text-xl mr-2 text-foreground">UBIC:</span>
-                        <div className="flex-1 border-b-2 border-dashed border-foreground/40 text-base sm:text-lg font-bold px-2 whitespace-nowrap overflow-hidden text-ellipsis">
+                    {/* CORRECCIÓN AQUÍ: Agregado min-w-0 al contenedor de UBIC */}
+                    <div className="flex-1 min-w-0 border-2 border-foreground/90 rounded-md p-2 flex items-end bg-muted/10">
+                        {/* CORRECCIÓN AQUÍ: Agregado shrink-0 para que la palabra UBIC no se aplaste */}
+                        <span className="font-black text-lg sm:text-xl mr-2 text-foreground shrink-0 leading-none">UBIC:</span>
+                        {/* CORRECCIÓN AQUÍ: Agregado min-w-0 para que el ellipsis funcione correctamente */}
+                        <div className="flex-1 min-w-0 border-b-2 border-dashed border-foreground/40 text-base sm:text-lg font-bold px-2 break-all leading-tight pb-0.5">
                             {pkg.ubicacionAlmacen || "\u00A0"}
                         </div>
                     </div>
@@ -121,17 +124,17 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                     {/* Sección Detalles de Pago y Fecha */}
                     <div className="flex items-end gap-2 mt-3">
                         <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-foreground/70">FECHA</span>
-                        <div className="flex-1 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-medium text-center whitespace-nowrap">
+                        <div className="flex-1 min-w-0 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-medium text-center whitespace-nowrap">
                             {formatBoliviaDateTime(pkg.fechaHoraRegistro).split(",")[0]}
                         </div>
 
                         <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-foreground/70 ml-2">COSTO</span>
-                        <div className="flex-1 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-bold text-center whitespace-nowrap text-amber-600 flex items-center justify-center gap-1">
+                        <div className="flex-1 min-w-0 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-bold text-center text-amber-600 flex items-center justify-center gap-1 whitespace-nowrap">
                             Bs. {precioFinal.toFixed(2)}
                             {recargoAplicado && (
                                 <Tooltip>
                                     <TooltipTrigger>
-                                        <AlertCircle className="h-3.5 w-3.5 text-destructive animate-pulse cursor-help" />
+                                        <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive animate-pulse cursor-help" />
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>Recargo por demora ({semanasPasadas} {semanasPasadas === 1 ? 'semana' : 'semanas'})</p>
