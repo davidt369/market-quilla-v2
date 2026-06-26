@@ -1,6 +1,7 @@
 import { db, auditable } from "@/database";
 import { PaqueteInsert, PaqueteUpdate, PaqueteCompletoFormData } from "../schemas/paquetes.schema";
 import { tbpaquetes, tbclientes, tbcajaTurnos, tbcajaMovimientos } from "@/database/schema/schema";
+import { sql } from "drizzle-orm";
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 
 // Función de utilidad auxiliar para parsear errores DB
@@ -117,11 +118,19 @@ export const createPaqueteCompletoTransaction = auditable(async (tx, data: Paque
             }
 
             // 3. Validar Paquete
-            if (data.ubicacionAlmacen) {
+            let finalUbicacion = data.ubicacionAlmacen;
+            let isAutoBox = false;
+            let tempUbicacion = finalUbicacion;
+
+            if (finalUbicacion && finalUbicacion.includes("/AUTO/")) {
+                isAutoBox = true;
+                // Insertamos con un valor temporal único para evitar colisión de constraints
+                tempUbicacion = finalUbicacion.replace("/AUTO/", `/TEMP-${Date.now()}-${Math.floor(Math.random() * 10000)}/`);
+            } else if (finalUbicacion) {
                 const paqueteExistente = await tx.query.tbpaquetes.findFirst({
                     where: (p, { eq, and, isNull }) =>
                         and(
-                            eq(p.ubicacionAlmacen, data.ubicacionAlmacen!),
+                            eq(p.ubicacionAlmacen, finalUbicacion!),
                             isNull(p.deletedAt)
                         ),
                     columns: { pk_id_paquete: true },
@@ -136,12 +145,22 @@ export const createPaqueteCompletoTransaction = auditable(async (tx, data: Paque
                 fk_id_remitente: remitenteId,
                 fk_id_destinatario: destinatarioId,
                 fk_id_usuario: usuarioId,
-                ubicacionAlmacen: data.ubicacionAlmacen,
+                ubicacionAlmacen: tempUbicacion,
                 tipoPaquete: data.tipoPaquete,
                 estadoPago: data.momentoPago === "al_registrar" ? "pagado" : "pendiente",
                 momentoPago: data.momentoPago as "al_registrar" | "al_entregar",
                 precioBase: data.precioBase?.toString() || "3.00",
             }).returning();
+
+            // 4.5. Si era AUTO, actualizamos la ubicación con su propio ID numérico
+            if (isAutoBox && finalUbicacion) {
+                const realUbicacion = finalUbicacion.replace("/AUTO/", `/${paquete.pk_id_paquete}/`);
+                await tx.update(tbpaquetes)
+                    .set({ ubicacionAlmacen: realUbicacion })
+                    .where(eq(tbpaquetes.pk_id_paquete, paquete.pk_id_paquete));
+                
+                paquete.ubicacionAlmacen = realUbicacion;
+            }
 
             // 5. Registrar cobro en caja si es "al_registrar"
             if (data.momentoPago === "al_registrar") {
