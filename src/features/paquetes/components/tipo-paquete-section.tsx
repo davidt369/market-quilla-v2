@@ -15,8 +15,8 @@ export function TipoPaqueteSection() {
     const dias = React.useMemo(() => ["D", "L", "M", "MI", "J", "V", "S"], []);
     const diaActual = React.useMemo(() => dias[new Date().getDay()], [dias]);
 
-    const [nCaja, setNCaja] = React.useState("AUTO");
-    const [nPaquete, setNPaquete] = React.useState("");
+    const [nCaja, setNCaja] = React.useState("");
+    const [nPaquete, setNPaquete] = React.useState("AUTO");
     const [extra, setExtra] = React.useState("");
 
     // Parse initial value from form if it exists (e.g. edit mode)
@@ -33,7 +33,7 @@ export function TipoPaqueteSection() {
             setExtra(initialValue);
             // Default to AUTO for new packages
             if (!initialValue) {
-                setNCaja("AUTO");
+                setNPaquete("AUTO");
             }
         }
     }, [getValues]);
@@ -72,10 +72,9 @@ export function TipoPaqueteSection() {
                             {/* N° Caja */}
                             <Input
                                 value={nCaja}
-                                readOnly
+                                onChange={(e) => setNCaja(e.target.value)}
                                 placeholder="N°Caja"
-                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-semibold bg-muted/40 cursor-default text-muted-foreground"
-                                title="Se asignará un número correlativo automáticamente al guardar"
+                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
                             />
 
                             <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
@@ -83,9 +82,10 @@ export function TipoPaqueteSection() {
                             {/*Codigo */}
                             <Input
                                 value={nPaquete}
-                                onChange={(e) => setNPaquete(e.target.value)}
+                                readOnly
                                 placeholder="Codigo"
-                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
+                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-semibold bg-muted/40 cursor-default text-muted-foreground"
+                                title="Se asignará un código correlativo automáticamente al guardar"
                             />
 
                             <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
