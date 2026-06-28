@@ -161,7 +161,7 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
                                             disabled={isClientSelected}
                                             className={
                                                 isClientSelected
-                                                    ? "pl-10 pr-12 bg-slate-100 dark:bg-slate-900"
+                                                    ? "pl-10 pr-12 bg-muted"
                                                     : "pl-10 pr-10"
                                             }
                                         />
@@ -186,8 +186,8 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
 
                     {/* Dropdown de autocompletado */}
                     {showDropdown && !isClientSelected && filteredClientes.length > 0 && (
-                        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto">
-                            <div className="px-3 py-2 text-xs text-gray-500 border-b">
+                        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-auto text-popover-foreground">
+                            <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border">
                                 {filteredClientes.length} cliente(s) encontrado(s)
                             </div>
                             <ul className="py-1">
@@ -195,12 +195,12 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
                                     <li
                                         key={cliente.pk_id_cliente}
                                         onClick={() => handleSelectCliente(cliente)}
-                                        className="px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                                        className="px-4 py-3 cursor-pointer hover:bg-accent hover:text-accent-foreground flex flex-col border-b border-border last:border-b-0"
                                     >
-                                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                                        <span className="font-medium">
                                             {cliente.nombre_completo}
                                         </span>
-                                        <span className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        <span className="text-sm text-muted-foreground mt-1">
                                             <strong>CI/Cel:</strong> {cliente.ci_o_cel}
                                             {cliente.empresa && (
                                                 <span className="ml-2">• <strong>Empresa:</strong> {cliente.empresa}</span>
@@ -228,7 +228,7 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
                                 type="tel"
                                 inputMode="numeric"
                                 disabled={isClientSelected}
-                                className={isClientSelected ? "bg-slate-100 dark:bg-slate-900" : ""}
+                                className={isClientSelected ? "bg-muted" : ""}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
@@ -247,7 +247,7 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
                                 placeholder="Ej: Acme S.A."
                                 autoCapitalize="words"
                                 disabled={isClientSelected}
-                                className={isClientSelected ? "bg-slate-100 dark:bg-slate-900" : ""}
+                                className={isClientSelected ? "bg-muted" : ""}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>

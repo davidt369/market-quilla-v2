@@ -96,7 +96,7 @@ export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolea
                                     inputMode="decimal"
                                     step="0.10"
                                     min="0"
-                                    className={`pl-10 pr-3 w-full text-right font-semibold tabular-nums text-base sm:text-sm h-11 sm:h-10 ${isPagado ? "bg-slate-100 dark:bg-slate-900 cursor-not-allowed" : ""}`}
+                                    className={`pl-10 pr-3 w-full text-right font-semibold tabular-nums text-base sm:text-sm h-11 sm:h-10 ${isPagado ? "bg-muted cursor-not-allowed" : ""}`}
                                     aria-invalid={fieldState.invalid}
                                     disabled={isPagado}
                                 />
