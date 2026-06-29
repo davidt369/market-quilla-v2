@@ -15,6 +15,7 @@ export function TipoPaqueteSection() {
     const dias = React.useMemo(() => ["D", "L", "M", "MI", "J", "V", "S"], []);
     const diaActual = React.useMemo(() => dias[new Date().getDay()], [dias]);
 
+    const [dia, setDia] = React.useState(diaActual);
     const [nCaja, setNCaja] = React.useState("");
     const [nPaquete, setNPaquete] = React.useState("AUTO");
     const [extra, setExtra] = React.useState("");
@@ -25,6 +26,7 @@ export function TipoPaqueteSection() {
         if (initialValue.includes("/")) {
             const parts = initialValue.split("/");
             if (parts.length >= 2) {
+                setDia(parts[0] || diaActual);
                 setNCaja(parts[1] || "");
                 setNPaquete(parts[2] || "");
                 setExtra(parts[3] || "");
@@ -36,17 +38,17 @@ export function TipoPaqueteSection() {
                 setNPaquete("AUTO");
             }
         }
-    }, [getValues]);
+    }, [getValues, diaActual]);
 
     // Synchronize individual inputs with the form's location string
     React.useEffect(() => {
-        const ubicacion = `${diaActual}/${nCaja}/${nPaquete}/${extra}`;
+        const ubicacion = `${dia}/${nCaja}/${nPaquete}/${extra}`;
         if (nCaja || nPaquete || extra) {
             setValue("ubicacionAlmacen", ubicacion, { shouldValidate: true });
         } else {
             setValue("ubicacionAlmacen", ubicacion);
         }
-    }, [diaActual, nCaja, nPaquete, extra, setValue]);
+    }, [dia, nCaja, nPaquete, extra, setValue]);
 
     return (
         <SectionCard>
@@ -60,11 +62,12 @@ export function TipoPaqueteSection() {
                         <FieldLabel>Ubicación Almacén</FieldLabel>
 
                         <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-                            {/* Día automático */}
+                            {/* Día automático editable */}
                             <Input
-                                value={diaActual}
-                                readOnly
-                                className="flex-1 min-w-[60px] sm:max-w-[80px] text-center font-semibold bg-muted/40 cursor-default"
+                                value={dia}
+                                onChange={(e) => setDia(e.target.value.toUpperCase())}
+                                placeholder="Día"
+                                className="flex-1 min-w-[60px] sm:max-w-[80px] text-center font-semibold"
                             />
 
                             <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
