@@ -11,9 +11,7 @@ import { Button } from "@/shared/components/ui/button";
 import { PaqueteCompletoFormData } from "@/features/paquetes/schemas/paquetes.schema";
 import Image from "next/image";
 import CardConfirmarDatos from "./registrar-paquete/card-confirmar-datos";
-import { useReactToPrint } from "react-to-print";
-import { ThermalReceipt } from "./registrar-paquete/thermal-receipt";
-import { Printer } from "lucide-react";
+
 
 interface PaqueteConfirmDialogProps {
     open: boolean;
@@ -39,11 +37,7 @@ export function PaqueteConfirmDialog({
         }
     }, [open]);
 
-    // Lógica para imprimir el ticket
-    const receiptRef = React.useRef<HTMLDivElement>(null);
-    const handlePrint = useReactToPrint({
-        contentRef: receiptRef,
-    });    return (
+    return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background">
                 <div className="p-6 pb-0">
@@ -98,21 +92,7 @@ export function PaqueteConfirmDialog({
 
                 <div className="px-6 py-4 bg-muted/30 border-t flex gap-3 justify-end items-center">
                     
-                    {/* Componente oculto para la impresión térmica */}
-                    <div style={{ display: "none" }}>
-                        <ThermalReceipt ref={receiptRef} data={pendingData} paperWidth="50mm" />
-                    </div>
 
-                    <Button
-                        variant="outline"
-                        type="button"
-                        onClick={handlePrint}
-                        className="mr-auto"
-                        title="Imprimir ticket térmico (50mm)"
-                    >
-                        <Printer className="w-4 h-4 mr-2" />
-                        Imprimir
-                    </Button>
 
                     <Button
                         variant="ghost"
