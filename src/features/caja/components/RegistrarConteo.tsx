@@ -35,7 +35,8 @@ import {
     ArrowRightLeft,
     FileSignature,
     Wallet,
-    QrCode
+    QrCode,
+    ListCollapse
 } from "lucide-react";
 
 import { realizarArqueoAction, cerrarCajaAction } from "../actions/caja.actions";
@@ -62,13 +63,16 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
         },
     });
 
-    const desglose = useStore(form.store, (state) => state.values.desglose);
+    // const desglose = useStore(form.store, (state) => state.values.desglose);
     const montoQrDeclarado = useStore(form.store, (state) => state.values.montoQrDeclarado);
     const observacion = useStore(form.store, (state) => state.values.observacion);
-    const totalContado = calcularTotalDesglose(desglose as any);
+    
+    // const totalContado = calcularTotalDesglose(desglose as any);
+    const [totalContado, setTotalContado] = React.useState<number>(0);
     const diferencia = totalContado - resumen.efectivoEsperado;
 
-    const hasCountStarted = totalContado > 0;
+    // Considerar el conteo iniciado si ingresaron algún valor
+    const hasCountStarted = true;
     const esExacto = diferencia === 0 && hasCountStarted;
     const esSobrante = diferencia > 0;
     const esFaltante = diferencia < 0;
@@ -79,7 +83,7 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
         startTransition(async () => {
             const res = await realizarArqueoAction({}, {
                 montoDeclarado: totalContado,
-                desglose: desglose as any,
+                // desglose: desglose as any,
                 observacion,
             });
             if (res?.error) {
@@ -100,7 +104,7 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
             const res = await cerrarCajaAction({}, {
                 montoFinalDeclarado: totalContado,
                 montoQrDeclarado: Number(montoQrDeclarado),
-                desgloseFinal: desglose as any,
+                // desgloseFinal: desglose as any,
                 observacionDescuadre: observacion,
             });
             if (res?.error) {
@@ -113,316 +117,285 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
     };
 
     return (
-        <div className="w-full font-sans space-y-6">
-
-            {/* ====================================================
-                RESUMEN SUPERIOR (Full Width)
-            ==================================================== */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Tarjeta Efectivo */}
-                <Card className="shadow-sm border-l-4 border-l-primary flex flex-col">
-                    <CardHeader className="py-3 bg-muted/20 border-b">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex justify-between items-center">
-                            <Wallet className="h-4 w-4 mr-2" />
-                            <span> Efectivo en Sistema</span>
-                            <span className="text-foreground text-sm">{fmt(resumen.efectivoEsperado)}</span>
-                        </h4>
-                    </CardHeader>
-                    <CardContent className="p-4 space-y-2 text-sm flex-1">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Fondo Inicial:</span>
-                            <span className="font-medium">{fmt(resumen.fondoInicial)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">+ Ingresos:</span>
-                            <span className="text-emerald-600 font-medium">+ {fmt(resumen.ingresosEfectivo)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">− Egresos:</span>
-                            <span className="text-red-500 font-medium">− {fmt(resumen.egresosEfectivo)}</span>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Tarjeta QR */}
-                <Card className="shadow-sm border-l-4 border-l-blue-500 flex flex-col">
-                    <CardHeader className="py-3 bg-muted/20 border-b">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex justify-between items-center">
-                            <QrCode className="h-4 w-4 mr-2" />
-                            <span>Pagos QR Registrados</span>
-                            <span className="text-foreground text-sm">{fmt(resumen.qrEsperado)}</span>
-                        </h4>
-                    </CardHeader>
-                    <CardContent className="p-4 flex flex-col justify-center text-sm flex-1">
-                        <form.Field
-                            name="montoQrDeclarado"
-                            children={(field: any) => (
-                                <div className="space-y-2">
-                                    <Label className="text-muted-foreground font-semibold">Monto Banco / Pasarela</Label>
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        step="0.10"
-                                        placeholder="Monto en banco..."
-                                        value={field.state.value || ""}
-                                        onChange={(e) => field.handleChange(Number(e.target.value))}
-                                    />
-                                    <p className="text-[10px] text-muted-foreground leading-tight">
-                                        Ingresa el monto exacto verificado en tu cuenta bancaria o reporte de pasarela.
-                                    </p>
-                                </div>
-                            )}
-                        />
-                    </CardContent>
-                </Card>
-
-                {/* Tarjeta Total */}
-                <Card className="shadow-sm border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col">
-                    <CardHeader className="py-3 bg-muted/10 border-b">
-                        <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider text-center">
-                            Total General (Sistema)
-                        </h4>
-                    </CardHeader>
-                    <CardContent className="p-4 flex flex-col justify-center items-center flex-1">
-                        <span className="text-3xl font-black text-emerald-700 dark:text-emerald-400">
-                            {fmt(resumen.totalSistema)}
-                        </span>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
+        <div className="w-full font-sans">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                
                 {/* ====================================================
-        COLUMNA IZQUIERDA
-    ==================================================== */}
-                <div className="lg:col-span-7 xl:col-span-8">
-                    <Card className="shadow-sm overflow-hidden">
-                        <CardHeader className="bg-muted/50 border-b pb-6">
+                    COLUMNA IZQUIERDA: Entradas y Resultados
+                ==================================================== */}
+                <div className="flex flex-col gap-6">
+                    
+                    {/* Tarjeta 1: Registro de Conteo Manual (Efectivo y QR) */}
+                    <Card className="shadow-sm border-muted shrink-0">
+                        <CardHeader className="bg-muted/10 border-b pb-5">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-background rounded-xl shadow-sm">
-                                    <Calculator className="h-6 w-6 text-primary" />
+                                <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+                                    <Calculator className="h-6 w-6" />
                                 </div>
-
                                 <div>
-                                    <CardTitle className="text-xl md:text-2xl font-bold tracking-tight">
-                                        Conteo de Efectivo
+                                    <CardTitle className="text-xl font-bold tracking-tight">
+                                        Declaración de Valores
                                     </CardTitle>
-
                                     <CardDescription className="text-sm mt-1">
-                                        Detalla billetes y monedas. Se contrastará con el sistema.
+                                        Ingresa los montos físicos y de banco para realizar el arqueo.
                                     </CardDescription>
                                 </div>
                             </div>
                         </CardHeader>
+                        <CardContent className="p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            
+                            {/* Input Efectivo */}
+                            <div className="flex flex-col gap-3">
+                                <Label htmlFor="totalContadoManual" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                    <Wallet className="w-4 h-4 text-muted-foreground" />
+                                    Efectivo Físico en Caja
+                                </Label>
+                                <Input
+                                    id="totalContadoManual"
+                                    type="number"
+                                    min="0"
+                                    step="0.10"
+                                    value={totalContado === 0 ? "" : totalContado}
+                                    onChange={(e) => setTotalContado(Number(e.target.value))}
+                                    className="h-12 text-xl font-bold px-4 bg-muted/20"
+                                    placeholder="Ej: 500.50"
+                                />
+                            </div>
 
-                        <CardContent className="p-4 md:p-6 bg-card">
-                            <DesgloseEfectivo
-                                form={form}
-                                prefix="desglose"
+                            {/* Input QR */}
+                            <form.Field
+                                name="montoQrDeclarado"
+                                children={(field: any) => (
+                                    <div className="flex flex-col gap-3">
+                                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                            <QrCode className="w-4 h-4 text-muted-foreground" />
+                                            Pagos QR / Banco
+                                        </Label>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.10"
+                                            placeholder="Ej: 200.00"
+                                            value={field.state.value || ""}
+                                            onChange={(e) => field.handleChange(Number(e.target.value))}
+                                            className="h-12 text-xl font-bold px-4 bg-muted/20 border-blue-200 focus-visible:ring-blue-500"
+                                        />
+                                    </div>
+                                )}
                             />
                         </CardContent>
                     </Card>
-                </div>
 
-                {/* ====================================================
-        COLUMNA DERECHA
-    ==================================================== */}
-                <div className="lg:col-span-5 xl:col-span-4">
-                    <div className="sticky top-6 space-y-4">
-
-                        {/* ==========================================
-                RESULTADO DEL ARQUEO
-            ========================================== */}
-                        <Card className="shadow-md overflow-hidden">
-
-                            <div
-                                className={cn(
-                                    "px-4 py-5 transition-colors duration-500",
-                                    !hasCountStarted
-                                        ? "bg-secondary text-secondary-foreground"
-                                        : esExacto
-                                            ? "bg-primary text-primary-foreground"
-                                            : esFaltante
-                                                ? "bg-destructive text-destructive-foreground"
-                                                : "bg-accent text-accent-foreground"
-                                )}
-                            >
-                                <h3 className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2 flex items-center gap-2">
-                                    <FileSignature className="h-4 w-4" />
-                                    Resultado del Arqueo
-                                </h3>
-
-                                <div className="text-3xl lg:text-4xl font-black tracking-tight tabular-nums">
-                                    {fmt(totalContado)}
+                    {/* Tarjeta 2: Resultado y Arqueo (Flex-1 para estirarse si es necesario) */}
+                    <Card className="shadow-sm border-muted flex-1 flex flex-col">
+                        <div
+                            className={cn(
+                                "px-6 py-4 transition-colors duration-500 border-b shrink-0",
+                                !hasCountStarted
+                                    ? "bg-secondary text-secondary-foreground"
+                                    : esExacto
+                                        ? "bg-emerald-500 text-white"
+                                        : esFaltante
+                                            ? "bg-destructive text-destructive-foreground"
+                                            : "bg-amber-500 text-white"
+                            )}
+                        >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase tracking-widest opacity-90 mb-1 flex items-center gap-2">
+                                        <FileSignature className="h-4 w-4" />
+                                        Resultado (Efectivo)
+                                    </h3>
+                                    <div className="text-3xl font-black tracking-tight tabular-nums">
+                                        {fmt(totalContado)}
+                                    </div>
                                 </div>
 
-                                <div className="mt-3">
+                                <div className="flex items-center">
                                     {hasCountStarted ? (
-                                        <div className="inline-flex items-center gap-2 bg-background/20 px-3 py-1.5 rounded-full text-xs font-semibold">
+                                        <div className="inline-flex items-center gap-2 bg-black/20 px-4 py-2 rounded-full text-sm font-semibold shadow-inner">
                                             {esExacto && (
                                                 <>
-                                                    <CheckCircle className="h-4 w-4" />
+                                                    <CheckCircle className="h-5 w-5" />
                                                     Cuadre Perfecto
                                                 </>
                                             )}
-
                                             {esFaltante && (
                                                 <>
-                                                    <AlertTriangle className="h-4 w-4" />
+                                                    <AlertTriangle className="h-5 w-5" />
                                                     Faltante {fmt(Math.abs(diferencia))}
                                                 </>
                                             )}
-
                                             {esSobrante && (
                                                 <>
-                                                    <Info className="h-4 w-4" />
+                                                    <Info className="h-5 w-5" />
                                                     Sobrante {fmt(diferencia)}
                                                 </>
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="inline-flex items-center rounded-full bg-background/50 px-3 py-1.5 text-xs">
-                                            Inicia el conteo para ver resultados
+                                        <div className="inline-flex items-center rounded-full bg-black/10 px-4 py-2 text-sm">
+                                            Inicia el conteo
                                         </div>
                                     )}
                                 </div>
                             </div>
+                        </div>
 
-                            <CardContent className="p-4 space-y-4">
-
-                                <form.Field
-                                    name="observacion"
-                                    children={(field: any) => (
-                                        <div className="space-y-2">
-                                            <Label
-                                                htmlFor="obs-arqueo"
-                                                className="text-sm font-medium"
-                                            >
-                                                Observaciones
-                                            </Label>
-
-                                            <Textarea
-                                                id="obs-arqueo"
-                                                placeholder={
-                                                    esSobrante
-                                                        ? "Ej: Cliente no reclamó su cambio..."
-                                                        : esFaltante
-                                                            ? "Ej: Se pagó un taxi y no se registró..."
-                                                            : "Comentario opcional..."
-                                                }
-                                                value={field.state.value}
-                                                onChange={(e) =>
-                                                    field.handleChange(e.target.value)
-                                                }
-                                                className="min-h-[80px]"
-                                            />
-
-                                            {isDescuadre && (
-                                                <p className="text-xs text-destructive">
-                                                    Se recomienda justificar la diferencia encontrada.
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-                                />
-
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    className="w-full"
-                                    onClick={handleArqueo}
-                                    disabled={isPending || !hasCountStarted}
-                                >
-                                    {isPending ? (
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <Save className="mr-2 h-4 w-4" />
-                                    )}
-                                    Guardar Arqueo
-                                </Button>
-
-                            </CardContent>
-                        </Card>
-
-                        {/* ==========================================
-                CIERRE DEFINITIVO
-            ========================================== */}
-                        <Card className="border-destructive bg-destructive/5 overflow-hidden">
-
-                            <CardContent className="p-4 space-y-4">
-
-                                <header className="flex items-center gap-3">
-                                    <div className="rounded-lg bg-background p-2">
-                                        <Lock className="h-4 w-4 text-destructive" />
+                        <CardContent className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                            <form.Field
+                                name="observacion"
+                                children={(field: any) => (
+                                    <div className="space-y-2 flex-1 flex flex-col">
+                                        <Label htmlFor="obs-arqueo" className="text-sm font-medium">
+                                            Observaciones (Opcional)
+                                        </Label>
+                                        <Textarea
+                                            id="obs-arqueo"
+                                            placeholder={
+                                                esSobrante
+                                                    ? "Ej: Cliente no reclamó su cambio..."
+                                                    : esFaltante
+                                                        ? "Ej: Se pagó un pasaje y no se registró..."
+                                                        : "Escribe alguna nota sobre este turno si es necesario..."
+                                            }
+                                            value={field.state.value}
+                                            onChange={(e) => field.handleChange(e.target.value)}
+                                            className="flex-1 min-h-[100px] bg-muted/20 resize-none"
+                                        />
+                                        {isDescuadre && (
+                                            <p className="text-xs text-destructive font-medium">
+                                                * Se recomienda justificar la diferencia encontrada.
+                                            </p>
+                                        )}
                                     </div>
+                                )}
+                            />
 
+                            <Button
+                                type="button"
+                                size="lg"
+                                className="w-full font-bold text-base shrink-0"
+                                onClick={handleArqueo}
+                                disabled={isPending || !hasCountStarted}
+                            >
+                                {isPending ? (
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                ) : (
+                                    <Save className="mr-2 h-5 w-5" />
+                                )}
+                                Guardar Arqueo
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* ====================================================
+                    COLUMNA DERECHA: Resumen y Cierre
+                ==================================================== */}
+                <div className="flex flex-col gap-6">
+                    
+                    {/* Tarjeta 3: Resumen del Sistema (Flex-1 para igualar altura con la columna izquierda) */}
+                    <Card className="shadow-sm border-muted flex-1 flex flex-col">
+                        <CardHeader className="bg-muted/10 border-b p-5 shrink-0">
+                            <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-2">
+                                <ListCollapse className="h-5 w-5" />
+                                Resumen del Sistema
+                            </CardTitle>
+                        </CardHeader>
+                        
+                        {/* Contenido flex para que el bloque de Total General siempre quede al final */}
+                        <CardContent className="p-0 flex-1 flex flex-col">
+                            
+                            <div className="flex-1">
+                                {/* Bloque Efectivo */}
+                                <div className="p-6 border-b space-y-4">
+                                    <h4 className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2 mb-4">
+                                        <Wallet className="h-5 w-5" /> Efectivo
+                                    </h4>
+                                    <div className="flex justify-between text-base">
+                                        <span className="text-muted-foreground">Fondo Inicial:</span>
+                                        <span className="font-medium">{fmt(resumen.fondoInicial)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-base">
+                                        <span className="text-muted-foreground">+ Ingresos:</span>
+                                        <span className="text-emerald-600 font-medium">+ {fmt(resumen.ingresosEfectivo)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-base">
+                                        <span className="text-muted-foreground">− Egresos:</span>
+                                        <span className="text-red-500 font-medium">− {fmt(resumen.egresosEfectivo)}</span>
+                                    </div>
+                                    
+                                    <div className="pt-4 mt-4 border-t border-dashed flex justify-between items-center">
+                                        <span className="font-semibold text-foreground">Esperado en Caja:</span>
+                                        <span className="font-bold text-xl">{fmt(resumen.efectivoEsperado)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Bloque QR */}
+                                <div className="p-6 space-y-4 bg-muted/5">
+                                    <h4 className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
+                                        <QrCode className="h-5 w-5" /> Transferencias / QR
+                                    </h4>
+                                    <div className="flex justify-between items-center mt-2">
+                                        <span className="font-semibold text-foreground">Total Registrado:</span>
+                                        <span className="font-bold text-blue-600 text-lg">{fmt(resumen.qrEsperado)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bloque Total General - Pegado al fondo */}
+                            <div className="p-8 bg-emerald-500/10 dark:bg-emerald-950/20 mt-auto shrink-0 border-t border-emerald-500/20">
+                                <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest text-center mb-2">
+                                    Total General (Sistema)
+                                </h4>
+                                <div className="text-center">
+                                    <span className="text-4xl font-black text-emerald-700 dark:text-emerald-400 tabular-nums tracking-tight">
+                                        {fmt(resumen.totalSistema)}
+                                    </span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Tarjeta 4: Cierre Definitivo */}
+                    <Card className="border-destructive/30 bg-destructive/5 shadow-sm shrink-0">
+                        <CardContent className="p-6">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="rounded-full bg-destructive/10 p-3 shrink-0">
+                                        <Lock className="h-6 w-6 text-destructive" />
+                                    </div>
                                     <div>
-                                        <h3 className="font-semibold text-destructive">
+                                        <h3 className="font-bold text-destructive text-lg">
                                             Cierre Definitivo
                                         </h3>
-
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-xs text-destructive/80 mt-1">
                                             Acción irreversible. Finaliza el turno actual.
                                         </p>
                                     </div>
-                                </header>
-
-                                <div className="grid grid-cols-2 gap-3 rounded-lg border bg-background p-3">
-
-                                    <div className="text-center">
-                                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                            Esperado
-                                        </p>
-
-                                        <p className="font-bold">
-                                            {fmt(resumen.efectivoEsperado)}
-                                        </p>
-                                    </div>
-
-                                    <div className="text-center">
-                                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                            Contado
-                                        </p>
-
-                                        <p
-                                            className={cn(
-                                                "font-bold",
-                                                hasCountStarted && esExacto
-                                                    ? "text-primary"
-                                                    : hasCountStarted && isDescuadre
-                                                        ? "text-destructive"
-                                                        : ""
-                                            )}
-                                        >
-                                            {fmt(totalContado)}
-                                        </p>
-                                    </div>
-
                                 </div>
-
                                 <Button
                                     type="button"
                                     variant="destructive"
-                                    className="w-full"
+                                    size="lg"
+                                    className="w-full sm:w-auto font-bold shrink-0"
                                     onClick={() => setShowConfirmClose(true)}
                                     disabled={isPending || !hasCountStarted}
                                 >
                                     {isPending ? (
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                     ) : (
-                                        <Lock className="mr-2 h-4 w-4" />
+                                        <Lock className="mr-2 h-5 w-5" />
                                     )}
-
-                                    Confirmar y Cerrar Caja
+                                    Confirmar y Cerrar
                                 </Button>
-
-                            </CardContent>
-                        </Card>
-
-                    </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
+
             {/* MODAL DE CONFIRMACIÓN */}
             <AlertDialog open={showConfirmClose} onOpenChange={setShowConfirmClose}>
                 <AlertDialogContent>
@@ -440,7 +413,7 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
                             {!esExacto && (
                                 <div className={cn(
                                     'p-4 rounded-xl border-l-4 font-medium',
-                                    esSobrante ? 'bg-secondary/50 border-l-secondary-foreground text-secondary-foreground' :
+                                    esSobrante ? 'bg-amber-100 border-amber-500 text-amber-900 dark:bg-amber-950 dark:text-amber-200' :
                                         'bg-destructive/10 border-l-destructive text-destructive'
                                 )}>
                                     Vas a cerrar con un {esSobrante ? 'sobrante' : 'faltante'} de {fmt(Math.abs(diferencia))}.
