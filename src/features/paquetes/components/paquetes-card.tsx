@@ -203,7 +203,7 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
             />
 
             <div className="hidden">
-                <ThermalReceipt ref={receiptRef} data={pkg} paperWidth="50mm" />
+                <ThermalReceipt ref={receiptRef} data={pkg} />
             </div>
         </Card>
     );

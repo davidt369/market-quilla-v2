@@ -1,115 +1,107 @@
 import * as React from "react";
 import { PaqueteCompletoFormData } from "@/features/paquetes/schemas/paquetes.schema";
-import Image from "next/image";
 
 interface ThermalReceiptProps {
     data: PaqueteCompletoFormData | null;
     /**
-     * Ancho del papel de la impresora térmica.
-     * Ejemplo: "50mm", "58mm", "80mm". Fácil de editar aquí.
+     * Ancho del papel de la etiqueta (ej. 40mm)
      */
-    paperWidth?: string; 
+    paperWidth?: string;
+    /**
+     * Alto del papel de la etiqueta (ej. 30mm)
+     */
+    paperHeight?: string;
 }
 
 export const ThermalReceipt = React.forwardRef<HTMLDivElement, ThermalReceiptProps>(
-    ({ data, paperWidth = "50mm" }, ref) => {
+    ({ data, paperWidth = "40mm", paperHeight = "30mm" }, ref) => {
+        const ubicacion = data?.ubicacionAlmacen || "";
+        const remitenteNombre = data?.remitente?.nombre_completo || "";
+        // @ts-ignore
+        const remitenteCel = data?.remitente?.ci_o_cel || data?.remitente?.celular || "";
+        // @ts-ignore
+        const remitenteEmpresa = data?.remitente?.empresa || "";
+        const destNombre = data?.destinatario?.nombre_completo || "";
+        // @ts-ignore
+        const destCel = data?.destinatario?.ci_o_cel || data?.destinatario?.celular || "";
+        // @ts-ignore
+        const destEmpresa = data?.destinatario?.empresa || "";
+
+        const costo = data?.precioBase != null ? `Bs.${Number(data.precioBase).toFixed(2)}` : "";
+        const fecha = new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "2-digit" });
+        // @ts-ignore
+        const tipo = data?.tipoPaquete || data?.tipo || "PAQUETE";
+
         return (
             <div
                 ref={ref}
-                // Definimos el ancho exacto del ticket y quitamos padding externo para maximizar espacio
-                style={{ width: paperWidth }}
-                className="bg-white text-black p-2 font-sans"
+                style={{ width: paperWidth, height: paperHeight, margin: 0, padding: '2px', boxSizing: 'border-box' }}
+                className="bg-white text-black font-sans flex flex-col overflow-hidden"
             >
-                {/* CABECERA: Logo y Ubicación */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1 border-[2px] border-black p-1 flex items-end">
-                        <span className="font-bold text-[10px] mr-1 leading-none">UBIC:</span>
-                        <div className="flex-1 border-b border-dashed border-black text-[12px] font-bold leading-none px-1 whitespace-nowrap overflow-hidden text-ellipsis">
-                            {data?.ubicacionAlmacen || "\u00A0"}
+                {/* CABECERA */}
+                <div className="flex justify-between items-center pb-[1px] mb-[1px] border-b-[1.5px] border-black">
+                    <div className="flex items-center gap-1 overflow-hidden">
+                        <div className="font-black text-[11px] leading-none border-[1.5px] border-black px-1 py-[2px] rounded-sm truncate">
+                            {ubicacion || "N/A"}
+                        </div>
+                        <div className="font-bold text-[9px] leading-none shrink-0">
+                            {costo}
                         </div>
                     </div>
-                    <div className="flex-shrink-0">
-                        {/* Se reduce el logo para que quepa en 50mm */}
-                        <img
-                            src="/market-quilla-600px.webp"
-                            alt="Logo"
-                            width={35}
-                            height={35}
-                            className="grayscale" // Las térmicas imprimen mejor en blanco y negro
-                        />
+                    {/* Logo de la aplicación - Más grande para que la marca resalte */}
+                    <img 
+                        src="/market-quilla-600px.webp" 
+                        alt="Logo" 
+                        className="h-[22px] w-auto max-w-[30px] grayscale object-contain shrink-0 ml-1" 
+                    />
+                </div>
+
+                {/* CUERPO - Grid adaptativo que muestra empresa si existe */}
+                <div className="flex flex-col flex-1 text-[7.5px] leading-[1.05] justify-center gap-[2px]">
+                    {/* Origen */}
+                    <div className="grid grid-cols-[26px_1fr] items-start">
+                        <span className="font-bold text-gray-800">DE:</span>
+                        <span className="truncate uppercase font-medium">{remitenteNombre}</span>
+                        {remitenteEmpresa && (
+                            <>
+                                <span className="font-bold text-gray-800">EMP:</span>
+                                <span className="truncate font-medium">{remitenteEmpresa}</span>
+                            </>
+                        )}
+                        <span className="font-bold text-gray-800">CEL:</span>
+                        <span className="truncate font-medium">{remitenteCel}</span>
+                    </div>
+
+                    <div className="border-t border-dashed border-gray-400 w-full my-[1px]"></div>
+
+                    {/* Destino */}
+                    <div className="grid grid-cols-[26px_1fr] items-start">
+                        <span className="font-black text-[8px] flex items-center">PARA:</span>
+                        <span className="truncate font-black uppercase text-[8.5px] leading-tight">{destNombre}</span>
+                        {destEmpresa && (
+                            <>
+                                <span className="font-bold text-[7.5px] flex items-center">EMP:</span>
+                                <span className="truncate font-bold text-[7.5px]">{destEmpresa}</span>
+                            </>
+                        )}
+                        <span className="font-bold text-[7.5px] flex items-center mt-[1px]">CEL:</span>
+                        <span className="truncate font-bold text-[7.5px] mt-[1px]">{destCel}</span>
                     </div>
                 </div>
 
-                {/* CUERPO: Datos del paquete adaptados para papel diminuto (text-[9px] o text-[10px]) */}
-                <div className="space-y-1.5 text-[9px] leading-tight">
-                    <div className="flex items-end gap-1">
-                        <span className="font-bold uppercase shrink-0">DE:</span>
-                        <div className="flex-1 border-b border-black font-medium overflow-hidden whitespace-nowrap text-ellipsis px-1">
-                            {data?.remitente?.nombre_completo || "\u00A0"}
-                        </div>
-                    </div>
-
-                    {data?.remitente?.empresa && (
-                        <div className="flex items-end gap-1">
-                            <span className="font-bold uppercase shrink-0">EMP:</span>
-                            <div className="flex-1 border-b border-black font-medium px-1 overflow-hidden whitespace-nowrap text-ellipsis">
-                                {data?.remitente?.empresa}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="flex items-end gap-1">
-                        <span className="font-bold uppercase shrink-0">CEL/CI:</span>
-                        <div className="flex-1 border-b border-black font-medium px-1">
-                            {/* @ts-ignore */}
-                            {data?.remitente?.ci_o_cel || data?.remitente?.celular || "\u00A0"}
-                        </div>
-                    </div>
-
-                    <div className="flex items-end gap-1 mt-2">
-                        <span className="font-bold uppercase shrink-0">PARA:</span>
-                        <div className="flex-1 border-b border-black font-medium overflow-hidden whitespace-nowrap text-ellipsis px-1">
-                            {data?.destinatario?.nombre_completo || "\u00A0"}
-                        </div>
-                    </div>
-
-                    <div className="flex items-end gap-1">
-                        <span className="font-bold uppercase shrink-0">CEL/CI:</span>
-                        <div className="flex-1 border-b border-black font-medium px-1">
-                            {/* @ts-ignore */}
-                            {data?.destinatario?.ci_o_cel || data?.destinatario?.celular || "\u00A0"}
-                        </div>
-                    </div>
-
-                    <div className="flex items-end justify-between gap-1 mt-2 w-full overflow-hidden">
-                        <div className="flex items-end shrink-0">
-                            <span className="font-bold uppercase">FECHA:</span>
-                            <div className="border-b border-black font-medium text-center px-1">
-                                {new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "2-digit" })}
-                            </div>
-                        </div>
-                        <div className="flex items-end flex-1 min-w-0 ml-1">
-                            <span className="font-bold uppercase shrink-0">COSTO:</span>
-                            <div className="flex-1 border-b border-black font-bold text-center px-1 whitespace-nowrap overflow-hidden text-ellipsis">
-                                {data?.precioBase != null ? `Bs. ${Number(data.precioBase).toFixed(2)}` : "\u00A0"}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-end gap-1 mt-2">
-                        <span className="font-bold uppercase shrink-0">TIPO DE PAQUETE:</span>
-                        <div className="flex-1 border-b border-black font-medium px-1">
-                            {/* @ts-ignore */}
-                            {data?.tipoPaquete || data?.tipo || "\u00A0"}
-                        </div>
-                    </div>
+                {/* PIE */}
+                <div className="flex justify-between items-end text-[6.5px] mt-auto pt-[2px] border-t-[1.5px] border-black">
+                    <span className="font-bold">{fecha}</span>
+                    <span className="font-bold truncate text-right uppercase border border-black px-1 py-[1px] rounded-[2px] max-w-[60%]">
+                        {tipo}
+                    </span>
                 </div>
 
                 <style type="text/css" media="print">
                     {`
                     @page {
-                        size: ${paperWidth} auto;
-                        margin: 0mm;
+                        size: ${paperWidth} ${paperHeight};
+                        margin: 0;
                     }
                     body {
                         margin: 0;
