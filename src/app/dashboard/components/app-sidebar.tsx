@@ -29,6 +29,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/shared/components/ui/sidebar"
 import {
   Collapsible,
@@ -55,6 +56,7 @@ interface NavGroup {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const { setOpenMobile, isMobile } = useSidebar()
   const currentYear = new Date().getFullYear()
   const hasPermission = useAuthStore((s) => s.hasPermission)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -217,6 +219,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           <SidebarMenuButton
                             isActive={isActive}
                             tooltip={item.title}
+                            onClick={() => {
+                              if (isMobile) setOpenMobile(false)
+                            }}
                             className={cn(
                               "h-10 transition-all duration-300",
                               isActive
