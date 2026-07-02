@@ -183,9 +183,9 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                     </div>
                 </form>
 
-                {/* ── ACTION BAR (Sticky Móvil, Anclado Escritorio) ── */}
-                <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pb-28 bg-background/85 backdrop-blur-md border-t shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:static lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:mt-10 lg:border-t-0 lg:pt-6">
-                    <div className="max-w-7xl mx-auto flex flex-col-reverse sm:flex-row justify-end gap-3 lg:border-t lg:pt-6">
+                {/* ── ACTION BAR (Estático) ── */}
+                <div className="mt-8 pt-6 border-t px-4 sm:px-6">
+                    <div className="max-w-7xl mx-auto flex flex-col-reverse sm:flex-row justify-end gap-3">
                         <Button
                             type="button"
                             variant="outline"
