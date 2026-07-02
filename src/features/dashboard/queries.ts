@@ -55,7 +55,7 @@ export async function getDashboardMetrics(userId: string) {
         eq(tbcajaMovimientos.tipoMovimiento, 'ingreso'),
         gte(tbcajaMovimientos.fecha, todayStart),
         lte(tbcajaMovimientos.fecha, todayEnd),
-        sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
+        sql`(${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL)`
       )
     );
 
@@ -69,7 +69,7 @@ export async function getDashboardMetrics(userId: string) {
         eq(tbcajaMovimientos.tipoMovimiento, 'egreso'),
         gte(tbcajaMovimientos.fecha, todayStart),
         lte(tbcajaMovimientos.fecha, todayEnd),
-        sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
+        sql`(${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL)`
       )
     );
 
@@ -86,7 +86,7 @@ export async function getDashboardMetrics(userId: string) {
         eq(tbcajaMovimientos.tipoMovimiento, 'ingreso'),
         gte(tbcajaMovimientos.fecha, todayStart),
         lte(tbcajaMovimientos.fecha, todayEnd),
-        sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
+        sql`(${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL)`
       )
     )
     .groupBy(tbcajaMovimientos.metodoPago);
@@ -96,10 +96,7 @@ export async function getDashboardMetrics(userId: string) {
     .select()
     .from(tbcajaTurnos)
     .where(
-      and(
-        eq(tbcajaTurnos.fk_id_usuario, userIdNum),
-        eq(tbcajaTurnos.cerrada, false)
-      )
+      eq(tbcajaTurnos.cerrada, false)
     )
     .limit(1);
 

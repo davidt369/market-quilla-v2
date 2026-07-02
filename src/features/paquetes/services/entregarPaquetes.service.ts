@@ -25,11 +25,7 @@ export const entregarPaquete = auditable(async (
     try {
         // 0. Validar Caja Abierta
         const turnoActivo = await tx.query.tbcajaTurnos.findFirst({
-            where: (ct, { eq, and }) =>
-                and(
-                    eq(ct.fk_id_usuario, usuarioId),
-                    eq(ct.cerrada, false)
-                ),
+            where: (ct, { eq }) => eq(ct.cerrada, false),
         });
 
         if (!turnoActivo) {

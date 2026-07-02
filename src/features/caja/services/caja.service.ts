@@ -30,11 +30,7 @@ export async function logAuditoria(
 export async function getUltimoTurnoCerrado(usuarioId: number) {
     try {
         const turno = await db.query.tbcajaTurnos.findFirst({
-            where: (ct, { eq, and }) =>
-                and(
-                    eq(ct.fk_id_usuario, usuarioId),
-                    eq(ct.cerrada, true)
-                ),
+            where: (ct, { eq }) => eq(ct.cerrada, true),
             orderBy: (ct, { desc }) => [desc(ct.fecha), desc(ct.horaCierre)],
         });
         return turno || null;
@@ -46,11 +42,7 @@ export async function getUltimoTurnoCerrado(usuarioId: number) {
 export async function getCajaActiva(usuarioId: number) {
     try {
         const turno = await db.query.tbcajaTurnos.findFirst({
-            where: (ct, { eq, and }) =>
-                and(
-                    eq(ct.fk_id_usuario, usuarioId),
-                    eq(ct.cerrada, false)
-                )
+            where: (ct, { eq }) => eq(ct.cerrada, false)
         });
         
         if (!turno) return null;
@@ -73,7 +65,7 @@ export async function getCajaActiva(usuarioId: number) {
             .where(
                 and(
                     eq(tbcajaMovimientos.fk_id_cajaTurno, turno.pk_id_cajaTurno),
-                    sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
+                    sql`(${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL)`
                 )
             )
             .orderBy(desc(tbcajaMovimientos.fecha));
@@ -128,13 +120,13 @@ export const abrirCaja = auditable(async (tx, usuarioId: number, montoInicial: n
         // Bloqueo pesimista a nivel de usuario para evitar race conditions al abrir caja en concurrencia
         await tx.select().from(tbusuarios).where(eq(tbusuarios.pk_id_usuario, usuarioId)).for('update');
 
-        // Verificar que no haya una caja abierta
+        // Verificar que no haya una caja abierta globalmente
         const activa = await tx.query.tbcajaTurnos.findFirst({
-            where: (ct, { eq, and }) => and(eq(ct.fk_id_usuario, usuarioId), eq(ct.cerrada, false))
+            where: (ct, { eq }) => eq(ct.cerrada, false)
         });
 
         if (activa) {
-            throw new Error("El usuario ya tiene un turno de caja abierto.");
+            throw new Error("Ya existe un turno de caja abierto en el sistema.");
         }
 
         // Nota: Se elimina la restricción de que el monto inicial debe coincidir
@@ -167,7 +159,7 @@ export const registrarMovimientoManual = auditable(async (
 ) => {
     try {
         const activa = await tx.query.tbcajaTurnos.findFirst({
-            where: (ct, { eq, and }) => and(eq(ct.fk_id_usuario, usuarioId), eq(ct.cerrada, false))
+            where: (ct, { eq }) => eq(ct.cerrada, false)
         });
 
         if (!activa) {
