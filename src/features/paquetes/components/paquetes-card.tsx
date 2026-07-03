@@ -9,7 +9,7 @@ import ModalEntregaPaquete from "./modal-entrega-paquete";
 import { Card, CardContent, CardFooter } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { calcularPrecioFinal } from "../lib/paquetes.utils";
-import { AlertCircle, Loader2, Printer } from "lucide-react";
+import { AlertCircle, Printer } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
 import { useReactToPrint } from "react-to-print";
 import { ThermalReceipt } from "./registrar-paquete/thermal-receipt";
@@ -43,15 +43,8 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [evidenciaFile, setEvidenciaFile] = React.useState<File | null>(null);
 
     const receiptRef = React.useRef<HTMLDivElement>(null);
-    const [isPrinting, setIsPrinting] = React.useState(false);
-
-    // window.print() funciona en todos los plataformas:
-    // - Desktop: el navegador abre el diálogo de impresión (con --kiosk-printing en Chrome, imprime silencioso)
-    // - Android Chrome: abre el diálogo nativo del sistema con impresoras Bluetooth/WiFi disponibles
     const handlePrint = useReactToPrint({
         contentRef: receiptRef,
-        onBeforePrint: () => { setIsPrinting(true); return Promise.resolve(); },
-        onAfterPrint: () => { setIsPrinting(false); },
     });
 
     const isEntregado = pkg.estadoPaquete === "entregado";
@@ -109,15 +102,11 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                     <Button
                         variant="outline"
                         size="icon"
-                        className="h-auto w-[54px] sm:w-[60px] rounded-md border-2 border-foreground/90 hover:bg-muted shrink-0 flex items-center justify-center disabled:opacity-50"
+                        className="h-auto w-[54px] sm:w-[60px] rounded-md border-2 border-foreground/90 hover:bg-muted shrink-0 flex items-center justify-center"
                         onClick={handlePrint}
-                        disabled={isPrinting}
                         title="Imprimir ticket"
                     >
-                        {isPrinting
-                            ? <Loader2 className="h-6 w-6 text-foreground animate-spin" />
-                            : <Printer className="h-6 w-6 text-foreground" />
-                        }
+                        <Printer className="h-6 w-6 text-foreground" />
                     </Button>
                 </div>
 
@@ -213,18 +202,7 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                 handleConfirm={handleConfirm}
             />
 
-            {/* Fuera de pantalla pero RENDERIZADO en el DOM para que html2canvas pueda capturarlo en Android.
-                NO usar className="hidden" (display:none) porque html2canvas no procesa elementos ocultos. */}
-            <div
-                aria-hidden="true"
-                style={{
-                    position: "absolute",
-                    left: "-9999px",
-                    top: "-9999px",
-                    pointerEvents: "none",
-                    opacity: 0,
-                }}
-            >
+            <div className="hidden">
                 <ThermalReceipt ref={receiptRef} data={pkg} />
             </div>
         </Card>
