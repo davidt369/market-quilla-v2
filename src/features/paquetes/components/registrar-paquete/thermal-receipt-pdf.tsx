@@ -259,12 +259,42 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
         />
     ).toBlob();
 
-    // Abre el PDF en una nueva pestaña → el navegador lo muestra con su visor nativo
-    // Desktop: puede imprimir directamente desde el visor
-    // Android: el visor de PDF de Chrome incluye botón de impresión e imprime al tamaño exacto del PDF (40x30mm)
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
 
-    // Limpia la URL del blob después de un momento
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    const pdfFile = new File([blob], "ticket.pdf", { type: "application/pdf" });
+
+    // ── Estrategia de apertura (orden de prioridad) ──────────────────────────
+    //
+    // 1. Web Share API con archivo → abre el panel de compartir de Android.
+    //    Funciona en PWA (standalone) y en navegador. El usuario puede elegir
+    //    "Imprimir" o abrir con cualquier visor de PDF.
+    //
+    // 2. Anchor target="_blank" → abre el visor de PDF del navegador (Chrome).
+    //    Funciona en navegador normal; NO funciona en PWA standalone.
+    //
+    // 3. Descarga forzada → último recurso. El PDF se guarda en Descargas y
+    //    el usuario lo abre manualmente.
+
+    const canShareFile =
+        typeof navigator.share === "function" &&
+        typeof navigator.canShare === "function" &&
+        navigator.canShare({ files: [pdfFile] });
+
+    if (canShareFile) {
+        // Opción 1 – Share sheet (PWA + Android Chrome + iOS Safari 15+)
+        await navigator.share({
+            files: [pdfFile],
+            title: "Ticket de paquete",
+        });
+    } else {
+        // Opción 2 – Nueva pestaña (navegador de escritorio o móvil sin PWA)
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement("a");
+        a.href    = url;
+        a.target  = "_blank";
+        a.rel     = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    }
 }
