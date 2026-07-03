@@ -10,23 +10,29 @@ import {
     pdf,
 } from "@react-pdf/renderer";
 
-// ─── Dimensiones del papel térmico ───────────────────────────────────────────
-const WIDTH_MM  = 40;
-const HEIGHT_MM = 30;
-// 1mm = 2.8346pt  →  40mm = 113.4pt,  30mm = 85.04pt
-const MM = 2.8346;
-const W  = WIDTH_MM  * MM;   // 113.39pt
-const H  = HEIGHT_MM * MM;   // 85.04pt
+// ─── Dimensiones de salida ────────────────────────────────────────────────────
+//
+//  RawBT imprime imágenes mapeando 1px de la imagen → 1 punto térmico.
+//  Para una impresora de 203 DPI y papel de 40mm × 30mm:
+//    Ancho = 40mm × (203 Dpi / 25.4 mm) = 320 px
+//    Alto  = 30mm × (203 DPI / 25.4 mm) = 240 px
+//
+//  @react-pdf/renderer usa puntos (pt). RawBT renderiza el PDF a 1pt → 1px,
+//  por lo tanto debemos usar 320pt × 240pt como tamaño de página.
+//
+//  (En un visor de escritorio esto equivale a ~11cm × 8.5cm, pero el usuario
+//   puede elegir "Ajustar al papel" y el resultado es correcto.)
+//
+const W = 320;   // puntos → RawBT los trata como 320 px
+const H = 240;   // puntos → RawBT los trata como 240 px
 
-// ─── Estilos ─────────────────────────────────────────────────────────────────
+// ─── Estilos (escalados a 320×240pt) ─────────────────────────────────────────
 const s = StyleSheet.create({
     page: {
         width:           W,
         height:          H,
-        // Márgenes CERO — la impresora térmica no tiene área no imprimible.
-        // El padding interno controla el espacio interior del ticket.
         margin:          0,
-        padding:         2,
+        padding:         6,
         backgroundColor: "#ffffff",
         fontFamily:      "Helvetica",
         flexDirection:   "column",
@@ -34,42 +40,42 @@ const s = StyleSheet.create({
 
     // CABECERA
     header: {
-        flexDirection:   "row",
-        justifyContent:  "space-between",
-        alignItems:      "center",
-        borderBottomWidth: 1,
+        flexDirection:    "row",
+        justifyContent:   "space-between",
+        alignItems:       "center",
+        borderBottomWidth: 2,
         borderBottomColor: "#000000",
-        paddingBottom:   1,
-        marginBottom:    1,
+        paddingBottom:    3,
+        marginBottom:     3,
     },
     headerLeft: {
-        flexDirection:  "row",
-        alignItems:     "center",
-        gap:            2,
-        overflow:       "hidden",
-        flex:           1,
+        flexDirection:   "row",
+        alignItems:      "center",
+        gap:             5,
+        overflow:        "hidden",
+        flex:            1,
     },
     ubicBox: {
-        borderWidth:    1,
-        borderColor:    "#000000",
-        paddingHorizontal: 2,
-        paddingVertical: 1,
-        borderRadius:   1,
+        borderWidth:       2,
+        borderColor:       "#000000",
+        paddingHorizontal: 5,
+        paddingVertical:   2,
+        borderRadius:      2,
     },
     ubicText: {
-        fontSize:       7,
-        fontFamily:     "Helvetica-Bold",
+        fontSize:   20,
+        fontFamily: "Helvetica-Bold",
     },
     costoText: {
-        fontSize:       5.5,
-        fontFamily:     "Helvetica-Bold",
-        marginLeft:     2,
+        fontSize:   15,
+        fontFamily: "Helvetica-Bold",
+        marginLeft: 4,
     },
     logo: {
-        width:          18,
-        height:         14,
-        objectFit:      "contain",
-        marginLeft:     2,
+        width:     50,
+        height:    38,
+        objectFit: "contain",
+        marginLeft: 4,
     },
 
     // CUERPO
@@ -77,45 +83,45 @@ const s = StyleSheet.create({
         flex:           1,
         flexDirection:  "column",
         justifyContent: "center",
-        gap:            1.5,
+        gap:            4,
     },
     grid: {
-        flexDirection:  "column",
-        gap:            0.5,
+        flexDirection: "column",
+        gap:           1,
     },
     row: {
-        flexDirection:  "row",
-        alignItems:     "flex-start",
+        flexDirection: "row",
+        alignItems:    "flex-start",
     },
     label: {
-        width:          14,
-        fontSize:       4.8,
-        fontFamily:     "Helvetica-Bold",
-        color:          "#333333",
+        width:      38,
+        fontSize:   13,
+        fontFamily: "Helvetica-Bold",
+        color:      "#333333",
     },
     labelDest: {
-        width:          14,
-        fontSize:       5,
-        fontFamily:     "Helvetica-Bold",
-        color:          "#000000",
+        width:      38,
+        fontSize:   14,
+        fontFamily: "Helvetica-Bold",
+        color:      "#000000",
     },
     value: {
-        flex:           1,
-        fontSize:       4.8,
-        fontFamily:     "Helvetica",
-        textTransform:  "uppercase",
+        flex:          1,
+        fontSize:      13,
+        fontFamily:    "Helvetica",
+        textTransform: "uppercase",
     },
     valueDest: {
-        flex:           1,
-        fontSize:       5.5,
-        fontFamily:     "Helvetica-Bold",
-        textTransform:  "uppercase",
+        flex:          1,
+        fontSize:      15,
+        fontFamily:    "Helvetica-Bold",
+        textTransform: "uppercase",
     },
     divider: {
-        borderTopWidth: 0.5,
+        borderTopWidth: 1,
         borderTopStyle: "dashed",
         borderTopColor: "#888888",
-        marginVertical: 1.5,
+        marginVertical: 4,
     },
 
     // PIE
@@ -123,26 +129,26 @@ const s = StyleSheet.create({
         flexDirection:   "row",
         justifyContent:  "space-between",
         alignItems:      "flex-end",
-        borderTopWidth:  1,
+        borderTopWidth:  2,
         borderTopColor:  "#000000",
-        paddingTop:      1,
+        paddingTop:      3,
         marginTop:       "auto",
     },
     footerDate: {
-        fontSize:       4,
-        fontFamily:     "Helvetica-Bold",
+        fontSize:   11,
+        fontFamily: "Helvetica-Bold",
     },
     tipoBadge: {
-        borderWidth:    0.5,
-        borderColor:    "#000000",
-        paddingHorizontal: 2,
-        paddingVertical: 0.5,
-        borderRadius:   1,
+        borderWidth:       1,
+        borderColor:       "#000000",
+        paddingHorizontal: 5,
+        paddingVertical:   2,
+        borderRadius:      2,
     },
     tipoText: {
-        fontSize:       4,
-        fontFamily:     "Helvetica-Bold",
-        textTransform:  "uppercase",
+        fontSize:      11,
+        fontFamily:    "Helvetica-Bold",
+        textTransform: "uppercase",
     },
 });
 
@@ -167,9 +173,8 @@ const ReceiptDoc = ({
 }: ReceiptDocProps) => (
     <Document>
         {/*
-          * size=[W, H] → tamaño exacto del documento PDF en puntos.
-          * El visor / impresora respetan este tamaño cuando el usuario
-          * elige "Ajustar al tamaño del papel" o imprime en 40×30 mm.
+          * size=[320, 240]pt → RawBT lo renderiza a 320×240px
+          * = exactamente 40mm × 30mm a 203 DPI → impresión perfecta 1:1
           */}
         <Page size={[W, H]} style={s.page}>
             {/* CABECERA */}
@@ -235,7 +240,7 @@ const ReceiptDoc = ({
     </Document>
 );
 
-// ─── Función principal: genera y abre el PDF ─────────────────────────────────
+// ─── Función principal: genera y comparte/abre el PDF ─────────────────────────
 export async function generateAndOpenReceiptPdf(pkg: any) {
     const ubicacion        = pkg?.ubicacionAlmacen || "";
     const remitenteNombre  = pkg?.remitente?.nombre_completo || "";
@@ -248,9 +253,7 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
     const fecha            = new Date().toLocaleDateString("es-BO", {
         day: "2-digit", month: "2-digit", year: "2-digit",
     });
-    const tipo = pkg?.tipoPaquete || pkg?.tipo || "PAQUETE";
-
-    // URL absoluta del logo (funciona en server y client side)
+    const tipo    = pkg?.tipoPaquete || pkg?.tipo || "PAQUETE";
     const logoUrl = `${window.location.origin}/market-quilla-600px.webp`;
 
     const blob = await pdf(
@@ -269,34 +272,29 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
         />
     ).toBlob();
 
-
     const pdfFile = new File([blob], "ticket.pdf", { type: "application/pdf" });
 
     // ── Estrategia de apertura (orden de prioridad) ──────────────────────────
     //
-    // 1. Web Share API con archivo → abre el panel de compartir de Android.
-    //    Funciona en PWA (standalone) y en navegador. El usuario puede elegir
-    //    "Imprimir" o abrir con cualquier visor de PDF.
+    // 1. Web Share API + archivo → panel de compartir de Android.
+    //    En PWA standalone es la única forma de salir de la app.
+    //    Al compartir a RawBT, el PDF llega con 320×240pt → RawBT lo
+    //    renderiza a 320×240px → impresión perfecta en 40mm×30mm a 203 DPI.
     //
-    // 2. Anchor target="_blank" → abre el visor de PDF del navegador (Chrome).
-    //    Funciona en navegador normal; NO funciona en PWA standalone.
-    //
-    // 3. Descarga forzada → último recurso. El PDF se guarda en Descargas y
-    //    el usuario lo abre manualmente.
+    // 2. Anchor target="_blank" → abre el visor de PDF del navegador.
+    //    Para navegador de escritorio o móvil sin modo standalone.
 
     const canShareFile =
-        typeof navigator.share === "function" &&
+        typeof navigator.share    === "function" &&
         typeof navigator.canShare === "function" &&
         navigator.canShare({ files: [pdfFile] });
 
     if (canShareFile) {
-        // Opción 1 – Share sheet (PWA + Android Chrome + iOS Safari 15+)
         await navigator.share({
             files: [pdfFile],
             title: "Ticket de paquete",
         });
     } else {
-        // Opción 2 – Nueva pestaña (navegador de escritorio o móvil sin PWA)
         const url = URL.createObjectURL(blob);
         const a   = document.createElement("a");
         a.href    = url;
