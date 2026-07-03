@@ -13,15 +13,20 @@ import {
 // ─── Dimensiones del papel térmico ───────────────────────────────────────────
 const WIDTH_MM  = 40;
 const HEIGHT_MM = 30;
-// 1mm ≈ 2.8346 pt
+// 1mm = 2.8346pt  →  40mm = 113.4pt,  30mm = 85.04pt
 const MM = 2.8346;
+const W  = WIDTH_MM  * MM;   // 113.39pt
+const H  = HEIGHT_MM * MM;   // 85.04pt
 
 // ─── Estilos ─────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
     page: {
-        width:           WIDTH_MM  * MM,
-        height:          HEIGHT_MM * MM,
-        padding:         1.5,
+        width:           W,
+        height:          H,
+        // Márgenes CERO — la impresora térmica no tiene área no imprimible.
+        // El padding interno controla el espacio interior del ticket.
+        margin:          0,
+        padding:         2,
         backgroundColor: "#ffffff",
         fontFamily:      "Helvetica",
         flexDirection:   "column",
@@ -161,7 +166,12 @@ const ReceiptDoc = ({
     destNombre, destCel, destEmpresa, fecha, tipo, logoUrl,
 }: ReceiptDocProps) => (
     <Document>
-        <Page size={[WIDTH_MM * MM, HEIGHT_MM * MM]} style={s.page}>
+        {/*
+          * size=[W, H] → tamaño exacto del documento PDF en puntos.
+          * El visor / impresora respetan este tamaño cuando el usuario
+          * elige "Ajustar al tamaño del papel" o imprime en 40×30 mm.
+          */}
+        <Page size={[W, H]} style={s.page}>
             {/* CABECERA */}
             <View style={s.header}>
                 <View style={s.headerLeft}>
