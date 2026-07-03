@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { formatBoliviaDateTime } from "@/shared/lib/timezone";
 import { entregarPaqueteAction } from "@/features/paquetes/actions/paquetes.actions";
 import { toast } from "sonner";
@@ -9,10 +8,9 @@ import ModalEntregaPaquete from "./modal-entrega-paquete";
 import { Card, CardContent, CardFooter } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { calcularPrecioFinal } from "../lib/paquetes.utils";
-import { AlertCircle, Printer } from "lucide-react";
+import { AlertCircle, Loader2, Printer } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
-import { useReactToPrint } from "react-to-print";
-import { ThermalReceipt } from "./registrar-paquete/thermal-receipt";
+import { generateAndOpenReceiptPdf } from "./registrar-paquete/thermal-receipt-pdf";
 
 // Subcomponente auxiliar para mantener el código limpio y consistente
 const FilaDato = ({
@@ -42,10 +40,22 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr">("efectivo");
     const [evidenciaFile, setEvidenciaFile] = React.useState<File | null>(null);
 
-    const receiptRef = React.useRef<HTMLDivElement>(null);
-    const handlePrint = useReactToPrint({
-        contentRef: receiptRef,
-    });
+    const [isPrinting, setIsPrinting] = React.useState(false);
+
+    const handlePrint = async () => {
+        setIsPrinting(true);
+        const toastId = toast.loading("Generando ticket PDF...");
+        try {
+            await generateAndOpenReceiptPdf(pkg);
+            toast.dismiss(toastId);
+        } catch (err) {
+            console.error("[handlePrint]", err);
+            toast.dismiss(toastId);
+            toast.error("No se pudo generar el PDF del ticket.");
+        } finally {
+            setIsPrinting(false);
+        }
+    };
 
     const isEntregado = pkg.estadoPaquete === "entregado";
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
@@ -102,11 +112,15 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                     <Button
                         variant="outline"
                         size="icon"
-                        className="h-auto w-[54px] sm:w-[60px] rounded-md border-2 border-foreground/90 hover:bg-muted shrink-0 flex items-center justify-center"
+                        className="h-auto w-[54px] sm:w-[60px] rounded-md border-2 border-foreground/90 hover:bg-muted shrink-0 flex items-center justify-center disabled:opacity-60"
                         onClick={handlePrint}
-                        title="Imprimir ticket"
+                        disabled={isPrinting}
+                        title="Imprimir ticket (PDF)"
                     >
-                        <Printer className="h-6 w-6 text-foreground" />
+                        {isPrinting
+                            ? <Loader2 className="h-5 w-5 text-foreground animate-spin" />
+                            : <Printer className="h-6 w-6 text-foreground" />
+                        }
                     </Button>
                 </div>
 
@@ -201,10 +215,6 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                 isSubmitting={isSubmitting}
                 handleConfirm={handleConfirm}
             />
-
-            <div className="hidden">
-                <ThermalReceipt ref={receiptRef} data={pkg} />
-            </div>
         </Card>
     );
 }
