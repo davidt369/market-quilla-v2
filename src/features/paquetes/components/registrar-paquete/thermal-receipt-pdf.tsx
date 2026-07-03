@@ -13,18 +13,15 @@ import {
 // ─── Dimensiones de salida ────────────────────────────────────────────────────
 //
 //  RawBT imprime imágenes mapeando 1px de la imagen → 1 punto térmico.
-//  Para una impresora de 203 DPI y papel de 40mm × 30mm:
-//    Ancho = 40mm × (203 Dpi / 25.4 mm) = 320 px
-//    Alto  = 30mm × (203 DPI / 25.4 mm) = 240 px
+//  Para una impresora de 203 DPI y papel de 49mm × 29mm:
+//    Ancho = 49mm × 8 puntos/mm = 392 px
+//    Alto  = 29mm × 8 puntos/mm = 232 px
 //
 //  @react-pdf/renderer usa puntos (pt). RawBT renderiza el PDF a 1pt → 1px,
-//  por lo tanto debemos usar 320pt × 240pt como tamaño de página.
+//  por lo tanto debemos usar 392pt × 232pt como tamaño de página.
 //
-//  (En un visor de escritorio esto equivale a ~11cm × 8.5cm, pero el usuario
-//   puede elegir "Ajustar al papel" y el resultado es correcto.)
-//
-const W = 320;   // puntos → RawBT los trata como 320 px
-const H = 240;   // puntos → RawBT los trata como 240 px
+const W = 392;   // puntos → RawBT los trata como 392 px
+const H = 232;   // puntos → RawBT los trata como 232 px
 
 // ─── Estilos (escalados a 320×240pt) ─────────────────────────────────────────
 const s = StyleSheet.create({
