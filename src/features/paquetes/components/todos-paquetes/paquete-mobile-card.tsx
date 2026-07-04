@@ -12,6 +12,7 @@ import {
 import { formatBoliviaDateTime } from "@/shared/lib/timezone"
 import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared"
 import { calcularPrecioFinal } from "../../lib/paquetes.utils"
+import { ViewEvidenciaModal } from "./modals/view-evidencia-modal"
 
 interface PaqueteMobileCardProps {
     paquete: any
@@ -141,15 +142,14 @@ export function PaqueteMobileCard({
                             </span>
                         </div>
                         {paquete.fotoEntregadoUrl && (
-                            <a
-                                href={paquete.fotoEntregadoUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-1.5 bg-background border shadow-sm px-2.5 py-1 rounded-md text-foreground hover:bg-muted transition-colors font-medium"
-                            >
-                                <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                Ver foto
-                            </a>
+                            <ViewEvidenciaModal url={paquete.fotoEntregadoUrl}>
+                                <div
+                                    className="flex items-center gap-1.5 bg-background border shadow-sm px-2.5 py-1 rounded-md text-foreground hover:bg-muted transition-colors font-medium cursor-pointer"
+                                >
+                                    <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                    Ver foto
+                                </div>
+                            </ViewEvidenciaModal>
                         )}
                     </div>
                 )}
