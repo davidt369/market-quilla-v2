@@ -3,7 +3,9 @@
 import { 
     getIngresosFinancierosService, 
     getFlujoPaquetesService, 
-    getTopClientesService 
+    getTopClientesService,
+    getArqueosHistoryService,
+    getInventarioCriticoService
 } from "../services/reportes.service";
 
 export async function getDashboardReportesAction(fechaInicioISO: string, fechaFinISO: string) {
@@ -16,10 +18,12 @@ export async function getDashboardReportesAction(fechaInicioISO: string, fechaFi
 
         const range = { fechaInicio, fechaFin };
 
-        const [ingresos, flujo, topClientes] = await Promise.all([
+        const [ingresos, flujo, topClientes, arqueos, inventario] = await Promise.all([
             getIngresosFinancierosService(range),
             getFlujoPaquetesService(range),
-            getTopClientesService(range)
+            getTopClientesService(range),
+            getArqueosHistoryService(range),
+            getInventarioCriticoService()
         ]);
 
         return {
@@ -27,7 +31,9 @@ export async function getDashboardReportesAction(fechaInicioISO: string, fechaFi
             data: {
                 ingresos,
                 flujo,
-                topClientes
+                topClientes,
+                arqueos,
+                inventario
             }
         };
     } catch (error: any) {
