@@ -4,6 +4,20 @@ export function nowBolivia() {
     return new Date();
 }
 
+export function startOfDayBolivia(date: DateParam): Date {
+    const validDate = toValidDate(date) || new Date();
+    // Usa formato en-US para asegurar MM/DD/YYYY que es seguro para parsear en new Date()
+    const str = new Intl.DateTimeFormat("en-US", {
+        timeZone: BOLIVIA_TIMEZONE,
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+    }).format(validDate);
+    
+    // Al añadir 00:00:00, creamos una fecha que para el entorno de JS representa la medianoche de ese día calendario
+    return new Date(`${str} 00:00:00`);
+}
+
 type DateParam = Date | string | number | null | undefined;
 
 function toValidDate(date: DateParam): Date | null {

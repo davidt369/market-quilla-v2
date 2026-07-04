@@ -1,3 +1,5 @@
+import { startOfDayBolivia } from "@/shared/lib/timezone";
+
 export function calcularPrecioFinal(
     precioBase: number | string | null,
     fechaHoraRegistro: string | Date | null,
@@ -31,12 +33,12 @@ export function calcularPrecioFinal(
         };
     }
 
-    const fechaRegistro = new Date(fechaHoraRegistro);
-    const ahora = new Date();
+    const fechaRegistroBolivia = startOfDayBolivia(fechaHoraRegistro);
+    const ahoraBolivia = startOfDayBolivia(new Date());
     const msEnUnDia = 24 * 60 * 60 * 1000;
     const msEnUnaSemana = 7 * msEnUnDia;
 
-    const diferenciaMs = ahora.getTime() - fechaRegistro.getTime();
+    const diferenciaMs = ahoraBolivia.getTime() - fechaRegistroBolivia.getTime();
     const diasPasados = Math.floor(diferenciaMs / msEnUnDia);
     let semanasPasadas = Math.max(0, Math.floor(diferenciaMs / msEnUnaSemana));
 
@@ -48,7 +50,8 @@ export function calcularPrecioFinal(
 
     // Verificar si aplica la oferta
     if (diasOferta && diasOferta > 0 && precioOferta != null) {
-        fechaExpiracionOferta = new Date(fechaRegistro.getTime() + (diasOferta * msEnUnDia));
+        // Obtenemos la fecha exacta (sin hora) para mostrar
+        fechaExpiracionOferta = new Date(fechaRegistroBolivia.getTime() + (diasOferta * msEnUnDia));
         diasRestantesOferta = Math.max(0, diasOferta - diasPasados);
         
         if (diasPasados <= diasOferta) {
