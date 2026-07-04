@@ -169,8 +169,8 @@ export function AbrirCajaForm() {
                             type="number"
                             min="0"
                             step="0.10"
-                            value={montoTotal || ""}
-                            onChange={handleTotalChange}
+                            value={montoTotal}
+                            onChange={(e) => setMontoTotal(e.target.value === "" ? 0 : Number(e.target.value))}
                             className="h-10 text-lg w-full sm:w-48"
                             placeholder="Ej: 150.00"
                         />

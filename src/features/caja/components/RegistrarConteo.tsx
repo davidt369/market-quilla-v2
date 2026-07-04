@@ -155,8 +155,8 @@ export function RegistrarConteo({ resumen }: { resumen: CajaActivaResumen }) {
                                     type="number"
                                     min="0"
                                     step="0.10"
-                                    value={totalContado === 0 ? "" : totalContado}
-                                    onChange={(e) => setTotalContado(Number(e.target.value))}
+                                    value={totalContado}
+                                    onChange={(e) => setTotalContado(e.target.value === "" ? 0 : Number(e.target.value))}
                                     className="h-12 text-xl font-bold px-4 bg-muted/20"
                                     placeholder="Ej: 500.50"
                                 />
