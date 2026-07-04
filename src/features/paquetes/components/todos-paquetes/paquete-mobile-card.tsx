@@ -29,7 +29,7 @@ export function PaqueteMobileCard({
     onDeliver,
     onPrint,
 }: PaqueteMobileCardProps) {
-    const { precioFinal, recargoAplicado, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta } = calcularPrecioFinal(
+    const { precioFinal, recargoAplicado, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta, estadoPagoCalculado } = calcularPrecioFinal(
         paquete.precioBase,
         paquete.fechaHoraRegistro,
         paquete.estadoPago,
@@ -104,8 +104,8 @@ export function PaqueteMobileCard({
                     {/* Pagos y Precio */}
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <PagoBadge estado={paquete.estadoPago} />
-                            {paquete.estadoPago !== "pendiente" && (
+                            <PagoBadge estado={estadoPagoCalculado} />
+                            {estadoPagoCalculado !== "pendiente" && (
                                 <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground bg-background">
                                     Pago: {paquete.momentoPago === "al_registrar" ? "Remitente" : "Destinatario"}
                                 </Badge>

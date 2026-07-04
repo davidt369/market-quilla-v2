@@ -13,6 +13,7 @@ export function calcularPrecioFinal(
     ofertaVigente: boolean;
     diasRestantesOferta: number;
     fechaExpiracionOferta: Date | null;
+    estadoPagoCalculado: string;
 } {
     const precio = Number(precioBase) || 0;
     
@@ -26,6 +27,7 @@ export function calcularPrecioFinal(
             ofertaVigente: false,
             diasRestantesOferta: 0,
             fechaExpiracionOferta: null,
+            estadoPagoCalculado: estadoPago?.toLowerCase() === "pagado" ? "pagado" : "pendiente",
         };
     }
 
@@ -36,7 +38,7 @@ export function calcularPrecioFinal(
 
     const diferenciaMs = ahora.getTime() - fechaRegistro.getTime();
     const diasPasados = Math.floor(diferenciaMs / msEnUnDia);
-    const semanasPasadas = Math.max(0, Math.floor(diferenciaMs / msEnUnaSemana));
+    let semanasPasadas = Math.max(0, Math.floor(diferenciaMs / msEnUnaSemana));
 
     let precioFinal = precio;
     let recargoAplicado = false;
@@ -54,9 +56,15 @@ export function calcularPrecioFinal(
             precioFinal = Number(precioOferta);
             ofertaVigente = true;
         } else {
-            // Pasó la oferta. Aplicamos precio base y recargos normales
-            if (semanasPasadas >= 1) {
-                precioFinal = precio * Math.pow(2, semanasPasadas);
+            // Pasó la oferta. Aplicamos precio base y recargos desde el vencimiento
+            const diasDesdeVencimiento = diasPasados - diasOferta;
+            const semanasDesdeVencimiento = Math.floor(diasDesdeVencimiento / 7);
+            
+            // Sobrescribimos semanasPasadas para que el UI muestre las semanas desde vencimiento
+            semanasPasadas = semanasDesdeVencimiento;
+            
+            if (semanasDesdeVencimiento >= 1) {
+                precioFinal = precio * Math.pow(2, semanasDesdeVencimiento);
                 recargoAplicado = true;
             }
         }
@@ -78,6 +86,8 @@ export function calcularPrecioFinal(
     // Asegurarse de que el saldo no sea negativo en casos inesperados
     saldoPendiente = Math.max(0, saldoPendiente);
 
+    const estadoPagoCalculado = saldoPendiente > 0 ? "pendiente" : "pagado";
+
     return { 
         precioOriginal: precio, 
         precioFinal, 
@@ -86,6 +96,7 @@ export function calcularPrecioFinal(
         saldoPendiente,
         ofertaVigente,
         diasRestantesOferta,
-        fechaExpiracionOferta
+        fechaExpiracionOferta,
+        estadoPagoCalculado
     };
 }
