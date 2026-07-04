@@ -68,8 +68,8 @@ export const paqueteInsertSchema =
         tipoPaquete: z
             .string()
             .trim()
-            .min(3, "Debe describir el paquete")
-            .max(500),
+            .max(50)
+            .default(""),
     }).pick({
         fk_id_remitente: true,
         fk_id_destinatario: true,
@@ -109,8 +109,8 @@ export const paqueteFormSchema = z.object({
     tipoPaquete: z
         .string()
         .trim()
-        .min(3, "Debe describir el paquete")
-        .max(500),
+        .max(500)
+        .default(""),
 
     momentoPago: z.enum([
         "al_registrar",
@@ -141,8 +141,8 @@ export const paqueteCompletoFormSchema = z.object({
     tipoPaquete: z
         .string()
         .trim()
-        .min(3, "Debe describir el paquete")
-        .max(500),
+        .max(500)
+        .default(""),
 
     momentoPago: z.enum([
         "al_registrar",

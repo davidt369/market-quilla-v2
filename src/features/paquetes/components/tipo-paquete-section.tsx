@@ -115,7 +115,7 @@ export function TipoPaqueteSection() {
                 control={control}
                 render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid} className="mb-4">
-                        <FieldLabel htmlFor={field.name}>Tipo de Paquete</FieldLabel>
+                        <FieldLabel htmlFor={field.name}>Tipo de Paquete (Opcional)</FieldLabel>
                         <textarea
                             {...field}
                             id={field.name}
