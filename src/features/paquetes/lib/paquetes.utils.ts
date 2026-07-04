@@ -10,6 +10,9 @@ export function calcularPrecioFinal(
     recargoAplicado: boolean; 
     semanasPasadas: number;
     saldoPendiente: number; 
+    ofertaVigente: boolean;
+    diasRestantesOferta: number;
+    fechaExpiracionOferta: Date | null;
 } {
     const precio = Number(precioBase) || 0;
     
@@ -19,7 +22,10 @@ export function calcularPrecioFinal(
             precioFinal: precio, 
             recargoAplicado: false, 
             semanasPasadas: 0,
-            saldoPendiente: estadoPago?.toLowerCase() === "pagado" ? 0 : precio
+            saldoPendiente: estadoPago?.toLowerCase() === "pagado" ? 0 : precio,
+            ofertaVigente: false,
+            diasRestantesOferta: 0,
+            fechaExpiracionOferta: null,
         };
     }
 
@@ -34,12 +40,19 @@ export function calcularPrecioFinal(
 
     let precioFinal = precio;
     let recargoAplicado = false;
+    let ofertaVigente = false;
+    let diasRestantesOferta = 0;
+    let fechaExpiracionOferta: Date | null = null;
 
     // Verificar si aplica la oferta
     if (diasOferta && diasOferta > 0 && precioOferta != null) {
+        fechaExpiracionOferta = new Date(fechaRegistro.getTime() + (diasOferta * msEnUnDia));
+        diasRestantesOferta = Math.max(0, diasOferta - diasPasados);
+        
         if (diasPasados <= diasOferta) {
             // Está dentro de la oferta
             precioFinal = Number(precioOferta);
+            ofertaVigente = true;
         } else {
             // Pasó la oferta. Aplicamos precio base y recargos normales
             if (semanasPasadas >= 1) {
@@ -70,6 +83,9 @@ export function calcularPrecioFinal(
         precioFinal, 
         recargoAplicado, 
         semanasPasadas,
-        saldoPendiente
+        saldoPendiente,
+        ofertaVigente,
+        diasRestantesOferta,
+        fechaExpiracionOferta
     };
 }

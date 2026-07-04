@@ -60,10 +60,12 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const isEntregado = pkg.estadoPaquete === "entregado";
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
 
-    const { precioFinal, recargoAplicado, semanasPasadas } = calcularPrecioFinal(
+    const { precioFinal, recargoAplicado, semanasPasadas, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta } = calcularPrecioFinal(
         pkg.precioBase,
         pkg.fechaHoraRegistro,
-        pkg.estadoPago
+        pkg.estadoPago,
+        pkg.precioOferta,
+        pkg.diasOferta
     );
 
     const handleConfirm = async () => {
@@ -145,6 +147,11 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                         <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-foreground/70 ml-2">COSTO</span>
                         <div className="flex-1 min-w-0 border-b border-foreground/20 text-xs sm:text-sm px-1.5 pb-0.5 font-bold text-center text-amber-600 flex items-center justify-center gap-1 whitespace-nowrap">
                             Bs. {precioFinal.toFixed(2)}
+                            {ofertaVigente && (
+                                <span className="ml-0.5 text-[9px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1 py-0.5 rounded uppercase font-bold tracking-widest">
+                                    Oferta
+                                </span>
+                            )}
                             {recargoAplicado && (
                                 <Tooltip>
                                     <TooltipTrigger>
@@ -157,6 +164,15 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                             )}
                         </div>
                     </div>
+
+                    {ofertaVigente && (
+                        <div className="flex items-end gap-2 mt-2">
+                            <span className="font-bold text-[11px] sm:text-xs uppercase shrink-0 text-emerald-600/90 dark:text-emerald-500/90">VÁLIDO HASTA</span>
+                            <div className="flex-1 min-w-0 border-b border-emerald-500/20 text-xs px-1.5 pb-0.5 font-bold text-emerald-600 dark:text-emerald-500 text-center">
+                                {fechaExpiracionOferta?.toLocaleDateString("es-ES")} (en {diasRestantesOferta} {diasRestantesOferta === 1 ? 'día' : 'días'})
+                            </div>
+                        </div>
+                    )}
 
                     <FilaDato label="PAGO">
                         <div className="flex items-center justify-between w-full">

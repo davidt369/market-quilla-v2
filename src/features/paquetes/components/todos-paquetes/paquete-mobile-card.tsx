@@ -11,18 +11,29 @@ import {
     ArrowRight
 } from "lucide-react"
 import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared"
+import { calcularPrecioFinal } from "../../lib/paquetes.utils"
+
+interface PaqueteMobileCardProps {
+    paquete: any
+    onEdit: () => void
+    onDelete: () => void
+    onDeliver: () => void
+}
 
 export function PaqueteMobileCard({
     paquete,
     onEdit,
     onDelete,
     onDeliver,
-}: {
-    paquete: any
-    onEdit: () => void
-    onDelete: () => void
-    onDeliver: () => void
-}) {
+}: PaqueteMobileCardProps) {
+    const { precioFinal, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta } = calcularPrecioFinal(
+        paquete.precioBase,
+        paquete.fechaHoraRegistro,
+        paquete.estadoPago,
+        paquete.precioOferta,
+        paquete.diasOferta
+    );
+
     return (
         <div className="group relative rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] overflow-hidden isolate flex flex-col">
             {/* Header: Identificador y Acciones */}
@@ -90,12 +101,24 @@ export function PaqueteMobileCard({
                             <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground bg-background">
                                 Pago: {paquete.momentoPago === "al_registrar" ? "Remitente" : "Destinatario"}
                             </Badge>
+                            {ofertaVigente && (
+                                <Badge variant="default" className="text-[10px] font-bold tracking-wide bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15">
+                                    OFERTA
+                                </Badge>
+                            )}
                         </div>
                         <div className="flex items-center gap-0.5 text-foreground font-bold text-base shrink-0">
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            {Number(paquete.precioOferta != null && paquete.diasOferta && paquete.diasOferta > 0 ? paquete.precioOferta : paquete.precioBase).toFixed(2)}
+                            {precioFinal.toFixed(2)}
                         </div>
                     </div>
+
+                    {ofertaVigente && (
+                        <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-500 flex justify-between items-center bg-emerald-50 dark:bg-emerald-950/30 p-1.5 rounded-md border border-emerald-100 dark:border-emerald-900/50">
+                            <span>Vence el {fechaExpiracionOferta?.toLocaleDateString("es-ES")}</span>
+                            <span>En {diasRestantesOferta} {diasRestantesOferta === 1 ? 'día' : 'días'}</span>
+                        </div>
+                    )}
 
                     <hr className="border-border/50" />
 

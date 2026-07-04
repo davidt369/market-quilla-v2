@@ -8,6 +8,7 @@ import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared";
 import { formatBoliviaDateTime } from "@/shared/lib/timezone";
 import { ViewEvidenciaModal } from "./modals/view-evidencia-modal";
 import { calcularPrecioFinal } from "../../lib/paquetes.utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
 
 interface GetColumnsProps {
     onEdit: (pkg: PaqueteListItem) => void;
@@ -193,9 +194,24 @@ export const getPaquetesColumns = ({
                     const pricing = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago, pkg.precioOferta, pkg.diasOferta);
                     return (
                         <div className="flex flex-col items-center justify-center w-full gap-1">
-                            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm tabular-nums">
-                                {Number(pricing.precioFinal).toFixed(2)}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm tabular-nums">
+                                    {Number(pricing.precioFinal).toFixed(2)}
+                                </span>
+                                {pricing.ofertaVigente && (
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <span className="text-[9px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1 py-0.5 rounded uppercase font-bold tracking-widest cursor-help">
+                                                Oferta
+                                            </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Oferta válida hasta el {pricing.fechaExpiracionOferta?.toLocaleDateString("es-ES")}</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">Expira en {pricing.diasRestantesOferta} {pricing.diasRestantesOferta === 1 ? 'día' : 'días'}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </div>
                             {pricing.recargoAplicado && (
                                 <span className="text-[10px] font-semibold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded whitespace-nowrap">
                                     + Recargo ({pricing.semanasPasadas} sem)
