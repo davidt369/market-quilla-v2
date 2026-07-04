@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
-import { Edit, MoreHorizontal, Trash, Truck } from "lucide-react"
+import { Edit, MoreHorizontal, Trash, Truck, Printer } from "lucide-react"
 
 export const ESTADO_CONFIG: Record<string, { label: string; className: string }> = {
     registrado: {
@@ -56,11 +56,13 @@ export function ActionsMenu({
     onEdit,
     onDelete,
     onDeliver,
+    onPrint,
 }: {
     estadoPaquete: string
-    onEdit: () => void
-    onDelete: () => void
-    onDeliver: () => void
+    onEdit?: () => void
+    onDelete?: () => void
+    onDeliver?: () => void
+    onPrint?: () => void
 }) {
     return (
         <DropdownMenu>
@@ -72,23 +74,36 @@ export function ActionsMenu({
                 <DropdownMenuGroup>
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {estadoPaquete !== "entregado" && (
+                    
+                    {onPrint && (
+                        <DropdownMenuItem onClick={onPrint}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Imprimir Ticket
+                        </DropdownMenuItem>
+                    )}
+
+                    {estadoPaquete !== "entregado" && onEdit && (
                         <DropdownMenuItem onClick={onEdit}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                         </DropdownMenuItem>
                     )}
-                    {estadoPaquete !== "entregado" && (
+                    {estadoPaquete !== "entregado" && onDeliver && (
                         <DropdownMenuItem onClick={onDeliver} className="text-emerald-600 focus:text-emerald-600">
                             <Truck className="mr-2 h-4 w-4" />
                             Entregar
                         </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onDelete} className="text-red-600 focus:text-red-600">
-                        <Trash className="mr-2 h-4 w-4" />
-                        Eliminar
-                    </DropdownMenuItem>
+                    
+                    {onDelete && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={onDelete} className="text-red-600 focus:text-red-600">
+                                <Trash className="mr-2 h-4 w-4" />
+                                Eliminar
+                            </DropdownMenuItem>
+                        </>
+                    )}
                 </DropdownMenuGroup>
             </DropdownMenuContent>
         </DropdownMenu>
