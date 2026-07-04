@@ -1,4 +1,5 @@
 import { Package } from "lucide-react"
+import Image from "next/image"
 import { LoginForm } from "./components/login-form"
 import { redirect } from "next/navigation"
 import { auth } from "@/shared/lib/auth"
@@ -29,7 +30,15 @@ export default async function LoginPage() {
 
         <div className="absolute bottom-16 left-16 right-16 z-20">
           <blockquote className="space-y-5 text-slate/120 max-w-xl dark:text-primary/90">
-            <Package className="size-10 text-slate/80 mb-6 dark:text-primary/80" />
+            <div className="flex size-14 items-center justify-center rounded-xl bg-background/10 backdrop-blur-md border border-white/10 shadow-xl mb-6 overflow-hidden">
+              <Image 
+                src="/market-quilla-600px.webp" 
+                alt="Logo Market Quilla" 
+                width={40} 
+                height={40} 
+                className="object-contain w-10 h-10 rounded-md"
+              />
+            </div>
             {/* <p className="text-3xl font-medium tracking-tight leading-snug">
               &ldquo;Una solución robusta y rápida para la gestión de envíos, sucursales y finanzas. Todo en un solo lugar.&rdquo;
             </p> */}

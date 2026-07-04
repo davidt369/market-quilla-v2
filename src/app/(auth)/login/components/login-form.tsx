@@ -4,7 +4,7 @@ import { useState } from "react"
 import { signIn, getSession } from "next-auth/react"
 import { redirect, useRouter } from "next/navigation"
 import { checkLoginStatusAction } from "../actions"
-
+import Image from "next/image"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
@@ -44,7 +44,7 @@ export function LoginForm({
 
     if (result?.error) {
       const status = await checkLoginStatusAction()
-      
+
       if (status.remaining === 0) {
         setError(`Demasiados intentos fallidos. Intenta de nuevo en ${status.waitMinutes} minutos.`)
       } else {
@@ -59,9 +59,16 @@ export function LoginForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="shadow-lg border-muted/30 bg-card/80 backdrop-blur-sm overflow-hidden rounded-2xl">
-        <CardHeader className="text-center space-y-2 pb-6 pt-8">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 mb-4 transition-all hover:bg-primary/20">
-            <Package className="h-7 w-7 text-primary" />
+        <CardHeader className="text-center space-y-3 pb-6 pt-8">
+          <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-3xl bg-gradient-to-tr from-primary/30 via-primary/10 to-transparent border border-primary/20 shadow-[0_8px_32px_rgba(var(--primary),0.15)] mb-2 backdrop-blur-md transition-all hover:scale-105 duration-500">
+            <Image
+              src="/market-quilla-600px.webp"
+              alt="Logo Market Quilla"
+              width={80}
+              height={80}
+              className="object-contain drop-shadow-md"
+              priority
+            />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Iniciar Sesión</CardTitle>
           <CardDescription className="text-muted-foreground text-sm font-medium">

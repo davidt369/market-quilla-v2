@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
@@ -169,8 +170,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Header estilo SaaS moderno */}
       <SidebarHeader className="group-data-[collapsible=icon]:px-3 px-5 py-6 transition-all">
         <div className="flex items-center gap-3 select-none overflow-hidden">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/25 shadow-[0_0_12px_rgba(var(--primary),0.05)]">
-            <Building className="size-5 shrink-0 text-primary stroke-[2.5]" />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/25 shadow-[0_0_12px_rgba(var(--primary),0.05)] overflow-hidden">
+            <Image 
+              src="/market-quilla-600px.webp" 
+              alt="Logo Market Quilla" 
+              width={32} 
+              height={32} 
+              className="object-contain w-8 h-8 rounded"
+              priority
+            />
           </div>
           <div className="flex flex-col min-w-0 overflow-hidden group-data-[collapsible=icon]:hidden">
             <span className="truncate text-base font-bold tracking-tight text-foreground/90">
