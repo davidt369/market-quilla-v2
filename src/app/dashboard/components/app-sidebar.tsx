@@ -151,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const matches = navigationGroups
       .flatMap((g) => g.items)
       .filter((item) => pathname === item.url || pathname.startsWith(`${item.url}/`));
-    
+
     matches.sort((a, b) => b.url.length - a.url.length);
     return matches[0]?.url;
   }, [pathname, navigationGroups]);
@@ -166,31 +166,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     .filter((group) => group.items.length > 0)
 
   return (
-    <Sidebar className="border-r backdrop-blur-lg" {...props}>
+    <Sidebar className="border-r bg-gradient-to-b from-yellow-500/20 to-background dark:from-yellow-500/10 dark:to-background backdrop-blur-lg" {...props}>
       {/* Header estilo SaaS moderno */}
       <SidebarHeader className="group-data-[collapsible=icon]:px-3 px-5 py-6 transition-all">
         <div className="flex items-center gap-3 select-none overflow-hidden">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/25 shadow-[0_0_12px_rgba(var(--primary),0.05)] overflow-hidden">
-            <Image 
-              src="/market-quilla-600px.webp" 
-              alt="Logo Market Quilla" 
-              width={32} 
-              height={32} 
-              className="object-contain w-8 h-8 rounded"
+          <div className="flex size-16 shrink-0 items-center justify-center rounded-xl overflow-hidden group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:transition-all">
+            <Image
+              src="/market-quilla-600px.webp"
+              alt="Logo Market Quilla"
+              width={64}
+              height={64}
+              className="object-contain w-full h-full"
               priority
             />
           </div>
           <div className="flex flex-col min-w-0 overflow-hidden group-data-[collapsible=icon]:hidden">
-            <span className="truncate text-base font-bold tracking-tight text-foreground/90">
+            <span className="truncate text-lg font-bold tracking-tight text-foreground">
               Market Quilla
             </span>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground/80 mt-0.5 truncate">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mt-0.5 truncate">
               <MapPin className="size-3.5 shrink-0" />
               <span className="truncate font-medium">Sucursal Quillacollo</span>
-              <span className="relative flex size-1.5 ml-0.5 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
-              </span>
+
             </div>
           </div>
         </div>
