@@ -77,9 +77,11 @@ export default function CardConfirmarDatos({ pendingData }: { pendingData: Paque
                     </div>
                     <span className="font-bold text-xs uppercase shrink-0">COSTO</span>
                     <div className="flex-1 border-b border-black text-xs px-2 font-bold text-center">
-                        {pendingData?.precioBase ? `Bs. ${pendingData.precioBase.toFixed(2)}` : "\u00A0"}
+                        {pendingData?.precioOferta != null && pendingData?.diasOferta && pendingData.diasOferta > 0 ? `Bs. ${pendingData.precioOferta.toFixed(2)}` : (pendingData?.precioBase ? `Bs. ${pendingData.precioBase.toFixed(2)}` : "\u00A0")}
                     </div>
-                    <span className="font-bold text-xs uppercase shrink-0">1 Semana</span>
+                    {pendingData?.precioOferta != null && pendingData?.diasOferta && pendingData.diasOferta > 0 ? (
+                        <span className="font-bold text-xs uppercase shrink-0">{pendingData.diasOferta} Semana</span>
+                    ) : null}
                 </div>
 
                 <div className="flex items-end gap-2">

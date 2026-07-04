@@ -93,7 +93,7 @@ export function PaqueteMobileCard({
                         </div>
                         <div className="flex items-center gap-0.5 text-foreground font-bold text-base shrink-0">
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            {Number(paquete.precioBase).toFixed(2)}
+                            {Number(paquete.precioOferta != null && paquete.diasOferta && paquete.diasOferta > 0 ? paquete.precioOferta : paquete.precioBase).toFixed(2)}
                         </div>
                     </div>
 

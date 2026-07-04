@@ -190,7 +190,7 @@ export const getPaquetesColumns = ({
                 const pkg = row.original;
                 
                 if (pkg.estadoPaquete === "registrado") {
-                    const pricing = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago);
+                    const pricing = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago, pkg.precioOferta, pkg.diasOferta);
                     return (
                         <div className="flex flex-col items-center justify-center w-full gap-1">
                             <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm tabular-nums">
@@ -208,7 +208,7 @@ export const getPaquetesColumns = ({
                     return (
                         <div className="flex flex-col items-center justify-center w-full gap-1">
                             <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm tabular-nums">
-                                {Number(pkg.precioBase).toFixed(2)}
+                                {Number(pkg.precioOferta != null && pkg.diasOferta && pkg.diasOferta > 0 ? pkg.precioOferta : pkg.precioBase).toFixed(2)}
                             </span>
                             {movMulta && (
                                 <span 

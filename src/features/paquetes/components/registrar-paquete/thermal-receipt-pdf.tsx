@@ -304,7 +304,8 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
 
     let costoDisplay = "";
     let tiempoDisplay = "";
-    if ((!precioBase || precioBase === 0) && precioOferta != null && diasOferta != null) {
+    
+    if (precioOferta != null && diasOferta != null && diasOferta > 0) {
         costoDisplay = `Bs. ${Number(precioOferta).toFixed(2)}`;
         tiempoDisplay = `${diasOferta} SEMANA`;
     } else if (precioBase != null && precioBase > 0) {
