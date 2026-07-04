@@ -1,7 +1,7 @@
 import { db, auditable } from "@/database";
 import { PaqueteInsert, PaqueteUpdate, PaqueteCompletoFormData } from "../schemas/paquetes.schema";
 import { tbpaquetes, tbclientes, tbcajaTurnos, tbcajaMovimientos } from "@/database/schema/schema";
-import { sql } from "drizzle-orm";
+import { sql, exists } from "drizzle-orm";
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 
 // Función de utilidad auxiliar para parsear errores DB
@@ -307,7 +307,29 @@ export async function getPaquetes({
             filters.push(
                 or(
                     ilike(tbpaquetes.ubicacionAlmacen, `%${q}%`),
-                    ilike(tbpaquetes.tipoPaquete, `%${q}%`)
+                    ilike(tbpaquetes.tipoPaquete, `%${q}%`),
+                    exists(
+                        db.select({ id: tbclientes.pk_id_cliente }).from(tbclientes).where(
+                            and(
+                                eq(tbclientes.pk_id_cliente, tbpaquetes.fk_id_remitente),
+                                or(
+                                    ilike(tbclientes.nombre_completo, `%${q}%`),
+                                    ilike(tbclientes.ci_o_cel, `%${q}%`)
+                                )
+                            )
+                        )
+                    ),
+                    exists(
+                        db.select({ id: tbclientes.pk_id_cliente }).from(tbclientes).where(
+                            and(
+                                eq(tbclientes.pk_id_cliente, tbpaquetes.fk_id_destinatario),
+                                or(
+                                    ilike(tbclientes.nombre_completo, `%${q}%`),
+                                    ilike(tbclientes.ci_o_cel, `%${q}%`)
+                                )
+                            )
+                        )
+                    )
                 )!
             );
         }
