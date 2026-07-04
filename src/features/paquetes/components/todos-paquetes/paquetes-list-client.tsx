@@ -1,41 +1,37 @@
 "use client";
 
 import * as React from "react";
-import { DataTable } from "@/shared/components/ui/data-table";
-import ModalEntregaPaquete from "@/features/paquetes/components/modal-entrega-paquete";
 import { PaqueteMobileCard } from "./paquete-mobile-card";
 
 import { PaqueteListItem } from "./paquetes.types";
 import { usePaquetesActions } from "./use-paquetes-actions";
-import { getPaquetesColumns } from "./paquetes-list-columns";
 import { PaquetesListFilters } from "./paquetes-list-filters";
 import { DeletePaqueteModal } from "./modals/delete-paquete-modal";
 
 
+import { useRouter } from "next/navigation";
+import ModalEntregaPaquete from "@/features/paquetes/components/modal-entrega-paquete";
+import PaquetesSearchBar from "../paquetes-search-bar";
+import { PaquetesPagination } from "./paquetes-pagination";
+
 type PaquetesListClientProps = {
     data: PaqueteListItem[];
+    meta: {
+        page: number;
+        totalPages: number;
+        total: number;
+    }
 };
 
-import { useRouter } from "next/navigation";
-
-export function PaquetesListClient({ data }: PaquetesListClientProps) {
+export function PaquetesListClient({ data, meta }: PaquetesListClientProps) {
     const router = useRouter();
     const actions = usePaquetesActions();
-    const [estadoFilter, setEstadoFilter] = React.useState("all");
 
-    const filteredData = React.useMemo(() => {
-        if (estadoFilter === "all") return data;
-        return data.filter((p) => p.estadoPaquete === estadoFilter);
-    }, [data, estadoFilter]);
+    // Si hay un estado de paquete desde los searchParams u otro componente, aquí lo usamos.
+    // Por ahora renderizamos la data que viene del servidor (paginada).
+    const filteredData = data;
 
-    const columns = React.useMemo(
-        () => getPaquetesColumns({
-            onEdit: (pkg) => router.push(`/dashboard/paquetes/${pkg.pk_id_paquete}/editar`),
-            onDelete: actions.setPackageToDelete,
-            onDeliver: actions.setPackageToDeliver,
-        }),
-        [router, actions.setPackageToDelete, actions.setPackageToDeliver]
-    );
+
 
     return (
         <div className="space-y-4">
@@ -43,32 +39,34 @@ export function PaquetesListClient({ data }: PaquetesListClientProps) {
                 <div className="flex flex-col gap-1">
                     <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Listado de Paquetes</h2>
                     <p className="text-sm text-muted-foreground hidden sm:block">
-                        Mostrando registros del sistema
+                        Mostrando {data.length} de {meta.total} registros
                     </p>
                 </div>
 
-                <PaquetesListFilters
-                    estadoFilter={estadoFilter}
-                    setEstadoFilter={setEstadoFilter}
-                />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <PaquetesSearchBar basePath="/dashboard/paquetes/todos" />
+                </div>
             </div>
 
-            <DataTable
-                title="Gestión de Paquetes"
-                description={`${data.length} paquetes registrados en el sistema`}
-                columns={columns}
-                rows={filteredData}
-                rowKey="pk_id_paquete"
-                emptyMessage="No se encontraron paquetes con los criterios seleccionados."
-                mobileCard={(row) => (
-                    <PaqueteMobileCard
-                        paquete={row}
-                        onEdit={() => router.push(`/dashboard/paquetes/${row.pk_id_paquete}/editar`)}
-                        onDelete={() => actions.setPackageToDelete(row.pk_id_paquete)}
-                        onDeliver={() => actions.setPackageToDeliver(row)}
-                    />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredData.length === 0 ? (
+                    <div className="col-span-full py-12 flex flex-col items-center justify-center text-muted-foreground border rounded-xl border-dashed">
+                        <p>No se encontraron paquetes con los criterios seleccionados.</p>
+                    </div>
+                ) : (
+                    filteredData.map((pkg) => (
+                        <PaqueteMobileCard
+                            key={pkg.pk_id_paquete}
+                            paquete={pkg}
+                            onEdit={() => router.push(`/dashboard/paquetes/${pkg.pk_id_paquete}/editar`)}
+                            onDelete={() => actions.setPackageToDelete(pkg.pk_id_paquete)}
+                            onDeliver={() => actions.setPackageToDeliver(pkg)}
+                        />
+                    ))
                 )}
-            />
+            </div>
+
+            <PaquetesPagination currentPage={meta.page} totalPages={meta.totalPages} />
 
             <DeletePaqueteModal
                 isOpen={!!actions.packageToDelete}

@@ -2,7 +2,6 @@ import * as React from "react"
 import { Badge } from "@/shared/components/ui/badge"
 import {
     Calendar,
-    DollarSign,
     Image as ImageIcon,
     MapPin,
     Package,
@@ -10,6 +9,7 @@ import {
     User,
     ArrowRight
 } from "lucide-react"
+import { formatBoliviaDateTime } from "@/shared/lib/timezone"
 import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared"
 import { calcularPrecioFinal } from "../../lib/paquetes.utils"
 
@@ -40,10 +40,10 @@ export function PaqueteMobileCard({
             <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
                 <div className="flex items-center gap-2.5">
                     <div className="p-1.5 bg-background rounded-md shadow-sm border">
-                        <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
                     </div>
                     <span className="text-sm font-bold text-foreground tracking-wide uppercase">
-                        #{paquete.pk_id_paquete}
+                        {paquete.ubicacionAlmacen ? paquete.ubicacionAlmacen : "SIN UBICACIÓN"}
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -107,8 +107,8 @@ export function PaqueteMobileCard({
                                 </Badge>
                             )}
                         </div>
-                        <div className="flex items-center gap-0.5 text-foreground font-bold text-base shrink-0">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-1 text-foreground font-bold text-base shrink-0">
+                            <span className="text-sm text-muted-foreground font-semibold">Bs.</span>
                             {precioFinal.toFixed(2)}
                         </div>
                     </div>
@@ -126,14 +126,8 @@ export function PaqueteMobileCard({
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5" />
-                            <span>{new Date(paquete.fechaHoraRegistro).toLocaleDateString("es-ES")}</span>
+                            <span>{formatBoliviaDateTime(paquete.fechaHoraRegistro)}</span>
                         </div>
-                        {paquete.ubicacionAlmacen && (
-                            <span className="font-medium flex items-center gap-1">
-                                <Package className="h-3 w-3" />
-                                {paquete.ubicacionAlmacen}
-                            </span>
-                        )}
                     </div>
                 </div>
 
@@ -143,7 +137,7 @@ export function PaqueteMobileCard({
                         <div className="flex items-center gap-1.5">
                             <Truck className="h-4 w-4 shrink-0" />
                             <span className="font-medium">
-                                Entregado el {new Date(paquete.fechaHoraEntrega).toLocaleDateString("es-ES")}
+                                Entregado: {formatBoliviaDateTime(paquete.fechaHoraEntrega)}
                             </span>
                         </div>
                         {paquete.fotoEntregadoUrl && (

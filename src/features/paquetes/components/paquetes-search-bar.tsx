@@ -21,7 +21,11 @@ export function useDebounce<T>(value: T, delay: number): T {
     return debouncedValue;
 }
 
-export default function PaquetesSearchBar() {
+interface PaquetesSearchBarProps {
+    basePath?: string;
+}
+
+export default function PaquetesSearchBar({ basePath = "/dashboard/paquetes" }: PaquetesSearchBarProps = {}) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [query, setQuery] = React.useState(searchParams.get("q") || "");
@@ -39,8 +43,11 @@ export default function PaquetesSearchBar() {
             currentParams.delete("q");
         }
         
-        router.push(`/dashboard/paquetes?${currentParams.toString()}`);
-    }, [debouncedQuery, router, searchParams]);
+        // Ensure page resets to 1 on new search
+        currentParams.delete("page");
+        
+        router.push(`${basePath}?${currentParams.toString()}`);
+    }, [debouncedQuery, router, searchParams, basePath]);
 
     return (
         <div className="relative w-full sm:max-w-md">
