@@ -11,8 +11,8 @@ import {
 } from "@react-pdf/renderer";
 
 // ─── Dimensiones de salida ────────────────────────────────────────────────────
-// 38mm × 28mm a 203 DPI → 304pt × 224pt
-const W = 304;
+// 48mm × 28mm a 203 DPI → 384pt × 224pt
+const W = 384;
 const H = 224;
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
