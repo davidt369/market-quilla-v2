@@ -11,138 +11,97 @@ import {
 } from "@react-pdf/renderer";
 
 // ─── Dimensiones de salida ────────────────────────────────────────────────────
-// 48mm × 28mm a 203 DPI → 384pt × 224pt
-const W = 384;
-const H = 224;
+// 48mm × 28mm en PostScript points (72 DPI)
+// 48 mm = 136.06 pt
+// 28 mm = 79.37 pt
+const W = 136.06;
+const H = 79.37;
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
     page: {
         width: W,
         height: H,
-        margin: 0,
-        padding: "6 8 4 8",
         backgroundColor: "#ffffff",
-        fontFamily: "Helvetica",
-        flexDirection: "column",
     },
-
-    // ── CABECERA (UBIC + DE + LOGO) ──
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        marginBottom: 4,
+    rowContainer: {
+        flexDirection: 'row',
+        width: W,
+        height: H,
+        padding: 2.83, // ~1mm margin
     },
-    headerLeft: {
-        flex: 1,
-        flexDirection: "column",
-        gap: 2,
+    colUbic: {
+        width: 30,
+        height: 73.71,
+        position: 'relative',
+    },
+    colLogo: {
+        width: 32,
+        height: 73.71,
+        position: 'relative',
+    },
+    colDe: {
+        width: 25,
+        height: 73.71,
+        position: 'relative',
+    },
+    colPara: {
+        width: 18,
+        height: 73.71,
+        position: 'relative',
+    },
+    colDatos: {
+        width: 25.4,
+        height: 73.71,
+        position: 'relative',
     },
     ubicBox: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderWidth: 2,
-        borderColor: "#000000",
-        paddingHorizontal: 6,
-        paddingVertical: 3,
-        gap: 4,
-        alignSelf: "flex-start",
+        borderWidth: 1,
+        borderColor: '#000000',
+        paddingHorizontal: 3,
+        paddingVertical: 2,
+        alignItems: 'center',
     },
     ubicLabel: {
-        fontSize: 18,
-        fontFamily: "Helvetica-Bold",
+        fontFamily: 'Helvetica-Bold',
+        fontSize: 5,
+        color: '#000000',
+        lineHeight: 1.0,
     },
     ubicValue: {
-        fontSize: 18,
-        fontFamily: "Helvetica-Bold",
-        minWidth: 60,
-    },
-    headerDeRow: {
-        flexDirection: "row",
-        alignItems: "flex-end",
+        fontFamily: 'Helvetica-Bold',
+        color: '#000000',
+        lineHeight: 1.0,
+        marginTop: 1,
     },
     logo: {
-        width: 48,  // 6mm × 8pt/mm
-        height: 48, // 6mm × 8pt/mm
-        objectFit: "contain",
-        marginLeft: 6,
+        width: 28.35,
+        height: 28.35,
+        objectFit: 'contain',
     },
-
-    // ── CUERPO ──
-    body: {
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: 3,
+    logoPlaceholder: {
+        width: 28.35,
+        height: 28.35,
+        backgroundColor: '#e0e0e0',
+        borderWidth: 1,
+        borderColor: '#000000',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-
-    // Fila de formulario
-    empresaRow: {
-        flexDirection: "row",
-        alignItems: "flex-end",
+    logoPlaceholderText: {
+        fontFamily: 'Helvetica-Bold',
+        fontSize: 5,
+        color: '#000000',
     },
-    empresaLabel: {
-        fontSize: 16,
-        fontFamily: "Helvetica-Bold",
-        marginRight: 3,
+    textLine: {
+        color: '#000000',
+        lineHeight: 1.0,
     },
-    empresaValue: {
-        flex: 1,
-        fontSize: 16,
-        fontFamily: "Helvetica-Bold",
-        paddingLeft: 3,
+    textBold: {
+        fontFamily: 'Helvetica-Bold',
     },
-    
-    formRow: {
-        flexDirection: "row",
-        alignItems: "flex-end",
-    },
-    formLabel: {
-        fontSize: 14,
-        fontFamily: "Helvetica-Bold",
-        marginRight: 3,
-    },
-    formLabelBold: {
-        fontSize: 14,
-        fontFamily: "Helvetica-Bold",
-        marginRight: 3,
-    },
-    formValue: {
-        flex: 1,
-        fontSize: 14,
-        fontFamily: "Helvetica",
-        paddingLeft: 3,
-    },
-    formValueBold: {
-        flex: 1,
-        fontSize: 14,
-        fontFamily: "Helvetica",
-        paddingLeft: 3,
-        textAlign: "center",
-    },
-
-    // Fila compuesta (FECHA + COSTO + TIEMPO)
-    compositeRow: {
-        flexDirection: "row",
-        alignItems: "flex-end",
-    },
-    fechaValue: {
-        width: "26%",
-        fontSize: 14,
-        fontFamily: "Helvetica",
-        textAlign: "center",
-    },
-    costoValue: {
-        flex: 1,
-        fontSize: 14,
-        fontFamily: "Helvetica",
-        textAlign: "center",
-    },
-    tiempoText: {
-        fontSize: 14,
-        fontFamily: "Helvetica",
-        marginLeft: 4,
+    textNormal: {
+        fontFamily: 'Helvetica',
     },
 });
 
@@ -197,6 +156,34 @@ async function getPngDataUrl(url: string): Promise<string> {
     });
 }
 
+// ─── Utilidad: Ajustar dinámicamente el tamaño de fuente ──────────────────────
+const getDynamicFontSize = (text: string, maxLength: number, defaultSize: number = 5.5, minSize: number = 4): number => {
+    if (!text) return defaultSize;
+    if (text.length > maxLength) {
+        const calculated = defaultSize * (maxLength / text.length);
+        return Math.max(calculated, minSize);
+    }
+    return defaultSize;
+};
+
+const getRotatedStyle = (colWidth: number) => ({
+    position: 'absolute' as const,
+    width: 73.71,
+    height: colWidth,
+    left: (colWidth - 73.71) / 2,
+    top: (73.71 - colWidth) / 2,
+    transform: 'rotate(-90deg)',
+    transformOrigin: 'center center',
+    flexDirection: 'column' as const,
+    justifyContent: 'center' as const,
+});
+
+const getRotatedTextStyle = (colWidth: number) => ({
+    ...getRotatedStyle(colWidth),
+    paddingLeft: 3,
+    paddingRight: 3,
+});
+
 // ─── Componente del documento PDF ─────────────────────────────────────────────
 interface ReceiptDocProps {
     ubicacion: string;
@@ -217,76 +204,104 @@ const ReceiptDoc = ({
     ubicacion, remitenteNombre, remitenteCel, remitenteEmpresa,
     destNombre, destCel, fecha, costoDisplay, tiempoDisplay,
     estadoPago, tipo, logoUrl,
-}: ReceiptDocProps) => (
-    <Document>
-        <Page size={[W, H]} style={s.page}>
-            {/* ── CABECERA (UBIC + LOGO) ── */}
-            <View style={s.header}>
-                <View style={s.ubicBox}>
-                    <Text style={s.ubicLabel}>UBIC:</Text>
-                    <Text style={s.ubicValue}>{ubicacion}</Text>
-                </View>
-                {logoUrl ? <Image style={s.logo} src={logoUrl} /> : null}
-            </View>
+}: ReceiptDocProps) => {
+    const ubicTextSize = getDynamicFontSize(ubicacion || "S/2/115/", 9, 14, 8);
+    const deNameSize = getDynamicFontSize(remitenteNombre, 15, 4.8, 3.8);
+    const deEmpresaSize = getDynamicFontSize(remitenteEmpresa, 18, 4.8, 3.8);
+    const deCelSize = getDynamicFontSize(remitenteCel, 12, 4.8, 3.8);
 
-            {/* ── CUERPO ── */}
-            <View style={s.body}>
-                {/* DE */}
-                <View style={s.formRow}>
-                    <Text style={s.formLabel}>DE:</Text>
-                    <Text style={s.formValue}>{remitenteNombre}</Text>
-                </View>
+    const paraNameSize = getDynamicFontSize(destNombre, 15, 4.8, 3.8);
+    const paraCelSize = getDynamicFontSize(destCel, 12, 4.8, 3.8);
 
-                {/* EMPRESA */}
-                <View style={s.empresaRow}>
-                    <Text style={s.empresaLabel}>EMPRESA:</Text>
-                    <Text style={s.empresaValue}>{remitenteEmpresa}</Text>
-                </View>
+    const tipoSize = getDynamicFontSize(tipo, 12, 4.8, 3.8);
 
-                {/* CI/CEL remitente */}
-                <View style={s.formRow}>
-                    <Text style={s.formLabel}>CI/CEL:</Text>
-                    <Text style={s.formValue}>{remitenteCel}</Text>
-                </View>
+    return (
+        <Document>
+            <Page size={[W, H]} style={s.page}>
+                <View style={s.rowContainer}>
+                    {/* Primera columna: UBIC */}
+                    <View style={s.colUbic}>
+                        <View style={[getRotatedStyle(30), { alignItems: 'center' }]}>
+                            <View style={s.ubicBox}>
+                                <Text style={s.ubicLabel}>UBIC:</Text>
+                                <Text style={[s.ubicValue, { fontSize: ubicTextSize }]}>
+                                    {ubicacion || "S/2/115/"}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
 
-                {/* PARA */}
-                <View style={s.formRow}>
-                    <Text style={s.formLabelBold}>PARA:</Text>
-                    <Text style={s.formValue}>{destNombre}</Text>
-                </View>
+                    {/* Segunda columna: LOGO */}
+                    <View style={s.colLogo}>
+                        <View style={[getRotatedStyle(32), { alignItems: 'center' }]}>
+                            {logoUrl ? (
+                                <Image style={s.logo} src={logoUrl} />
+                            ) : (
+                                <View style={s.logoPlaceholder}>
+                                    <Text style={s.logoPlaceholderText}>LOGO</Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
 
-                {/* CI/CEL destinatario */}
-                <View style={s.formRow}>
-                    <Text style={s.formLabel}>CI/CEL:</Text>
-                    <Text style={s.formValue}>{destCel}</Text>
-                </View>
+                    {/* Tercera columna: DE */}
+                    <View style={s.colDe}>
+                        <View style={getRotatedTextStyle(25)}>
+                            <Text style={[s.textLine, { fontSize: deNameSize }]}>
+                                <Text style={s.textBold}>DE: </Text>
+                                <Text style={s.textNormal}>{remitenteNombre}</Text>
+                            </Text>
+                            {remitenteEmpresa ? (
+                                <Text style={[s.textLine, { fontSize: deEmpresaSize, marginTop: 1 }]}>
+                                    <Text style={s.textBold}>EMPRESA: </Text>
+                                    <Text style={s.textNormal}>{remitenteEmpresa}</Text>
+                                </Text>
+                            ) : null}
+                            <Text style={[s.textLine, { fontSize: deCelSize, marginTop: 1 }]}>
+                                <Text style={s.textBold}>CI/CEL: </Text>
+                                <Text style={s.textNormal}>{remitenteCel}</Text>
+                            </Text>
+                        </View>
+                    </View>
 
-                {/* FECHA | COSTO | TIEMPO */}
-                <View style={s.compositeRow}>
-                    <Text style={s.formLabel}>FECHA:</Text>
-                    <Text style={s.fechaValue}>{fecha}</Text>
-                    <Text style={[s.formLabel, { marginLeft: 6 }]}>COSTO:</Text>
-                    <Text style={s.costoValue}>{costoDisplay}</Text>
-                    {tiempoDisplay ? (
-                        <Text style={s.tiempoText}>{tiempoDisplay}</Text>
-                    ) : null}
-                </View>
+                    {/* Cuarta columna: PARA */}
+                    <View style={s.colPara}>
+                        <View style={getRotatedTextStyle(18)}>
+                            <Text style={[s.textLine, { fontSize: paraNameSize }]}>
+                                <Text style={s.textBold}>PARA: </Text>
+                                <Text style={s.textNormal}>{destNombre}</Text>
+                            </Text>
+                            <Text style={[s.textLine, { fontSize: paraCelSize, marginTop: 1 }]}>
+                                <Text style={s.textBold}>CI/CEL: </Text>
+                                <Text style={s.textNormal}>{destCel}</Text>
+                            </Text>
+                        </View>
+                    </View>
 
-                {/* PAGO */}
-                {/* <View style={s.formRow}>
-                    <Text style={s.formLabel}>PAGO:</Text>
-                    <Text style={s.formValue}>{estadoPago}</Text>
-                </View> */}
-
-                {/* TIPO DE PAQUETE */}
-                <View style={s.formRow}>
-                    <Text style={s.formLabel}>TIPO DE PAQUETE:</Text>
-                    <Text style={s.formValue}>{tipo}</Text>
+                    {/* Quinta columna: DATOS */}
+                    <View style={s.colDatos}>
+                        <View style={getRotatedTextStyle(25.4)}>
+                            <Text style={[s.textLine, s.textNormal, { fontSize: 4.5 }]}>
+                                <Text style={s.textBold}>FECHA: </Text>{fecha}
+                            </Text>
+                            <Text style={[s.textLine, s.textNormal, { fontSize: 4.5, marginTop: 1 }]}>
+                                <Text style={s.textBold}>COSTO: </Text>{costoDisplay}
+                            </Text>
+                            {tiempoDisplay ? (
+                                <Text style={[s.textLine, s.textNormal, { fontSize: 4.5, marginTop: 1 }]}>
+                                    {tiempoDisplay}
+                                </Text>
+                            ) : null}
+                            <Text style={[s.textLine, s.textNormal, { fontSize: tipoSize, marginTop: 1 }]}>
+                                <Text style={s.textBold}>TIPO: </Text>{tipo}
+                            </Text>
+                        </View>
+                    </View>
                 </View>
-            </View>
-        </Page>
-    </Document>
-);
+            </Page>
+        </Document>
+    );
+};
 
 // ─── Función principal: genera y comparte/abre el PDF ─────────────────────────
 export async function generateAndOpenReceiptPdf(pkg: any) {
@@ -301,14 +316,22 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
     const precioBase = pkg?.precioBase;
     const precioOferta = pkg?.precioOferta;
     const diasOferta = pkg?.diasOferta;
+    const estadoPago = String(pkg?.estadoPago || "Pagado").toUpperCase();
 
-    let costoDisplay = "";
+    let costoDisplay = "Bs. 0.00";
     let tiempoDisplay = "";
-    
-    if (precioOferta != null && diasOferta != null && diasOferta > 0) {
+
+    if (precioOferta != null && diasOferta != null && diasOferta > 0 && estadoPago === "PAGADO") {
         costoDisplay = `Bs. ${Number(precioOferta).toFixed(2)}`;
-        tiempoDisplay = `${diasOferta} SEMANA`;
-    } else if (precioBase != null && precioBase > 0) {
+
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + diasOferta);
+        const expStr = expDate.toLocaleDateString("es-BO", {
+            day: "numeric", month: "numeric", year: "2-digit"
+        });
+
+        tiempoDisplay = `VENCE: ${expStr}`;
+    } else if (precioBase != null) {
         costoDisplay = `Bs. ${Number(precioBase).toFixed(2)}`;
     }
 
@@ -316,7 +339,6 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
         day: "numeric", month: "numeric", year: "numeric",
     });
     const tipo = String(pkg?.tipoPaquete || pkg?.tipo || "").toUpperCase();
-    const estadoPago = String(pkg?.estadoPago || "Pagado").toUpperCase();
 
     // El PDF no soporta webp, así que convertimos el logo a PNG en memoria
     const webpUrl = `${window.location.origin}/market-quilla-600px.webp`;
@@ -382,7 +404,7 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
                     } catch (e) {
                         console.error("Print failed:", e);
                     }
-                    
+
                     // Limpieza opcional después de un tiempo prudente
                     setTimeout(() => {
                         if (document.body.contains(iframe)) {
