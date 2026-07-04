@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useAuthStore } from "@/shared/store/useAuthStore";
+import { PERMISSIONS } from "@/shared/config/permisos.constants";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { entregarPaqueteAction, deletePaqueteAction } from "@/features/paquetes/actions/paquetes.actions";
@@ -26,6 +28,11 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isDeleting, setIsDeleting] = React.useState(false);
 
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
+
+    const hasPermission = useAuthStore((s) => s.hasPermission);
+    const canEdit = hasPermission(PERMISSIONS.EDITAR_PAQUETE);
+    const canDelete = hasPermission(PERMISSIONS.ELIMINAR_PAQUETE);
+    const canDeliver = hasPermission(PERMISSIONS.ENTREGAR_PAQUETE);
 
     const handlePrint = async () => {
         setIsPrinting(true);
@@ -92,9 +99,9 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
         <>
             <PaqueteMobileCard
                 paquete={pkg}
-                onEdit={() => router.push(`/dashboard/paquetes/${pkg.pk_id_paquete}/editar`)}
-                onDelete={() => setIsDeleteOpen(true)}
-                onDeliver={() => setIsOpen(true)}
+                onEdit={canEdit ? () => router.push(`/dashboard/paquetes/${pkg.pk_id_paquete}/editar`) : undefined}
+                onDelete={canDelete ? () => setIsDeleteOpen(true) : undefined}
+                onDeliver={canDeliver ? () => setIsOpen(true) : undefined}
                 onPrint={handlePrint}
             />
 

@@ -7,7 +7,8 @@ import {
     Package,
     Truck,
     User,
-    ArrowRight
+    ArrowRight,
+    Printer
 } from "lucide-react"
 import { formatBoliviaDateTime } from "@/shared/lib/timezone"
 import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared"
@@ -41,20 +42,29 @@ export function PaqueteMobileCard({
     return (
         <div className="group relative rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] overflow-hidden isolate flex flex-col">
             {/* Header: Identificador y Acciones */}
-            <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center px-2 py-1 bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 rounded-md shadow-sm font-mono text-sm font-black tracking-widest cursor-default" title="ID del Paquete">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 bg-muted/40 border-b">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="flex items-center px-2 py-1 bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 rounded-md shadow-sm font-mono text-sm font-black tracking-widest cursor-default shrink-0" title="ID del Paquete">
                         #{paquete.pk_id_paquete}
                     </div>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-md shadow-sm border border-dashed cursor-default" title="Ubicación en el almacén">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-md shadow-sm border border-dashed cursor-default min-w-0" title="Ubicación en el almacén">
                         <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-xs font-bold text-foreground tracking-wide uppercase">
+                        <span className="text-xs font-bold text-foreground tracking-wide uppercase truncate block">
                             {paquete.ubicacionAlmacen ? paquete.ubicacionAlmacen : "SIN UBICACIÓN"}
                         </span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     <EstadoBadge estado={paquete.estadoPaquete} />
+                    {onPrint && (
+                        <button
+                            onClick={onPrint}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                            title="Imprimir Ticket"
+                        >
+                            <Printer className="h-4 w-4" />
+                        </button>
+                    )}
                     <ActionsMenu
                         estadoPaquete={paquete.estadoPaquete}
                         onEdit={onEdit}

@@ -10,6 +10,8 @@ import { DeletePaqueteModal } from "./modals/delete-paquete-modal";
 
 
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/shared/store/useAuthStore";
+import { PERMISSIONS } from "@/shared/config/permisos.constants";
 import ModalEntregaPaquete from "@/features/paquetes/components/modal-entrega-paquete";
 import PaquetesSearchBar from "../paquetes-search-bar";
 import { PaquetesPagination } from "./paquetes-pagination";
@@ -26,6 +28,11 @@ type PaquetesListClientProps = {
 export function PaquetesListClient({ data, meta }: PaquetesListClientProps) {
     const router = useRouter();
     const actions = usePaquetesActions();
+
+    const hasPermission = useAuthStore((s) => s.hasPermission);
+    const canEdit = hasPermission(PERMISSIONS.EDITAR_PAQUETE);
+    const canDelete = hasPermission(PERMISSIONS.ELIMINAR_PAQUETE);
+    const canDeliver = hasPermission(PERMISSIONS.ENTREGAR_PAQUETE);
 
     // Si hay un estado de paquete desde los searchParams u otro componente, aquí lo usamos.
     // Por ahora renderizamos la data que viene del servidor (paginada).
@@ -58,9 +65,9 @@ export function PaquetesListClient({ data, meta }: PaquetesListClientProps) {
                         <PaqueteMobileCard
                             key={pkg.pk_id_paquete}
                             paquete={pkg}
-                            onEdit={() => router.push(`/dashboard/paquetes/${pkg.pk_id_paquete}/editar`)}
-                            onDelete={() => actions.setPackageToDelete(pkg.pk_id_paquete)}
-                            onDeliver={() => actions.setPackageToDeliver(pkg)}
+                            onEdit={canEdit ? () => router.push(`/dashboard/paquetes/${pkg.pk_id_paquete}/editar`) : undefined}
+                            onDelete={canDelete ? () => actions.setPackageToDelete(pkg.pk_id_paquete) : undefined}
+                            onDeliver={canDeliver ? () => actions.setPackageToDeliver(pkg) : undefined}
                         />
                     ))
                 )}
