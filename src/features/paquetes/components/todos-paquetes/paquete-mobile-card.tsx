@@ -7,7 +7,8 @@ import {
     Package,
     Truck,
     User,
-    ArrowRight
+    ArrowRight,
+    Printer
 } from "lucide-react"
 import { formatBoliviaDateTime } from "@/shared/lib/timezone"
 import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared"
@@ -53,6 +54,15 @@ export function PaqueteMobileCard({
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    {onPrint && (
+                        <button
+                            onClick={onPrint}
+                            className="p-1.5 text-zinc-600 hover:text-zinc-900 bg-white hover:bg-zinc-100 border border-zinc-200 shadow-sm rounded-md transition-all dark:text-zinc-400 dark:hover:text-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border-zinc-800 active:scale-95"
+                            title="Imprimir Ticket"
+                        >
+                            <Printer className="w-4 h-4" />
+                        </button>
+                    )}
                     <EstadoBadge estado={paquete.estadoPaquete} />
                     <ActionsMenu
                         estadoPaquete={paquete.estadoPaquete}

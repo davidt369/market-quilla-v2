@@ -73,7 +73,7 @@ export function ActionsMenu({
             <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuGroup>
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    {/* <DropdownMenuSeparator />
                     
                     {onPrint && (
                         <DropdownMenuItem onClick={onPrint}>
@@ -93,8 +93,8 @@ export function ActionsMenu({
                             <Truck className="mr-2 h-4 w-4" />
                             Entregar
                         </DropdownMenuItem>
-                    )}
-                    
+                    )} */}
+
                     {onDelete && (
                         <>
                             <DropdownMenuSeparator />
