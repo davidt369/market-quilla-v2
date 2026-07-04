@@ -11,147 +11,141 @@ import {
 } from "@react-pdf/renderer";
 
 // ─── Dimensiones de salida ────────────────────────────────────────────────────
-//
-//  RawBT imprime imágenes mapeando 1px de la imagen → 1 punto térmico.
-//  Para una impresora de 203 DPI y papel de 49mm × 29mm:
-//    Ancho = 49mm × 8 puntos/mm = 392 px
-//    Alto  = 29mm × 8 puntos/mm = 232 px
-//
-//  @react-pdf/renderer usa puntos (pt). RawBT renderiza el PDF a 1pt → 1px,
-//  por lo tanto debemos usar 392pt × 232pt como tamaño de página.
-//
-// const W = 392;   // puntos → RawBT los trata como 392 px
-// const H = 232;   // puntos → RawBT los trata como 232 px
-const W = 304; // 38 mm
-const H = 224; // 28 mm
-// ─── Estilos (escalados a 304×224pt) ─────────────────────────────────────────
+// 48mm × 28mm a 203 DPI → 384pt × 224pt
+const W = 384;
+const H = 224;
+
+// ─── Estilos ──────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
     page: {
         width: W,
         height: H,
         margin: 0,
-        padding: 4,
+        padding: "8 10 6 10",
         backgroundColor: "#ffffff",
         fontFamily: "Helvetica",
         flexDirection: "column",
     },
 
-    // CABECERA
+    // ── CABECERA (UBIC + DE + LOGO) ──
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
-        borderBottomWidth: 2,
-        borderBottomColor: "#000000",
-        paddingBottom: 2,
-        marginBottom: 2,
+        alignItems: "flex-start",
+        marginBottom: 4,
     },
     headerLeft: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-        overflow: "hidden",
         flex: 1,
+        flexDirection: "column",
+        gap: 2,
     },
     ubicBox: {
+        flexDirection: "row",
+        alignItems: "center",
         borderWidth: 2,
         borderColor: "#000000",
-        paddingHorizontal: 4,
-        paddingVertical: 1,
-        borderRadius: 2,
+        paddingHorizontal: 6,
+        paddingVertical: 3,
+        gap: 4,
+        alignSelf: "flex-start",
     },
-    ubicText: {
-        fontSize: 18,
+    ubicLabel: {
+        fontSize: 14,
         fontFamily: "Helvetica-Bold",
     },
-    costoText: {
-        fontSize: 13,
+    ubicValue: {
+        fontSize: 14,
         fontFamily: "Helvetica-Bold",
-        marginLeft: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: "#000000",
+        borderBottomStyle: "dashed",
+        paddingBottom: 1,
+        minWidth: 80,
+    },
+    headerDeRow: {
+        flexDirection: "row",
+        alignItems: "flex-end",
     },
     logo: {
-        width: 42,
-        height: 32,
+        width: 40,  // 5mm × 8pt/mm
+        height: 40, // 5mm × 8pt/mm
         objectFit: "contain",
-        marginLeft: 4,
+        marginLeft: 6,
     },
 
-    // CUERPO
+    // ── CUERPO ──
     body: {
         flex: 1,
         flexDirection: "column",
-        justifyContent: "center",
-        gap: 2,
+        justifyContent: "space-between",
     },
-    grid: {
-        flexDirection: "column",
-        gap: 0,
-    },
-    row: {
+
+    // Fila de formulario
+    formRow: {
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: "flex-end",
     },
-    label: {
-        width: 34,
+    formLabel: {
+        fontSize: 11,
+        fontFamily: "Helvetica",
+        marginRight: 3,
+    },
+    formLabelBold: {
         fontSize: 11,
         fontFamily: "Helvetica-Bold",
-        color: "#333333",
+        marginRight: 3,
     },
-    labelDest: {
-        width: 34,
-        fontSize: 12,
-        fontFamily: "Helvetica-Bold",
-        color: "#000000",
-    },
-    value: {
+    formValue: {
         flex: 1,
         fontSize: 11,
         fontFamily: "Helvetica",
-        textTransform: "uppercase",
+        borderBottomWidth: 1,
+        borderBottomColor: "#000000",
+        paddingLeft: 3,
+        paddingBottom: 1,
     },
-    valueDest: {
+    formValueBold: {
         flex: 1,
-        fontSize: 13,
+        fontSize: 11,
         fontFamily: "Helvetica-Bold",
-        textTransform: "uppercase",
-    },
-    divider: {
-        borderTopWidth: 1,
-        borderTopStyle: "dashed",
-        borderTopColor: "#888888",
-        marginVertical: 2,
+        borderBottomWidth: 1,
+        borderBottomColor: "#000000",
+        paddingLeft: 3,
+        paddingBottom: 1,
+        textAlign: "center",
     },
 
-    // PIE
-    footer: {
+    // Fila compuesta (FECHA + COSTO + TIEMPO)
+    compositeRow: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "flex-end",
-        borderTopWidth: 2,
-        borderTopColor: "#000000",
-        paddingTop: 2,
-        marginTop: "auto",
     },
-    footerDate: {
-        fontSize: 10,
+    fechaValue: {
+        width: "22%",
+        fontSize: 11,
+        fontFamily: "Helvetica",
+        borderBottomWidth: 1,
+        borderBottomColor: "#000000",
+        paddingBottom: 1,
+        textAlign: "center",
+    },
+    costoValue: {
+        flex: 1,
+        fontSize: 11,
         fontFamily: "Helvetica-Bold",
+        borderBottomWidth: 1,
+        borderBottomColor: "#000000",
+        paddingBottom: 1,
+        textAlign: "center",
     },
-    tipoBadge: {
-        borderWidth: 1,
-        borderColor: "#000000",
-        paddingHorizontal: 4,
-        paddingVertical: 1,
-        borderRadius: 2,
-    },
-    tipoText: {
-        fontSize: 10,
+    tiempoText: {
+        fontSize: 11,
         fontFamily: "Helvetica-Bold",
-        textTransform: "uppercase",
+        marginLeft: 4,
     },
 });
 
 // ─── Utilidad: Convierte WebP a JPEG Base64 para el PDF ────────────────────────
-// (Usamos fondo blanco para evitar que las transparencias salgan negras en la impresora térmica)
 async function getPngDataUrl(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
@@ -205,85 +199,89 @@ async function getPngDataUrl(url: string): Promise<string> {
 // ─── Componente del documento PDF ─────────────────────────────────────────────
 interface ReceiptDocProps {
     ubicacion: string;
-    costo: string;
     remitenteNombre: string;
     remitenteCel: string;
     remitenteEmpresa: string;
     destNombre: string;
     destCel: string;
-    destEmpresa: string;
     fecha: string;
+    costoDisplay: string;
+    tiempoDisplay: string;
+    estadoPago: string;
     tipo: string;
     logoUrl: string;
 }
 
 const ReceiptDoc = ({
-    ubicacion, costo, remitenteNombre, remitenteCel, remitenteEmpresa,
-    destNombre, destCel, destEmpresa, fecha, tipo, logoUrl,
+    ubicacion, remitenteNombre, remitenteCel, remitenteEmpresa,
+    destNombre, destCel, fecha, costoDisplay, tiempoDisplay,
+    estadoPago, tipo, logoUrl,
 }: ReceiptDocProps) => (
     <Document>
-        {/*
-          * size=[320, 240]pt → RawBT lo renderiza a 320×240px
-          * = exactamente 40mm × 30mm a 203 DPI → impresión perfecta 1:1
-          */}
         <Page size={[W, H]} style={s.page}>
-            {/* CABECERA */}
+            {/* ── CABECERA (UBIC + DE + LOGO) ── */}
             <View style={s.header}>
                 <View style={s.headerLeft}>
                     <View style={s.ubicBox}>
-                        <Text style={s.ubicText}>{ubicacion || "N/A"}</Text>
+                        <Text style={s.ubicLabel}>UBIC:</Text>
+                        <Text style={s.ubicValue}>{ubicacion}</Text>
                     </View>
-                    {costo ? <Text style={s.costoText}>{costo}</Text> : null}
+                    <View style={s.headerDeRow}>
+                        <Text style={s.formLabel}>DE:</Text>
+                        <Text style={s.formValue}>{remitenteNombre}</Text>
+                    </View>
                 </View>
-                <Image style={s.logo} src={logoUrl} />
+                {logoUrl ? <Image style={s.logo} src={logoUrl} /> : null}
             </View>
 
-            {/* CUERPO */}
+            {/* ── CUERPO ── */}
             <View style={s.body}>
-                {/* Remitente */}
-                <View style={s.grid}>
-                    <View style={s.row}>
-                        <Text style={s.label}>DE:</Text>
-                        <Text style={s.value}>{remitenteNombre}</Text>
-                    </View>
-                    {remitenteEmpresa ? (
-                        <View style={s.row}>
-                            <Text style={s.label}>EMP:</Text>
-                            <Text style={s.value}>{remitenteEmpresa}</Text>
-                        </View>
-                    ) : null}
-                    <View style={s.row}>
-                        <Text style={s.label}>CEL:</Text>
-                        <Text style={s.value}>{remitenteCel}</Text>
-                    </View>
+
+                {/* EMPRESA */}
+                <View style={s.formRow}>
+                    <Text style={s.formLabel}>EMPRESA:</Text>
+                    <Text style={s.formValue}>{remitenteEmpresa}</Text>
                 </View>
 
-                <View style={s.divider} />
-
-                {/* Destinatario */}
-                <View style={s.grid}>
-                    <View style={s.row}>
-                        <Text style={s.labelDest}>PARA:</Text>
-                        <Text style={s.valueDest}>{destNombre}</Text>
-                    </View>
-                    {destEmpresa ? (
-                        <View style={s.row}>
-                            <Text style={s.labelDest}>EMP:</Text>
-                            <Text style={s.value}>{destEmpresa}</Text>
-                        </View>
-                    ) : null}
-                    <View style={s.row}>
-                        <Text style={s.labelDest}>CEL:</Text>
-                        <Text style={s.value}>{destCel}</Text>
-                    </View>
+                {/* CI/CEL remitente */}
+                <View style={s.formRow}>
+                    <Text style={s.formLabel}>CI/CEL:</Text>
+                    <Text style={s.formValue}>{remitenteCel}</Text>
                 </View>
-            </View>
 
-            {/* PIE */}
-            <View style={s.footer}>
-                <Text style={s.footerDate}>{fecha}</Text>
-                <View style={s.tipoBadge}>
-                    <Text style={s.tipoText}>{tipo}</Text>
+                {/* PARA */}
+                <View style={s.formRow}>
+                    <Text style={s.formLabelBold}>PARA:</Text>
+                    <Text style={s.formValue}>{destNombre}</Text>
+                </View>
+
+                {/* CI/CEL destinatario */}
+                <View style={s.formRow}>
+                    <Text style={s.formLabel}>CI/CEL:</Text>
+                    <Text style={s.formValue}>{destCel}</Text>
+                </View>
+
+                {/* FECHA | COSTO | TIEMPO */}
+                <View style={s.compositeRow}>
+                    <Text style={s.formLabel}>FECHA:</Text>
+                    <Text style={s.fechaValue}>{fecha}</Text>
+                    <Text style={[s.formLabel, { marginLeft: 6 }]}>COSTO:</Text>
+                    <Text style={s.costoValue}>{costoDisplay}</Text>
+                    {tiempoDisplay ? (
+                        <Text style={s.tiempoText}>{tiempoDisplay}</Text>
+                    ) : null}
+                </View>
+
+                {/* PAGO */}
+                <View style={s.formRow}>
+                    <Text style={s.formLabel}>PAGO:</Text>
+                    <Text style={s.formValue}>{estadoPago}</Text>
+                </View>
+
+                {/* TIPO DE PAQUETE */}
+                <View style={s.formRow}>
+                    <Text style={s.formLabel}>TIPO DE PAQUETE:</Text>
+                    <Text style={s.formValue}>{tipo}</Text>
                 </View>
             </View>
         </Page>
@@ -298,12 +296,26 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
     const remitenteEmpresa = pkg?.remitente?.empresa || "";
     const destNombre = pkg?.destinatario?.nombre_completo || "";
     const destCel = pkg?.destinatario?.ci_o_cel || pkg?.destinatario?.celular || "";
-    const destEmpresa = pkg?.destinatario?.empresa || "";
-    const costo = pkg?.precioBase != null ? `Bs.${Number(pkg.precioBase).toFixed(2)}` : "";
+
+    // Lógica de precio / oferta
+    const precioBase = pkg?.precioBase;
+    const precioOferta = pkg?.precioOferta;
+    const diasOferta = pkg?.diasOferta;
+
+    let costoDisplay = "";
+    let tiempoDisplay = "";
+    if ((!precioBase || precioBase === 0) && precioOferta != null && diasOferta != null) {
+        costoDisplay = `Bs. ${Number(precioOferta).toFixed(2)}`;
+        tiempoDisplay = `${diasOferta} SEMANA`;
+    } else if (precioBase != null && precioBase > 0) {
+        costoDisplay = `Bs. ${Number(precioBase).toFixed(2)}`;
+    }
+
     const fecha = new Date().toLocaleDateString("es-BO", {
-        day: "2-digit", month: "2-digit", year: "2-digit",
+        day: "numeric", month: "numeric", year: "numeric",
     });
-    const tipo = pkg?.tipoPaquete || pkg?.tipo || "PAQUETE";
+    const tipo = pkg?.tipoPaquete || pkg?.tipo || "";
+    const estadoPago = pkg?.estadoPago || "Pagado";
 
     // El PDF no soporta webp, así que convertimos el logo a PNG en memoria
     const webpUrl = `${window.location.origin}/market-quilla-600px.webp`;
@@ -317,14 +329,15 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
     const blob = await pdf(
         <ReceiptDoc
             ubicacion={ubicacion}
-            costo={costo}
             remitenteNombre={remitenteNombre}
             remitenteCel={remitenteCel}
             remitenteEmpresa={remitenteEmpresa}
             destNombre={destNombre}
             destCel={destCel}
-            destEmpresa={destEmpresa}
             fecha={fecha}
+            costoDisplay={costoDisplay}
+            tiempoDisplay={tiempoDisplay}
+            estadoPago={estadoPago}
             tipo={tipo}
             logoUrl={logoUrl}
         />
@@ -333,15 +346,6 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
     const pdfFile = new File([blob], "ticket.pdf", { type: "application/pdf" });
 
     // ── Estrategia de apertura (orden de prioridad) ──────────────────────────
-    //
-    // 1. Web Share API + archivo → panel de compartir de Android.
-    //    En PWA standalone es la única forma de salir de la app.
-    //    Al compartir a RawBT, el PDF llega con 320×240pt → RawBT lo
-    //    renderiza a 320×240px → impresión perfecta en 40mm×30mm a 203 DPI.
-    //
-    // 2. Anchor target="_blank" → abre el visor de PDF del navegador.
-    //    Para navegador de escritorio o móvil sin modo standalone.
-
     const canShareFile =
         typeof navigator.share === "function" &&
         typeof navigator.canShare === "function" &&
@@ -360,8 +364,6 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
         const url = URL.createObjectURL(blob);
         
         if (!isMobile) {
-            // Chrome bloquea el acceso al iframe oculto por seguridad (Cross-Origin Frame) 
-            // al usar blobs. La forma segura y nativa es abrir el visor en una pestaña/ventana emergente.
             const a = document.createElement("a");
             a.href = url;
             a.target = "_blank";
@@ -370,7 +372,6 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
             a.click();
             document.body.removeChild(a);
         } else {
-            // Móvil (sin soporte de share): forzamos descarga manual
             const a = document.createElement("a");
             a.href = url;
             a.download = "ticket_market_quilla.pdf";
@@ -384,3 +385,4 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
     }
 }
+
