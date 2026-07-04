@@ -51,7 +51,9 @@ export const entregarPaquete = auditable(async (
         const { precioFinal, recargoAplicado, semanasPasadas, saldoPendiente } = calcularPrecioFinal(
             paquete.precioBase,
             paquete.fechaHoraRegistro,
-            paquete.estadoPago
+            paquete.estadoPago,
+            paquete.precioOferta,
+            paquete.diasOferta
         );
 
         // 2. Si hay saldo pendiente (ya sea porque no pagó nada, o por la multa de demora)

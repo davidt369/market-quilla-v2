@@ -150,11 +150,13 @@ export const paqueteCompletoFormSchema = z.object({
     ]),
 
     precioBase: z.coerce
-        .number()
-        .finite("El precio debe ser un número válido")
+        .number("El precio debe ser un número válido")
         .min(0, "El precio no puede ser negativo")
         .max(10000, "Precio demasiado alto")
         .default(3.00),
+
+    precioOferta: z.coerce.number().min(0).optional(),
+    diasOferta: z.coerce.number().int().min(0).optional(),
 
     metodoPago: z.enum(["efectivo", "qr"]).optional(),
 });

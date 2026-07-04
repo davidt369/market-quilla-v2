@@ -146,6 +146,8 @@ export const createPaqueteCompletoTransaction = auditable(async (tx, data: Paque
                 estadoPago: data.momentoPago === "al_registrar" ? "pagado" : "pendiente",
                 momentoPago: data.momentoPago as "al_registrar" | "al_entregar",
                 precioBase: data.precioBase?.toString() || "3.00",
+                precioOferta: data.precioOferta?.toString(),
+                diasOferta: data.diasOferta,
             }).returning();
 
             // 4.5. Si era AUTO, actualizamos la ubicación con su propio ID numérico
@@ -164,6 +166,10 @@ export const createPaqueteCompletoTransaction = auditable(async (tx, data: Paque
                     throw new Error("Se requiere especificar un método de pago al registrar un paquete pagado al instante.");
                 }
 
+                const montoCobrado = (data.diasOferta && data.diasOferta > 0 && data.precioOferta != null) 
+                    ? data.precioOferta.toString() 
+                    : (data.precioBase?.toString() || "3.00");
+
                 // Registrar movimiento en caja
                 await tx.insert(tbcajaMovimientos).values({
                     fk_id_cajaTurno: turnoActivo.pk_id_cajaTurno,
@@ -171,7 +177,7 @@ export const createPaqueteCompletoTransaction = auditable(async (tx, data: Paque
                     fk_id_paquete: paquete.pk_id_paquete,
                     tipoMovimiento: "ingreso",
                     metodoPago: data.metodoPago,
-                    monto: data.precioBase?.toString() || "3.00",
+                    monto: montoCobrado,
                     descripcion: `Cobro por registro de paquete TRK-${paquete.pk_id_paquete.toString().padStart(4, "0")}`,
                 });
             }

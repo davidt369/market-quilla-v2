@@ -136,6 +136,8 @@ export const tbpaquetes = pgTable(
     precioBase: numeric("precio_base", { precision: 10, scale: 2 })
       .default("3")
       .notNull(),
+    precioOferta: numeric("precio_oferta", { precision: 10, scale: 2 }),
+    diasOferta: integer("dias_oferta"),
 
     fechaHoraRegistro: timestamp("fecha_hora_registro", { withTimezone: true })
       .defaultNow()

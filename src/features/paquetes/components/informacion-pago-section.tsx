@@ -110,6 +110,78 @@ export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolea
                     </div>
                 )}
             />
+
+            <div className="flex flex-col sm:flex-row gap-4 border-t border-border/40 pt-5 mt-5">
+                <Controller
+                    name="precioOferta"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                        <div className="flex-1 space-y-2">
+                            <FieldLabel htmlFor={field.name} className="block">
+                                Precio Oferta (Opcional)
+                            </FieldLabel>
+                            <div className="relative w-full">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground pointer-events-none select-none">
+                                    Bs.
+                                </span>
+                                <Input
+                                    {...field}
+                                    value={field.value ?? ""}
+                                    id={field.name}
+                                    type="number"
+                                    inputMode="decimal"
+                                    step="0.10"
+                                    min="0"
+                                    placeholder="Ej. 2.00"
+                                    className={`pl-10 pr-3 w-full text-right font-semibold tabular-nums text-base sm:text-sm h-11 sm:h-10 ${isPagado ? "bg-muted cursor-not-allowed" : ""}`}
+                                    aria-invalid={fieldState.invalid}
+                                    disabled={isPagado}
+                                />
+                            </div>
+                            {fieldState.invalid ? (
+                                <span className="text-xs text-destructive">
+                                    {fieldState.error?.message}
+                                </span>
+                            ) : null}
+                        </div>
+                    )}
+                />
+
+                <Controller
+                    name="diasOferta"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                        <div className="flex-1 space-y-2">
+                            <FieldLabel htmlFor={field.name} className="block">
+                                Días de Oferta (Opcional)
+                            </FieldLabel>
+                            <div className="relative w-full">
+                                <Input
+                                    {...field}
+                                    value={field.value ?? ""}
+                                    id={field.name}
+                                    type="number"
+                                    inputMode="numeric"
+                                    step="1"
+                                    min="0"
+                                    placeholder="Ej. 3"
+                                    className={`pr-10 w-full font-semibold tabular-nums text-base sm:text-sm h-11 sm:h-10 ${isPagado ? "bg-muted cursor-not-allowed" : ""}`}
+                                    aria-invalid={fieldState.invalid}
+                                    disabled={isPagado}
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground pointer-events-none select-none">
+                                    días
+                                </span>
+                            </div>
+                            {fieldState.invalid ? (
+                                <span className="text-xs text-destructive">
+                                    {fieldState.error?.message}
+                                </span>
+                            ) : null}
+                        </div>
+                    )}
+                />
+            </div>
         </SectionCard>
     );
 }
