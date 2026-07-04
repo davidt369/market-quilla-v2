@@ -21,9 +21,9 @@ export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolea
     const momentoPago = watch("momentoPago");
 
     return (
-        <SectionCard>
+        <SectionCard step={4}>
             <div className="mb-5 flex items-center justify-between">
-                <SectionTitle icon={Coins}>Información de Pago</SectionTitle>
+                <SectionTitle icon={Coins} accent="violet">Información de Pago</SectionTitle>
                 {isPagado && (
                     <span className="text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-full flex items-center gap-1">
                         <Info className="h-3 w-3" />

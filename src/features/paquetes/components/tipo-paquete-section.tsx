@@ -51,8 +51,8 @@ export function TipoPaqueteSection() {
     }, [dia, nCaja, nPaquete, extra, setValue]);
 
     return (
-        <SectionCard>
-            <SectionTitle icon={Warehouse}>Tipo de Paquete</SectionTitle>
+        <SectionCard step={3}>
+            <SectionTitle icon={Warehouse} accent="blue">Detalles del Paquete</SectionTitle>
 
             <Controller
                 name="ubicacionAlmacen"

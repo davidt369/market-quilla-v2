@@ -99,10 +99,10 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                         console.error("Error al generar PDF:", err);
                         toast.error("Error al generar el recibo para impresión.");
                     });
-                    
+
                     form.reset();
                 }
-                
+
                 router.push("/dashboard/paquetes");
             } else {
                 toast.error(packageId ? "Error al actualizar" : "Error al registrar", {
@@ -140,47 +140,15 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
 
     return (
         <FormProvider {...form}>
-            <div className="w-full mx-auto pb-32 lg:pb-12 animate-in fade-in duration-500">
-
-                {/* ── Page Header (Enterprise Style) ── */}
-                <div className="mb-6 sm:mb-8 border-b pb-6 px-4 sm:px-6 sm:pt-6">
-                    <button
-                        onClick={() => router.back()}
-                        className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 w-fit"
-                    >
-                        <div className="p-1 rounded-md bg-muted/50 group-hover:bg-muted transition-colors">
-                            <ArrowLeft className="h-4 w-4" />
-                        </div>
-                        Regresar al listado
-                    </button>
-
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-foreground">
-                                <div className="p-2.5 bg-primary/10 rounded-xl shadow-sm border border-primary/10">
-                                    <PackageOpen className="h-6 w-6 text-primary" />
-                                </div>
-                                {packageId ? "Editar Registro de Paquete" : "Nuevo Registro de Paquete"}
-                            </h1>
-                            <p className="mt-2 text-muted-foreground max-w-2xl text-sm md:text-base">
-                                {packageId ? "Modifique los detalles operativos del envío." : "Ingrese los detalles operativos del envío. Busque clientes existentes para autocompletar la información."}
-                            </p>
-                        </div>
-                        {/* Indicador opcional de estado de formulario */}
-                        <div className="hidden md:flex text-sm text-muted-foreground bg-muted/40 px-4 py-2 rounded-full border">
-                            Formulario de Operaciones
-                        </div>
-                    </div>
-                </div>
-
+            <div className="w-full mx-auto pb-4 animate-in fade-in duration-500">
                 {/* ── Layout del Formulario ── */}
                 <form
                     id="paquete-form"
                     onSubmit={form.handleSubmit(onSubmit)}
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-6 lg:gap-8 items-start sm:px-6"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-4 items-start sm:px-6 mt-2"
                 >
                     {/* ── COLUMNA IZQUIERDA (Personas) ── */}
-                    <div className="flex flex-col gap-6 lg:col-span-6 xl:col-span-5">
+                    <div className="flex flex-col gap-4 lg:col-span-6 xl:col-span-5">
                         <RemitenteSection
                             clientes={clientes}
                             handleClientSelected={handleClientSelected}
@@ -192,14 +160,14 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                     </div>
 
                     {/* ── COLUMNA DERECHA (Detalles y Pago) ── */}
-                    <div className="flex flex-col gap-6 lg:col-span-6 xl:col-span-7">
+                    <div className="flex flex-col gap-4 lg:col-span-6 xl:col-span-7">
                         <TipoPaqueteSection />
                         <InformacionPagoSection isPagado={isPagado} />
                     </div>
                 </form>
 
                 {/* ── ACTION BAR (Estático) ── */}
-                <div className="mt-8 pt-6 border-t px-4 sm:px-6">
+                <div className="mt-4 pt-4 border-t px-4 sm:px-6">
                     <div className="max-w-7xl mx-auto flex flex-col-reverse sm:flex-row justify-end gap-3">
                         <Button
                             type="button"

@@ -129,8 +129,8 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
     };
 
     return (
-        <SectionCard>
-            <SectionTitle icon={User}>Remitente</SectionTitle>
+        <SectionCard step={1}>
+            <SectionTitle icon={User} accent="orange">Datos del Remitente</SectionTitle>
 
             <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 mt-4">
                 <div className="relative" ref={dropdownRef}>

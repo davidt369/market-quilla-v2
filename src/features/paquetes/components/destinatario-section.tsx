@@ -124,8 +124,8 @@ export function DestinatarioSection({ clientes, handleClientSelected }: Destinat
     };
 
     return (
-        <SectionCard>
-            <SectionTitle icon={MapPin}>Destinatario</SectionTitle>
+        <SectionCard step={2}>
+            <SectionTitle icon={MapPin} accent="emerald">Datos del Destinatario</SectionTitle>
 
             <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 mt-4">
                 <div className="relative" ref={dropdownRef}>
