@@ -47,32 +47,32 @@ export function calcularPrecioFinal(
     let ofertaVigente = false;
     let diasRestantesOferta = 0;
     let fechaExpiracionOferta: Date | null = null;
+    let ignorarPagoOriginal = false;
 
-    // Verificar si aplica la oferta
-    if (diasOferta && diasOferta > 0 && precioOferta != null) {
+    const pagoInicialPagado = estadoPago?.toLowerCase() === "pagado";
+
+    // Verificar si aplica la oferta (SOLO es válida si se pagó al registrar)
+    if (diasOferta && diasOferta > 0 && precioOferta != null && pagoInicialPagado) {
         // Obtenemos la fecha exacta (sin hora) para mostrar
         fechaExpiracionOferta = new Date(fechaRegistroBolivia.getTime() + (diasOferta * msEnUnDia));
         diasRestantesOferta = Math.max(0, diasOferta - diasPasados);
         
         if (diasPasados <= diasOferta) {
-            // Está dentro de la oferta
+            // Está dentro de la oferta y ya pagó
             precioFinal = Number(precioOferta);
             ofertaVigente = true;
         } else {
-            // Pasó la oferta. Aplicamos precio base y recargos desde el vencimiento
+            // Pasó la oferta. Pierde lo pagado. Se le empieza a cobrar el precio base como nueva deuda
             const diasDesdeVencimiento = diasPasados - diasOferta;
             const semanasDesdeVencimiento = Math.floor(diasDesdeVencimiento / 7);
             
-            // Sobrescribimos semanasPasadas para que el UI muestre las semanas desde vencimiento
             semanasPasadas = semanasDesdeVencimiento;
-            
-            if (semanasDesdeVencimiento >= 1) {
-                precioFinal = precio * Math.pow(2, semanasDesdeVencimiento);
-                recargoAplicado = true;
-            }
+            precioFinal = precio * Math.pow(2, semanasDesdeVencimiento);
+            recargoAplicado = true;
+            ignorarPagoOriginal = true; // El pago inicial ya no cuenta contra esta nueva deuda
         }
     } else {
-        // No hay oferta, lógica original
+        // No hay oferta, o NO pagó al registrar (lo que anula la oferta instantáneamente)
         if (semanasPasadas >= 1) {
             precioFinal = precio * Math.pow(2, semanasPasadas);
             recargoAplicado = true;
@@ -80,9 +80,9 @@ export function calcularPrecioFinal(
     }
 
     let saldoPendiente = precioFinal;
-    if (estadoPago?.toLowerCase() === "pagado") {
-        // Si ya pagó, descontamos lo que pagó originalmente (si tenía oferta pagó la oferta, sino el precio base)
-        const montoPagadoOriginal = (diasOferta && diasOferta > 0 && precioOferta != null) ? Number(precioOferta) : precio;
+    if (pagoInicialPagado && !ignorarPagoOriginal) {
+        // Si ya pagó y el pago sigue siendo válido, descontamos lo que pagó originalmente
+        const montoPagadoOriginal = (ofertaVigente && precioOferta != null) ? Number(precioOferta) : precio;
         saldoPendiente = precioFinal - montoPagadoOriginal;
     }
 

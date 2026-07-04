@@ -31,7 +31,7 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const cameraInputRef = React.useRef<HTMLInputElement>(null);
 
-    const pricing = calcularPrecioFinal(pkg?.precioBase, pkg?.fechaHoraRegistro, pkg?.estadoPago);
+    const pricing = calcularPrecioFinal(pkg?.precioBase, pkg?.fechaHoraRegistro, pkg?.estadoPago, pkg?.precioOferta, pkg?.diasOferta);
     const tieneDeuda = pricing.saldoPendiente > 0;
 
     React.useEffect(() => {
@@ -77,7 +77,7 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                         </DialogTitle>
                         <DialogDescription className="text-xs text-muted-foreground mt-1">
                             {tieneDeuda
-                                ? (isPendiente 
+                                ? (pricing.estadoPagoCalculado === "pendiente" 
                                     ? "Este paquete requiere registrar el cobro en caja antes de ser entregado."
                                     : `Este paquete fue pagado, pero tiene un recargo por ${pricing.semanasPasadas} semana(s) de almacenaje.`)
                                 : "Este paquete ya no tiene deudas. Confirme para registrar la evidencia de entrega."}
@@ -101,10 +101,10 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
                                         <span className="text-xs font-semibold text-destructive">+{(pricing.precioFinal - pricing.precioOriginal).toLocaleString("es-BO", { minimumFractionDigits: 2 })} Bs.</span>
                                     </div>
                                 )}
-                                {!isPendiente && pricing.recargoAplicado && (
+                                {pkg?.estadoPago?.toLowerCase() === "pagado" && pricing.recargoAplicado && (
                                     <div className="flex items-center justify-between border-t border-dashed pt-2 mt-1">
                                         <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Ya Pagado (Al registrar):</span>
-                                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">-{Number(pricing.precioOriginal).toLocaleString("es-BO", { minimumFractionDigits: 2 })} Bs.</span>
+                                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">-{Number(pricing.precioFinal - pricing.saldoPendiente).toLocaleString("es-BO", { minimumFractionDigits: 2 })} Bs.</span>
                                     </div>
                                 )}
                                 <div className="flex items-center justify-between border-t border-border pt-2 mt-1">
