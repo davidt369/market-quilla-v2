@@ -50,11 +50,11 @@ const s = StyleSheet.create({
         alignSelf: "flex-start",
     },
     ubicLabel: {
-        fontSize: 16,
+        fontSize: 18,
         fontFamily: "Helvetica-Bold",
     },
     ubicValue: {
-        fontSize: 16,
+        fontSize: 18,
         fontFamily: "Helvetica-Bold",
         minWidth: 60,
     },
@@ -78,6 +78,22 @@ const s = StyleSheet.create({
     },
 
     // Fila de formulario
+    empresaRow: {
+        flexDirection: "row",
+        alignItems: "flex-end",
+    },
+    empresaLabel: {
+        fontSize: 16,
+        fontFamily: "Helvetica-Bold",
+        marginRight: 3,
+    },
+    empresaValue: {
+        flex: 1,
+        fontSize: 16,
+        fontFamily: "Helvetica-Bold",
+        paddingLeft: 3,
+    },
+    
     formRow: {
         flexDirection: "row",
         alignItems: "flex-end",
@@ -222,9 +238,9 @@ const ReceiptDoc = ({
                 </View>
 
                 {/* EMPRESA */}
-                <View style={s.formRow}>
-                    <Text style={s.formLabel}>EMPRESA:</Text>
-                    <Text style={s.formValue}>{remitenteEmpresa}</Text>
+                <View style={s.empresaRow}>
+                    <Text style={s.empresaLabel}>EMPRESA:</Text>
+                    <Text style={s.empresaValue}>{remitenteEmpresa}</Text>
                 </View>
 
                 {/* CI/CEL remitente */}
