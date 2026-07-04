@@ -67,6 +67,7 @@ export function TipoPaqueteSection() {
                                 value={dia}
                                 onChange={(e) => setDia(e.target.value.toUpperCase())}
                                 placeholder="Día"
+                                maxLength={2}
                                 className="flex-1 min-w-[60px] sm:max-w-[80px] text-center font-semibold"
                             />
 
@@ -77,6 +78,7 @@ export function TipoPaqueteSection() {
                                 value={nCaja}
                                 onChange={(e) => setNCaja(e.target.value)}
                                 placeholder="N°Caja"
+                                maxLength={5}
                                 className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
                             />
 
@@ -98,6 +100,7 @@ export function TipoPaqueteSection() {
                                 value={extra}
                                 onChange={(e) => setExtra(e.target.value)}
                                 placeholder="Extra"
+                                maxLength={6}
                                 className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
                             />
                         </div>
@@ -117,8 +120,9 @@ export function TipoPaqueteSection() {
                             {...field}
                             id={field.name}
                             aria-invalid={fieldState.invalid}
-                            placeholder="Descripción única del contenido..."
-                            rows={3}
+                            placeholder="Ej: Ropa, Electrónico..."
+                            maxLength={25}
+                            rows={2}
                             className="flex w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

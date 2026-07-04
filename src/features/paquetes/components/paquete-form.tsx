@@ -17,11 +17,11 @@ import { Button } from "@/shared/components/ui/button";
 import { PaqueteConfirmDialog } from "./paquete-confirm-dialog";
 import { ClienteBase } from "@/features/clientes/components/client-combobox";
 
-// Import subcomponents
 import { RemitenteSection } from "./remitente-section";
 import { DestinatarioSection } from "./destinatario-section";
 import { TipoPaqueteSection } from "./tipo-paquete-section";
 import { InformacionPagoSection } from "./informacion-pago-section";
+import { generateAndOpenReceiptPdf } from "./registrar-paquete/thermal-receipt-pdf";
 
 interface PaqueteFormProps {
     initialClientes: ClienteBase[];
@@ -87,7 +87,22 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                         : `El paquete de ${data.remitente.nombre_completo} ha sido procesado.`,
                     icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 });
-                if (!packageId) form.reset();
+                if (!packageId) {
+                    const pkgForReceipt = {
+                        ...result.data,
+                        remitente: data.remitente,
+                        destinatario: data.destinatario,
+                        precioBase: data.precioBase,
+                        tipoPaquete: data.tipoPaquete
+                    };
+                    generateAndOpenReceiptPdf(pkgForReceipt).catch(err => {
+                        console.error("Error al generar PDF:", err);
+                        toast.error("Error al generar el recibo para impresión.");
+                    });
+                    
+                    form.reset();
+                }
+                
                 router.push("/dashboard/paquetes");
             } else {
                 toast.error(packageId ? "Error al actualizar" : "Error al registrar", {

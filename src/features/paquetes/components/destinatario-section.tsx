@@ -153,6 +153,7 @@ export function DestinatarioSection({ clientes, handleClientSelected }: Destinat
                                             }}
                                             autoComplete="off"
                                             autoCapitalize="words"
+                                            maxLength={25}
                                             disabled={isClientSelected}
                                             className={
                                                 isClientSelected
@@ -222,6 +223,7 @@ export function DestinatarioSection({ clientes, handleClientSelected }: Destinat
                                 placeholder="Ej: 98765432"
                                 type="tel"
                                 inputMode="numeric"
+                                maxLength={12}
                                 disabled={isClientSelected}
                                 className={isClientSelected ? "bg-muted" : ""}
                             />
@@ -241,6 +243,7 @@ export function DestinatarioSection({ clientes, handleClientSelected }: Destinat
                                 id={field.name}
                                 placeholder="Ej: TechCorp S.R.L."
                                 autoCapitalize="words"
+                                maxLength={25}
                                 disabled={isClientSelected}
                                 className={isClientSelected ? "bg-muted" : ""}
                             />

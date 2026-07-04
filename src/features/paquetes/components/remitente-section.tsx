@@ -158,6 +158,7 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
                                             }}
                                             autoComplete="off"
                                             autoCapitalize="words"
+                                            maxLength={25}
                                             disabled={isClientSelected}
                                             className={
                                                 isClientSelected
@@ -227,6 +228,7 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
                                 placeholder="Ej: 12345678"
                                 type="tel"
                                 inputMode="numeric"
+                                maxLength={12}
                                 disabled={isClientSelected}
                                 className={isClientSelected ? "bg-muted" : ""}
                             />
@@ -246,6 +248,7 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
                                 id={field.name}
                                 placeholder="Ej: Acme S.A."
                                 autoCapitalize="words"
+                                maxLength={25}
                                 disabled={isClientSelected}
                                 className={isClientSelected ? "bg-muted" : ""}
                             />
