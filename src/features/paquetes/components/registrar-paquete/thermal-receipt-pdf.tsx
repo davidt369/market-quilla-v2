@@ -364,13 +364,33 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
         const url = URL.createObjectURL(blob);
 
         if (!isMobile) {
-            const a = document.createElement("a");
-            a.href = url;
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            // Crear un iframe oculto para lanzar el diálogo de impresión nativo directamente
+            const iframe = document.createElement("iframe");
+            iframe.style.position = "absolute";
+            iframe.style.width = "0";
+            iframe.style.height = "0";
+            iframe.style.border = "none";
+            iframe.src = url;
+            document.body.appendChild(iframe);
+
+            iframe.onload = () => {
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow?.focus();
+                        iframe.contentWindow?.print();
+                    } catch (e) {
+                        console.error("Print failed:", e);
+                    }
+                    
+                    // Limpieza opcional después de un tiempo prudente
+                    setTimeout(() => {
+                        if (document.body.contains(iframe)) {
+                            document.body.removeChild(iframe);
+                        }
+                    }, 60000);
+                }, 200);
+            };
+
         } else {
             const a = document.createElement("a");
             a.href = url;

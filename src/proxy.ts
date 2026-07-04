@@ -8,8 +8,7 @@ export const proxy = auth((request) => {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
 
-  // Generamos la política CSP (Content Security Policy)
-  const cspHeader = `
+    const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://browser.sentry-cdn.com;
     style-src 'self' 'unsafe-inline';
@@ -20,6 +19,7 @@ export const proxy = auth((request) => {
     object-src 'none';
     base-uri 'self';
     form-action 'self';
+    frame-src 'self' blob:;
     frame-ancestors 'none';
     upgrade-insecure-requests;
   `.replace(/\s{2,}/g, " ").trim();
