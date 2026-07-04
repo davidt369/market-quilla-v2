@@ -11,8 +11,8 @@ import {
 } from "@react-pdf/renderer";
 
 // ─── Dimensiones de salida ────────────────────────────────────────────────────
-// 48mm × 28mm a 203 DPI → 384pt × 224pt
-const W = 384;
+// 38mm × 28mm a 203 DPI → 304pt × 224pt
+const W = 304;
 const H = 224;
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ const s = StyleSheet.create({
         width: W,
         height: H,
         margin: 0,
-        padding: "8 10 6 10",
+        padding: "6 8 4 8",
         backgroundColor: "#ffffff",
         fontFamily: "Helvetica",
         flexDirection: "column",
@@ -50,25 +50,21 @@ const s = StyleSheet.create({
         alignSelf: "flex-start",
     },
     ubicLabel: {
-        fontSize: 14,
+        fontSize: 16,
         fontFamily: "Helvetica-Bold",
     },
     ubicValue: {
-        fontSize: 14,
+        fontSize: 16,
         fontFamily: "Helvetica-Bold",
-        borderBottomWidth: 1,
-        borderBottomColor: "#000000",
-        borderBottomStyle: "dashed",
-        paddingBottom: 1,
-        minWidth: 80,
+        minWidth: 60,
     },
     headerDeRow: {
         flexDirection: "row",
         alignItems: "flex-end",
     },
     logo: {
-        width: 40,  // 5mm × 8pt/mm
-        height: 40, // 5mm × 8pt/mm
+        width: 48,  // 6mm × 8pt/mm
+        height: 48, // 6mm × 8pt/mm
         objectFit: "contain",
         marginLeft: 6,
     },
@@ -77,7 +73,8 @@ const s = StyleSheet.create({
     body: {
         flex: 1,
         flexDirection: "column",
-        justifyContent: "space-between",
+        justifyContent: "center",
+        gap: 3,
     },
 
     // Fila de formulario
@@ -86,32 +83,26 @@ const s = StyleSheet.create({
         alignItems: "flex-end",
     },
     formLabel: {
-        fontSize: 11,
-        fontFamily: "Helvetica",
+        fontSize: 14,
+        fontFamily: "Helvetica-Bold",
         marginRight: 3,
     },
     formLabelBold: {
-        fontSize: 11,
+        fontSize: 14,
         fontFamily: "Helvetica-Bold",
         marginRight: 3,
     },
     formValue: {
         flex: 1,
-        fontSize: 11,
+        fontSize: 14,
         fontFamily: "Helvetica",
-        borderBottomWidth: 1,
-        borderBottomColor: "#000000",
         paddingLeft: 3,
-        paddingBottom: 1,
     },
     formValueBold: {
         flex: 1,
-        fontSize: 11,
-        fontFamily: "Helvetica-Bold",
-        borderBottomWidth: 1,
-        borderBottomColor: "#000000",
+        fontSize: 14,
+        fontFamily: "Helvetica",
         paddingLeft: 3,
-        paddingBottom: 1,
         textAlign: "center",
     },
 
@@ -121,26 +112,20 @@ const s = StyleSheet.create({
         alignItems: "flex-end",
     },
     fechaValue: {
-        width: "22%",
-        fontSize: 11,
+        width: "26%",
+        fontSize: 14,
         fontFamily: "Helvetica",
-        borderBottomWidth: 1,
-        borderBottomColor: "#000000",
-        paddingBottom: 1,
         textAlign: "center",
     },
     costoValue: {
         flex: 1,
-        fontSize: 11,
-        fontFamily: "Helvetica-Bold",
-        borderBottomWidth: 1,
-        borderBottomColor: "#000000",
-        paddingBottom: 1,
+        fontSize: 14,
+        fontFamily: "Helvetica",
         textAlign: "center",
     },
     tiempoText: {
-        fontSize: 11,
-        fontFamily: "Helvetica-Bold",
+        fontSize: 14,
+        fontFamily: "Helvetica",
         marginLeft: 4,
     },
 });
@@ -156,38 +141,38 @@ async function getPngDataUrl(url: string): Promise<string> {
             canvas.height = img.height;
             const ctx = canvas.getContext("2d");
             if (!ctx) return reject(new Error("No 2d context"));
-            
+
             // 1. Fondo blanco inicial por si hay transparencias
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0);
-            
+
             // 2. Procesar pixel por pixel
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
-            
+
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
-                const g = data[i+1];
-                const b = data[i+2];
-                
+                const g = data[i + 1];
+                const b = data[i + 2];
+
                 // Calcular brillo (Luminosidad) del 0 al 255
                 const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                
+
                 // Si el pixel es claro (fondo blanco o colores suaves)
                 if (lum > 180) {
                     data[i] = 220;     // R (Gris claro)
-                    data[i+1] = 220;   // G
-                    data[i+2] = 220;   // B
+                    data[i + 1] = 220;   // G
+                    data[i + 2] = 220;   // B
                 } else {
                     // Si el pixel es oscuro (letras del logo)
                     data[i] = 0;       // R (Negro puro)
-                    data[i+1] = 0;     // G
-                    data[i+2] = 0;     // B
+                    data[i + 1] = 0;     // G
+                    data[i + 2] = 0;     // B
                 }
             }
             ctx.putImageData(imageData, 0, 0);
-            
+
             // Exportar como JPEG
             resolve(canvas.toDataURL("image/jpeg", 0.9));
         };
@@ -219,23 +204,22 @@ const ReceiptDoc = ({
 }: ReceiptDocProps) => (
     <Document>
         <Page size={[W, H]} style={s.page}>
-            {/* ── CABECERA (UBIC + DE + LOGO) ── */}
+            {/* ── CABECERA (UBIC + LOGO) ── */}
             <View style={s.header}>
-                <View style={s.headerLeft}>
-                    <View style={s.ubicBox}>
-                        <Text style={s.ubicLabel}>UBIC:</Text>
-                        <Text style={s.ubicValue}>{ubicacion}</Text>
-                    </View>
-                    <View style={s.headerDeRow}>
-                        <Text style={s.formLabel}>DE:</Text>
-                        <Text style={s.formValue}>{remitenteNombre}</Text>
-                    </View>
+                <View style={s.ubicBox}>
+                    <Text style={s.ubicLabel}>UBIC:</Text>
+                    <Text style={s.ubicValue}>{ubicacion}</Text>
                 </View>
                 {logoUrl ? <Image style={s.logo} src={logoUrl} /> : null}
             </View>
 
             {/* ── CUERPO ── */}
             <View style={s.body}>
+                {/* DE */}
+                <View style={s.formRow}>
+                    <Text style={s.formLabel}>DE:</Text>
+                    <Text style={s.formValue}>{remitenteNombre}</Text>
+                </View>
 
                 {/* EMPRESA */}
                 <View style={s.formRow}>
@@ -273,10 +257,10 @@ const ReceiptDoc = ({
                 </View>
 
                 {/* PAGO */}
-                <View style={s.formRow}>
+                {/* <View style={s.formRow}>
                     <Text style={s.formLabel}>PAGO:</Text>
                     <Text style={s.formValue}>{estadoPago}</Text>
-                </View>
+                </View> */}
 
                 {/* TIPO DE PAQUETE */}
                 <View style={s.formRow}>
@@ -290,12 +274,12 @@ const ReceiptDoc = ({
 
 // ─── Función principal: genera y comparte/abre el PDF ─────────────────────────
 export async function generateAndOpenReceiptPdf(pkg: any) {
-    const ubicacion = pkg?.ubicacionAlmacen || "";
-    const remitenteNombre = pkg?.remitente?.nombre_completo || "";
-    const remitenteCel = pkg?.remitente?.ci_o_cel || pkg?.remitente?.celular || "";
-    const remitenteEmpresa = pkg?.remitente?.empresa || "";
-    const destNombre = pkg?.destinatario?.nombre_completo || "";
-    const destCel = pkg?.destinatario?.ci_o_cel || pkg?.destinatario?.celular || "";
+    const ubicacion = String(pkg?.ubicacionAlmacen || "").toUpperCase();
+    const remitenteNombre = String(pkg?.remitente?.nombre_completo || "").toUpperCase();
+    const remitenteCel = String(pkg?.remitente?.ci_o_cel || pkg?.remitente?.celular || "").toUpperCase();
+    const remitenteEmpresa = String(pkg?.remitente?.empresa || "").toUpperCase();
+    const destNombre = String(pkg?.destinatario?.nombre_completo || "").toUpperCase();
+    const destCel = String(pkg?.destinatario?.ci_o_cel || pkg?.destinatario?.celular || "").toUpperCase();
 
     // Lógica de precio / oferta
     const precioBase = pkg?.precioBase;
@@ -314,8 +298,8 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
     const fecha = new Date().toLocaleDateString("es-BO", {
         day: "numeric", month: "numeric", year: "numeric",
     });
-    const tipo = pkg?.tipoPaquete || pkg?.tipo || "";
-    const estadoPago = pkg?.estadoPago || "Pagado";
+    const tipo = String(pkg?.tipoPaquete || pkg?.tipo || "").toUpperCase();
+    const estadoPago = String(pkg?.estadoPago || "Pagado").toUpperCase();
 
     // El PDF no soporta webp, así que convertimos el logo a PNG en memoria
     const webpUrl = `${window.location.origin}/market-quilla-600px.webp`;
@@ -362,7 +346,7 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
         });
     } else {
         const url = URL.createObjectURL(blob);
-        
+
         if (!isMobile) {
             const a = document.createElement("a");
             a.href = url;
@@ -381,7 +365,7 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
             a.click();
             document.body.removeChild(a);
         }
-        
+
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
     }
 }
