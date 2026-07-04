@@ -15,6 +15,8 @@ export const proxy = auth((request) => {
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https:;
     font-src 'self';
+    connect-src 'self' data: blob: https: http: wss: ws:;
+    worker-src 'self' blob:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
