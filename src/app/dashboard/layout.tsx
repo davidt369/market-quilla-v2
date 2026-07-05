@@ -15,7 +15,7 @@ export default async function DashboardLayout({
 
   // Si no hay sesión, Next.js aborta el renderizado y redirige inmediatamente
   if (!session || !session.user) {
-    redirect("/auth/login")
+    redirect("/login")
   }
 
   return (
