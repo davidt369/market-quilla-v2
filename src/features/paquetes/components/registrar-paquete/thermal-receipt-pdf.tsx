@@ -12,104 +12,69 @@ import {
 import QRCode from "qrcode";
 
 // ─── Dimensiones de salida ────────────────────────────────────────────────────
-// 48mm × 28mm en PostScript points (72 DPI)
-// 48 mm = 136.06 pt
+// 38mm × 28mm en PostScript points (72 DPI)
+// 38 mm = 107.72 pt
 // 28 mm = 79.37 pt
-const W = 136.06;
+const W = 107.72;
 const H = 79.37;
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   page: {
     width: W,
     height: H,
     backgroundColor: "#ffffff",
+    padding: 3,
+    flexDirection: "column",
   },
-  rowContainer: {
+  topRow: {
     flexDirection: "row",
-    width: W,
-    height: H,
-    padding: 2.83, // ~1mm margin
-  },
-  colLogo: {
-    width: 32,
-    height: 73.71,
-    position: "relative",
-  },
-  colQr: {
-    width: 54,
-    height: 73.71,
-    position: "relative",
-  },
-  colDatos: {
-    width: 44,
-    height: 73.71,
-    position: "relative",
-  },
-  logo: {
-    width: 25,
-    height: 25,
-    objectFit: "contain",
+    justifyContent: "space-between",
+    alignItems: "center",
+    height: 42,
+    width: "100%",
   },
   logoPlaceholder: {
-    width: 25,
-    height: 25,
-    backgroundColor: "#e0e0e0",
-    borderWidth: 1,
-    borderColor: "#000000",
+    width: 42,
+    height: 42,
+    backgroundColor: "#000000",
+    borderRadius: 4,
     justifyContent: "center",
     alignItems: "center",
   },
   logoPlaceholderText: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 5,
-    color: "#000000",
+    fontSize: 8,
+    color: "#ffffff",
   },
-  brandText: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 5,
-    color: "#000000",
-    marginTop: 2,
-    textAlign: "center",
-  },
-  qrCode: {
-    width: 46,
-    height: 46,
+  logo: {
+    width: 42,
+    height: 42,
     objectFit: "contain",
   },
-  ubicBox: {
-    borderWidth: 1,
-    borderColor: "#000000",
-    paddingHorizontal: 2,
-    paddingVertical: 3,
+  qrCode: {
+    width: 42,
+    height: 42,
+    objectFit: "contain",
+  },
+  bottomRow: {
+    marginTop: 3,
+    flex: 1,
+
+    borderRadius: 4,
+    justifyContent: "center",
     alignItems: "center",
-    borderRadius: 2,
+    width: "100%",
   },
-  ubicLabel: {
+  ubicText: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 4.5,
-    color: "#000000",
-    lineHeight: 1.0,
-  },
-  ubicValue: {
-    fontFamily: "Helvetica-Bold",
-    color: "#000000",
-    lineHeight: 1.0,
-    marginTop: 1.5,
-  },
-  idText: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: "#000000",
-    marginTop: 5,
-    textAlign: "center",
+    color: "#000",
   },
 });
 
 // ─── Utilidad: Convierte WebP a JPEG Base64 para el PDF ────────────────────────
 async function getPngDataUrl(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const img = new window.Image();
+    const img = new (globalThis as any).Image();
     img.crossOrigin = "Anonymous";
     img.onload = () => {
       const canvas = document.createElement("canvas");
@@ -166,18 +131,7 @@ const getDynamicFontSize = (
   return defaultSize;
 };
 
-// ─── Utilidad: Rotación -90 grados para las columnas de la etiqueta ──────────
-const getRotatedStyle = (colWidth: number) => ({
-  position: "absolute" as const,
-  width: 73.71,
-  height: colWidth,
-  left: (colWidth - 73.71) / 2,
-  top: (73.71 - colWidth) / 2,
-  transform: "rotate(-90deg)",
-  transformOrigin: "center center",
-  flexDirection: "column" as const,
-  justifyContent: "center" as const,
-});
+
 
 // ─── Componente del documento PDF ─────────────────────────────────────────────
 interface ReceiptDocProps {
@@ -191,58 +145,34 @@ const ReceiptDoc = ({
   ubicacion,
   logoUrl,
   qrDataUrl,
-  packageId,
 }: ReceiptDocProps) => {
-  const ubicTextSize = getDynamicFontSize(ubicacion || "S/2/115/", 9, 9, 5.5);
+  const ubicTextSize = getDynamicFontSize(ubicacion || "S/2/115/", 8, 20, 10);
 
   return (
     <Document>
       <Page size={[W, H]} style={s.page}>
-        <View style={s.rowContainer}>
-          {/* Primera columna: LOGO y Marca */}
-          <View style={s.colLogo}>
-            <View style={[getRotatedStyle(32), { alignItems: "center" }]}>
-              {logoUrl ? (
-                <Image style={s.logo} src={logoUrl} />
-              ) : (
-                <View style={s.logoPlaceholder}>
-                  <Text style={s.logoPlaceholderText}>LOGO</Text>
-                </View>
-              )}
-              <Text style={s.brandText}>QUILLA</Text>
+        <View style={s.topRow}>
+          {logoUrl ? (
+            <Image style={s.logo} src={logoUrl} />
+          ) : (
+            <View style={s.logoPlaceholder}>
+              <Text style={s.logoPlaceholderText}>LOGO</Text>
             </View>
-          </View>
+          )}
 
-          {/* Segunda columna: Código QR de seguimiento */}
-          <View style={s.colQr}>
-            <View style={[getRotatedStyle(54), { alignItems: "center" }]}>
-              {qrDataUrl ? (
-                <Image style={s.qrCode} src={qrDataUrl} />
-              ) : (
-                <View style={s.logoPlaceholder}>
-                  <Text style={s.logoPlaceholderText}>QR ERR</Text>
-                </View>
-              )}
+          {qrDataUrl ? (
+            <Image style={s.qrCode} src={qrDataUrl} />
+          ) : (
+            <View style={s.logoPlaceholder}>
+              <Text style={s.logoPlaceholderText}>QR</Text>
             </View>
-          </View>
+          )}
+        </View>
 
-          {/* Tercera columna: UBIC y Código/ID */}
-          <View style={s.colDatos}>
-            <View
-              style={[
-                getRotatedStyle(44),
-                { alignItems: "center", justifyContent: "center" },
-              ]}
-            >
-              <View style={s.ubicBox}>
-                <Text style={s.ubicLabel}>UBIC</Text>
-                <Text style={[s.ubicValue, { fontSize: ubicTextSize }]}>
-                  {ubicacion || "S/2/115/"}
-                </Text>
-              </View>
-              <Text style={s.idText}>#{packageId}</Text>
-            </View>
-          </View>
+        <View style={s.bottomRow}>
+          <Text style={[s.ubicText, { fontSize: ubicTextSize }]}>
+            {ubicacion || "S/2/115/"}
+          </Text>
         </View>
       </Page>
     </Document>

@@ -6,7 +6,7 @@ import { PERMISSIONS } from "@/shared/config/permisos.constants";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { entregarPaqueteAction, deletePaqueteAction } from "@/features/paquetes/actions/paquetes.actions";
-import { generateAndOpenReceiptPdf } from "./registrar-paquete/thermal-receipt-pdf";
+import { PrintOptionDialog } from "./registrar-paquete/print-option-dialog";
 import { PaqueteMobileCard } from "./todos-paquetes/paquete-mobile-card";
 import ModalEntregaPaquete from "./modal-entrega-paquete";
 import { DeletePaqueteModal } from "./todos-paquetes/modals/delete-paquete-modal";
@@ -21,7 +21,7 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [evidenciaFile, setEvidenciaFile] = React.useState<File | null>(null);
 
     // Print state
-    const [isPrinting, setIsPrinting] = React.useState(false);
+    const [isPrintOpen, setIsPrintOpen] = React.useState(false);
 
     // Delete state
     const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
@@ -34,19 +34,8 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const canDelete = hasPermission(PERMISSIONS.ELIMINAR_PAQUETE);
     const canDeliver = hasPermission(PERMISSIONS.ENTREGAR_PAQUETE);
 
-    const handlePrint = async () => {
-        setIsPrinting(true);
-        const toastId = toast.loading("Generando ticket PDF...");
-        try {
-            await generateAndOpenReceiptPdf(pkg);
-            toast.dismiss(toastId);
-        } catch (err) {
-            console.error("[handlePrint]", err);
-            toast.dismiss(toastId);
-            toast.error("No se pudo generar el PDF del ticket.");
-        } finally {
-            setIsPrinting(false);
-        }
+    const handlePrint = () => {
+        setIsPrintOpen(true);
     };
 
     const handleConfirmDeliver = async () => {
@@ -127,6 +116,14 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
                     onClose={() => setIsDeleteOpen(false)}
                     onConfirm={handleConfirmDelete}
                     isDeleting={isDeleting}
+                />
+            )}
+
+            {isPrintOpen && (
+                <PrintOptionDialog
+                    isOpen={isPrintOpen}
+                    onClose={() => setIsPrintOpen(false)}
+                    pkg={pkg}
                 />
             )}
         </>

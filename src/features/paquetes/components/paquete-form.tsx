@@ -21,7 +21,7 @@ import { RemitenteSection } from "./remitente-section";
 import { DestinatarioSection } from "./destinatario-section";
 import { TipoPaqueteSection } from "./tipo-paquete-section";
 import { InformacionPagoSection } from "./informacion-pago-section";
-import { generateAndOpenReceiptPdf } from "./registrar-paquete/thermal-receipt-pdf";
+import { PrintOptionDialog } from "./registrar-paquete/print-option-dialog";
 
 interface PaqueteFormProps {
     initialClientes: ClienteBase[];
@@ -40,6 +40,10 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
     // Modal states
     const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
     const [pendingData, setPendingData] = React.useState<PaqueteCompletoFormData | null>(null);
+
+    // Print states
+    const [isPrintDialogOpen, setIsPrintDialogOpen] = React.useState(false);
+    const [printPkg, setPrintPkg] = React.useState<any | null>(null);
 
 
     const form = useForm<PaqueteCompletoFormData>({
@@ -93,17 +97,14 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                         remitente: data.remitente,
                         destinatario: data.destinatario,
                         precioBase: data.precioBase,
-                        tipoPaquete: data.tipoPaquete
+                        tipoPaquete: (data as any).tipoPaquete
                     };
-                    generateAndOpenReceiptPdf(pkgForReceipt).catch(err => {
-                        console.error("Error al generar PDF:", err);
-                        toast.error("Error al generar el recibo para impresión.");
-                    });
-
+                    setPrintPkg(pkgForReceipt);
+                    setIsPrintDialogOpen(true);
                     form.reset();
+                } else {
+                    router.push("/dashboard/paquetes");
                 }
-
-                router.push("/dashboard/paquetes");
             } else {
                 toast.error(packageId ? "Error al actualizar" : "Error al registrar", {
                     description: result.error || "No se pudo procesar la solicitud. Verifique los datos e intente nuevamente.",
@@ -206,6 +207,18 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                     isSubmitting={isSubmitting}
                     onConfirm={submitData}
                 />
+
+                {/* ── Print Selection Modal ── */}
+                {isPrintDialogOpen && (
+                    <PrintOptionDialog
+                        isOpen={isPrintDialogOpen}
+                        onClose={() => {
+                            setIsPrintDialogOpen(false);
+                            router.push("/dashboard/paquetes");
+                        }}
+                        pkg={printPkg}
+                    />
+                )}
             </div>
         </FormProvider>
     );
