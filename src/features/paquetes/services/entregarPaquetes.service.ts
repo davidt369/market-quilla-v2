@@ -84,6 +84,7 @@ export const entregarPaquete = auditable(async (
                 estadoPago: "pagado",
                 precioBase: String(precioFinal), // Actualizamos el precio al costo final (base + multa)
                 fechaHoraEntrega: new Date(),
+                fk_id_usuario_entrega: usuarioId,
                 ...(fotoEntregadoUrl ? { fotoEntregadoUrl } : {})
             })
             .where(

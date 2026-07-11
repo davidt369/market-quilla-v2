@@ -124,6 +124,10 @@ export const tbpaquetes = pgTable(
       () => tbusuarios.pk_id_usuario,
       { onDelete: "restrict" },
     ),
+    fk_id_usuario_entrega: integer("fk_id_usuario_entrega").references(
+      () => tbusuarios.pk_id_usuario,
+      { onDelete: "restrict" },
+    ),
     ubicacionAlmacen: varchar("ubicacion_almacen", { length: 50 }).notNull().unique(),
     tipoPaquete: text("tipo_paquete").notNull(),
 
@@ -181,6 +185,10 @@ export const paquetesRelations = relations(tbpaquetes, ({ one, many }) => ({
   }),
   usuarioRegistro: one(tbusuarios, {
     fields: [tbpaquetes.fk_id_usuario],
+    references: [tbusuarios.pk_id_usuario],
+  }),
+  usuarioEntrega: one(tbusuarios, {
+    fields: [tbpaquetes.fk_id_usuario_entrega],
     references: [tbusuarios.pk_id_usuario],
   }),
   movimientosCaja: many(tbcajaMovimientos),
