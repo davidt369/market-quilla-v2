@@ -2,6 +2,7 @@
 import React from "react";
 import QRCode from "qrcode";
 import { formatBoliviaDateOnly } from "@/shared/lib/timezone";
+import { encodeId } from "@/shared/lib/id-encoder";
 import { toast } from "sonner";
 
 // ─── Utilidad: Retraso para el envío por Bluetooth ──────────────────────────
@@ -148,7 +149,7 @@ async function getTextTsplCommand(text: string, x: number, y: number, fontSize: 
 // LÓGICA DE TSPL 48x28mm Y BLUETOOTH
 // ============================================================================
 async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<Uint8Array> {
-    const { ubicacion, destNombre, destCel, costoDisplay, trackingUrl, remitente, remitenteCel, remitenteEmpresa, fechaRegistro, tipoPaquete } = pkgData;
+    const { ubicacion, destNombre, destCel, costoDisplay, trackingUrl, remitente, remitenteCel, remitenteEmpresa, fechaRegistro, tipoPaquete, qrTsplUrl } = pkgData;
     const sanitize = (str: string) => (str || '').replace(/"/g, '').substring(0, 40);
 
     const sanUbic = sanitize(ubicacion);
@@ -181,7 +182,7 @@ async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<
         lblParaCel: { x: 0, y: 162, size: 12, bold: true, text: "CI/CEL:" },
         valParaCel: { x: 70, y: 162, size: 18, bold: false, maxWidth: 175 },
 
-        qr: { x: 252, y: 75, cell: 4 },
+        qr: { x: 252, y: 72, cell: 4 },
 
         lblFecha: { x: -1, y: 188, size: 14, bold: true, text: "REG:" },
         valFecha: { x: -1, y: 210, size: 18, bold: false, maxWidth: 85 },
@@ -199,7 +200,7 @@ async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<
     // Dibujamos las líneas de separación. (Usamos líneas continuas en TSPL para mayor fidelidad en térmico)
     const part1 = encoder.encode(
         `SIZE 50 mm,30 mm\nGAP 2 mm,0\nCLS\n` +
-        `BAR 0,65,400,2\nBAR 0,180,400,2\nBAR 150,10,2,45\n`
+        `BAR 0,65,400,2\nBAR 0,184,400,2\nBAR 150,10,2,45\n`
     );
     const logo = await getTsplBitmap("/primt-img.png", 0, 8, 120, 56);
 
@@ -253,8 +254,15 @@ async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<
     bufs.push(await t(DESIGN.lblTipo, DESIGN.lblTipo.text));
     bufs.push(await t(DESIGN.valTipo, sanTipo || "-"));
 
-    const part3 = encoder.encode(`QRCODE ${DESIGN.qr.x},${DESIGN.qr.y},L,${DESIGN.qr.cell},A,0,"${sanUrl}"\nPRINT 1\r\n`);
-    bufs.push(part3);
+    if (qrTsplUrl) {
+        // Renderiza el QR como bitmap a 104x104 dots (13mm x 13mm en 203 DPI)
+        const qrImg = await getTsplBitmap(qrTsplUrl, DESIGN.qr.x, DESIGN.qr.y, 104, 104);
+        bufs.push(qrImg);
+        bufs.push(encoder.encode("PRINT 1\r\n"));
+    } else {
+        const part3 = encoder.encode(`QRCODE ${DESIGN.qr.x},${DESIGN.qr.y},L,${DESIGN.qr.cell},A,0,"${sanUrl}"\nPRINT 1\r\n`);
+        bufs.push(part3);
+    }
 
     const totalLength = bufs.reduce((acc, c) => acc + c.length, 0);
     const result = new Uint8Array(totalLength);
@@ -383,12 +391,12 @@ export async function generateAndOpenDetailedReceiptPdf(pkg: any, signal?: Abort
         }
     }
 
-    const trackingUrl = `${window.location.origin}/p/${packageId}`;
+    const trackingUrl = `${window.location.origin}/p/${encodeId(Number(packageId))}`;
 
     let qrTsplUrl = "";
     try {
         qrTsplUrl = await QRCode.toDataURL(trackingUrl, {
-            margin: 2, width: 200, errorCorrectionLevel: 'M',
+            margin: 0, width: 104, errorCorrectionLevel: 'M',
             color: { dark: '#000000', light: '#ffffff' },
         });
     } catch (e) { }
@@ -397,7 +405,7 @@ export async function generateAndOpenDetailedReceiptPdf(pkg: any, signal?: Abort
 
     // Generar la etiqueta con el bloque de "Mini-Bitmaps" optimizados
     const bufferData = await generarEtiquetaBuffer({
-        ubicacion, destNombre, destCel, costoDisplay, trackingUrl, packageId, remitente, remitenteCel, remitenteEmpresa, fechaRegistro, tipoPaquete
+        ubicacion, destNombre, destCel, costoDisplay, trackingUrl, packageId, remitente, remitenteCel, remitenteEmpresa, fechaRegistro, tipoPaquete, qrTsplUrl
     }, ofertaText);
 
     if (signal?.aborted) return;

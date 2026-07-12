@@ -10,6 +10,7 @@ import {
   View,
 } from "@react-pdf/renderer";
 import QRCode from "qrcode";
+import { encodeId } from "@/shared/lib/id-encoder";
 
 // ─── Dimensiones de salida ────────────────────────────────────────────────────
 // 38mm × 28mm en PostScript points (72 DPI)
@@ -194,7 +195,7 @@ export async function generateAndOpenReceiptPdf(pkg: any) {
   }
 
   // Generar el código QR apuntando a la ruta pública de seguimiento
-  const trackingUrl = `${window.location.origin}/p/${packageId}`;
+  const trackingUrl = `${window.location.origin}/p/${encodeId(Number(packageId))}`;
   let qrDataUrl = "";
   try {
     qrDataUrl = await QRCode.toDataURL(trackingUrl, {

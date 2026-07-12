@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { decodeId } from "@/shared/lib/id-encoder";
 import { calcularPrecioFinal } from "@/features/paquetes/lib/paquetes.utils";
 import { getPaqueteById } from "@/features/paquetes/services/paquetes.service";
 import { BtnTheme } from "@/shared/components/btn-theme";
@@ -39,14 +40,14 @@ import { auth } from "@/shared/lib/auth";
 export const dynamic = "force-dynamic";
 
 interface TrackingPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ codigo: string }>;
 }
 
 export default async function TrackingPage({ params }: TrackingPageProps) {
-  const { id: idStr } = await params;
-  const id = parseInt(idStr, 10);
+  const { codigo } = await params;
+  const id = decodeId(codigo);
 
-  if (Number.isNaN(id)) {
+  if (id === null) {
     return notFound();
   }
 
