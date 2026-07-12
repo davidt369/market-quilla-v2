@@ -120,29 +120,29 @@ export function ClientCombobox({
                                 </Button>
                             </CommandEmpty>
                             <CommandGroup>
-                                {clientes
-                                    .filter((c) =>
-                                        c.nombre_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                        c.ci_o_cel.includes(searchQuery)
-                                    )
-                                    .map((cliente) => (
-                                        <CommandItem
-                                            key={cliente.pk_id_cliente}
-                                            value={cliente.nombre_completo}
-                                            onSelect={() => {
-                                                onChange(cliente.pk_id_cliente);
-                                                setOpen(false);
-                                            }}
-                                        >
-                                            <Check
-                                                className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    value === cliente.pk_id_cliente ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {cliente.nombre_completo} - <span className="text-muted-foreground ml-1">{cliente.ci_o_cel}</span>
-                                        </CommandItem>
-                                    ))}
+                                {clientes.flatMap((cliente) =>
+                                    (cliente.nombre_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                     cliente.ci_o_cel.includes(searchQuery))
+                                        ? [
+                                              <CommandItem
+                                                  key={cliente.pk_id_cliente}
+                                                  value={cliente.nombre_completo}
+                                                  onSelect={() => {
+                                                      onChange(cliente.pk_id_cliente);
+                                                      setOpen(false);
+                                                  }}
+                                              >
+                                                  <Check
+                                                      className={cn(
+                                                          "mr-2 h-4 w-4",
+                                                          value === cliente.pk_id_cliente ? "opacity-100" : "opacity-0"
+                                                      )}
+                                                  />
+                                                  {cliente.nombre_completo} - <span className="text-muted-foreground ml-1">{cliente.ci_o_cel}</span>
+                                              </CommandItem>
+                                          ]
+                                        : []
+                                )}
                             </CommandGroup>
                         </CommandList>
                     </Command>

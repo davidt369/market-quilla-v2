@@ -144,6 +144,7 @@ export function DataTable<TData extends Record<string, unknown>>({
     }))
   }, [columnsDef])
 
+  // react-doctor-disable-next-line react-hooks-js/incompatible-library
   const table = useReactTable({
     data: rows,
     columns: tanstackColumns,

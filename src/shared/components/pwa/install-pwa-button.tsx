@@ -1,20 +1,24 @@
 "use client";
 
+import * as React from "react";
 import { useEffect, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Download, CheckCircle2 } from "lucide-react";
 
 export function InstallPwaButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const isStandalone = React.useSyncExternalStore(
+    (callback) => {
+      const mql = window.matchMedia("(display-mode: standalone)");
+      mql.addEventListener("change", callback);
+      return () => mql.removeEventListener("change", callback);
+    },
+    () => window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true,
+    () => false
+  );
 
   useEffect(() => {
-    // Verificar si ya estamos en la PWA (Standalone)
-    if (window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true) {
-      setIsStandalone(true);
-    }
-
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevenir el mini-infobar nativo de Chrome
       e.preventDefault();

@@ -1,6 +1,7 @@
 "use client";
 
 import { Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 import {
     Dialog,
     DialogContent,
@@ -38,10 +39,12 @@ export function ViewEvidenciaModal({ url, children }: ViewEvidenciaModalProps) {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex items-center justify-center rounded-md overflow-hidden bg-muted/10 border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
+                    <Image 
                         src={url} 
-                        alt="Evidencia de entrega" 
+                        alt="Evidencia de entrega"
+                        width={1200}
+                        height={1200}
+                        unoptimized
                         className="max-h-[75vh] w-auto max-w-[100%] object-contain"
                     />
                 </div>

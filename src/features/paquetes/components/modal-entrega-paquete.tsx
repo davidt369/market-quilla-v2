@@ -35,19 +35,19 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
     const tieneDeuda = pricing.saldoPendiente > 0;
 
     React.useEffect(() => {
-        if (!file) {
-            setPreviewUrl(null);
-            return;
-        }
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
-        return () => URL.revokeObjectURL(url);
-    }, [file]);
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const originalFile = e.target.files?.[0];
         if (!originalFile) {
             setFile(null);
+            setPreviewUrl((prev) => {
+                if (prev) URL.revokeObjectURL(prev);
+                return null;
+            });
             return;
         }
 
@@ -60,9 +60,12 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
         const ext = originalFile.name.split('.').pop() || "jpg";
 
         const newName = `${fecha}_${destNombre}_${destCel}_${ubicacion}.${ext}`;
-        const renamedFile = new File([originalFile], newName, { type: originalFile.type });
-
-        setFile(renamedFile);
+        const finalFile = new File([originalFile], newName, { type: originalFile.type });
+        setFile(finalFile);
+        setPreviewUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return URL.createObjectURL(finalFile);
+        });
     };
 
     return (

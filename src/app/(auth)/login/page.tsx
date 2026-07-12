@@ -22,10 +22,13 @@ export default async function LoginPage() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 z-0" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4 z-0" />
 
-        <img
+        <Image
           src="/market-quilla-1200px.webp"
           alt="Market Quilla Workspace"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-[20s] hover:scale-110 opacity-70"
+          fill
+          sizes="50vw"
+          priority
+          className="object-cover transition-transform duration-[20s] hover:scale-110 opacity-70"
         />
 
         <div className="absolute bottom-16 left-16 right-16 z-20">

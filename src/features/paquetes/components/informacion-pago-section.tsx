@@ -17,8 +17,16 @@ import {
 import { SectionCard, SectionTitle } from "./form-layout";
 
 export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolean }) {
-    const { control, watch } = useFormContext<PaqueteCompletoFormData>();
+    const { control, watch, setValue } = useFormContext<PaqueteCompletoFormData>();
     const momentoPago = watch("momentoPago");
+    const precioOferta = watch("precioOferta");
+    const hasOferta = precioOferta && Number(precioOferta) > 0;
+
+    React.useEffect(() => {
+        if (hasOferta && momentoPago !== "al_registrar") {
+            setValue("momentoPago", "al_registrar", { shouldValidate: true });
+        }
+    }, [hasOferta, momentoPago, setValue]);
 
     return (
         <SectionCard step={4}>
@@ -44,7 +52,7 @@ export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolea
                             name={field.name}
                             value={field.value ?? ""}
                             onValueChange={field.onChange}
-                            disabled={isPagado}
+                            disabled={isPagado || Boolean(hasOferta)}
                         >
                             <SelectTrigger id={field.name} aria-invalid={fieldState.invalid} className="w-full">
                                 <SelectValue placeholder="Seleccione cuándo pagará" />

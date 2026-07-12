@@ -28,6 +28,7 @@ export async function createUsuarioAction(
     formData: FormData
 ): Promise<ActionState> {
     try {
+        await requirePermission(PERMISSIONS.GESTIONAR_USUARIOS);
         const parsed = usuarioFormSchema.safeParse({
             nombre_completo: formData.get("nombre_completo"),
             nombre_usuario: formData.get("nombre_usuario"),

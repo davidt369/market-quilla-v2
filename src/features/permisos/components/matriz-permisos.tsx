@@ -66,9 +66,9 @@ export function MatrizPermisos({ permisos, asignaciones }: MatrizPermisosProps) 
   const toggleAllInModule = (rol: RolBase, module: PermissionModule, active: boolean) => {
     if (rol === "administrador") return;
 
-    const modulePermisos = permisos
-      .filter((p) => p.modulo === module && p.activo)
-      .map((p) => p.pk_id_permiso);
+    const modulePermisos = permisos.flatMap((p) =>
+      p.modulo === module && p.activo ? [p.pk_id_permiso] : []
+    );
 
     setLocalAsignaciones((prev) => ({
       ...prev,
@@ -91,7 +91,6 @@ export function MatrizPermisos({ permisos, asignaciones }: MatrizPermisosProps) 
       setDirty(false);
     } catch {
       toast.error("Error al guardar los permisos");
-    } finally {
       setPending(false);
     }
   };

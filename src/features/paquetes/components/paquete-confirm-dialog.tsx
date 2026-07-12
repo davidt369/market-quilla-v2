@@ -29,13 +29,12 @@ export function PaqueteConfirmDialog({
     onConfirm,
 }: PaqueteConfirmDialogProps) {
     const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr">("efectivo");
+    const [prevOpen, setPrevOpen] = React.useState(open);
 
-    // Reiniciar método de pago cuando se abre el modal
-    React.useEffect(() => {
-        if (open) {
-            setMetodoPago("efectivo");
-        }
-    }, [open]);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
+        if (open) setMetodoPago("efectivo");
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -195,7 +195,7 @@ export const getInventarioCriticoService = auditable(
         let totalMultasAcumuladas = 0;
         let cantidadEstancados = 0;
 
-        const estancados = paquetesEnAlmacen.map(p => {
+        const estancados = paquetesEnAlmacen.flatMap(p => {
             const { 
                 saldoPendiente, 
                 semanasPasadas, 
@@ -219,7 +219,11 @@ export const getInventarioCriticoService = auditable(
                 cantidadEstancados++;
             }
 
-            return {
+            if (semanasPasadas < 1) {
+                return [];
+            }
+
+            return [{
                 id: p.id,
                 ubicacion: p.ubicacion,
                 fechaRegistro: p.fechaRegistro,
@@ -227,9 +231,8 @@ export const getInventarioCriticoService = auditable(
                 saldoPendiente,
                 semanasPasadas,
                 recargoAplicado
-            };
-        }).filter(p => p.semanasPasadas >= 1) // Filtramos solo los que llevan al menos 1 semana estancados
-          .sort((a, b) => b.semanasPasadas - a.semanasPasadas);
+            }];
+        }).sort((a, b) => b.semanasPasadas - a.semanasPasadas);
 
         return {
             resumen: {

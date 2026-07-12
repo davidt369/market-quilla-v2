@@ -69,11 +69,11 @@ export default function MobileTabBar() {
     const permissions = useAuthStore((s) => s.permissions)
     const { setOpenMobile } = useSidebar()
 
-    const [isMounted, setIsMounted] = React.useState(false)
-
-    React.useEffect(() => {
-        setIsMounted(true)
-    }, [])
+    const isMounted = React.useSyncExternalStore(
+        () => () => {},
+        () => true,
+        () => false
+    )
 
     const visibleTabs = baseTabs.filter(
         (tab) => !tab.permission || (isMounted && hasPermission(tab.permission))

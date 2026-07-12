@@ -42,7 +42,6 @@ export function PrintOptionDialog({ isOpen, onClose, pkg }: PrintOptionDialogPro
             console.error(`[PrintOptionDialog - ${type}]`, err);
             toast.dismiss(toastId);
             toast.error("Ocurrió un error al generar el PDF de impresión.");
-        } finally {
             setPrintingType(null);
         }
     };

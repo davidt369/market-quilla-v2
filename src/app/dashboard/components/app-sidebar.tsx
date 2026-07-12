@@ -140,30 +140,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ]
 
-  const [isMounted, setIsMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  const isMounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
 
   // Buscar el mejor match para la ruta activa (el que tenga la URL más larga que coincida con el pathname)
-  const bestMatchUrl = React.useMemo(() => {
-    const matches = navigationGroups
-      .flatMap((g) => g.items)
-      .filter((item) => pathname === item.url || pathname.startsWith(`${item.url}/`));
+  const matches = navigationGroups.flatMap((g) =>
+    g.items.filter((item) => pathname === item.url || pathname.startsWith(`${item.url}/`))
+  );
 
-    matches.sort((a, b) => b.url.length - a.url.length);
-    return matches[0]?.url;
-  }, [pathname, navigationGroups]);
+  matches.sort((a, b) => b.url.length - a.url.length);
+  const bestMatchUrl = matches[0]?.url;
 
-  const filteredGroups = navigationGroups
-    .map((group) => ({
-      ...group,
-      items: group.items.filter(
-        (item) => !item.permission || (isMounted && hasPermission(item.permission))
-      ),
-    }))
-    .filter((group) => group.items.length > 0)
+  const filteredGroups = navigationGroups.flatMap((group) => {
+    const filteredItems = group.items.filter(
+      (item) => !item.permission || (isMounted && hasPermission(item.permission))
+    );
+    return filteredItems.length > 0 ? [{ ...group, items: filteredItems }] : [];
+  });
 
   return (
     <Sidebar className="border-r bg-gradient-to-b from-yellow-500/20 to-background dark:from-yellow-500/10 dark:to-background backdrop-blur-lg" {...props}>
@@ -235,7 +231,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             )}
                             render={
                               item.newTab ? (
-                                <a href={item.url} target="_blank" rel="noopener noreferrer" />
+                                <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={item.title} />
                               ) : (
                                 <Link href={item.url} />
                               )

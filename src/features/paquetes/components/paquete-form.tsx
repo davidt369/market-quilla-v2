@@ -110,12 +110,11 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                     description: result.error || "No se pudo procesar la solicitud. Verifique los datos e intente nuevamente.",
                     icon: <AlertCircle className="h-5 w-5 text-destructive" />
                 });
+                setIsSubmitting(false);
             }
-        } catch (error) {
-            toast.error("Error inesperado", {
-                description: "Ocurrió un problema de conexión. Intente nuevamente."
-            });
-        } finally {
+            setConfirmModalOpen(false);
+        } catch (error: any) {
+            toast.error(error.message || "Error al guardar el paquete");
             setIsSubmitting(false);
             setConfirmModalOpen(false);
         }

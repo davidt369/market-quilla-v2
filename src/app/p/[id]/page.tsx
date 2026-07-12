@@ -483,10 +483,12 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                 </CardHeader>
                 <CardContent className="pb-3.5 pt-1">
                   <div className="relative rounded-lg overflow-hidden border border-border bg-muted flex items-center justify-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={paquete.fotoEntregadoUrl}
                       alt="Evidencia fotográfica del paquete entregado"
+                      width={800}
+                      height={600}
+                      unoptimized
                       className="w-full h-auto max-h-48 object-cover"
                     />
                   </div>

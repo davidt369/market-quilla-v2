@@ -15,30 +15,37 @@ export function TipoPaqueteSection() {
     const dias = React.useMemo(() => ["D", "L", "M", "MI", "J", "V", "S"], []);
     const diaActual = React.useMemo(() => dias[new Date().getDay()], [dias]);
 
-    const [dia, setDia] = React.useState(diaActual);
-    const [nCaja, setNCaja] = React.useState("");
-    const [nPaquete, setNPaquete] = React.useState("AUTO");
-    const [extra, setExtra] = React.useState("");
-
-    // Parse initial value from form if it exists (e.g. edit mode)
-    React.useEffect(() => {
+    const [dia, setDia] = React.useState(() => {
         const initialValue = getValues("ubicacionAlmacen") || "";
         if (initialValue.includes("/")) {
-            const parts = initialValue.split("/");
-            if (parts.length >= 2) {
-                setDia(parts[0] || diaActual);
-                setNCaja(parts[1] || "");
-                setNPaquete(parts[2] || "");
-                setExtra(parts[3] || "");
-            }
-        } else {
-            setExtra(initialValue);
-            // Default to AUTO for new packages
-            if (!initialValue) {
-                setNPaquete("AUTO");
-            }
+            return initialValue.split("/")[0] || diaActual;
         }
-    }, [getValues, diaActual]);
+        return diaActual;
+    });
+
+    const [nCaja, setNCaja] = React.useState(() => {
+        const initialValue = getValues("ubicacionAlmacen") || "";
+        if (initialValue.includes("/")) {
+            return initialValue.split("/")[1] || "";
+        }
+        return "";
+    });
+
+    const [nPaquete, setNPaquete] = React.useState(() => {
+        const initialValue = getValues("ubicacionAlmacen") || "";
+        if (initialValue.includes("/")) {
+            return initialValue.split("/")[2] || "";
+        }
+        return initialValue ? "" : "AUTO";
+    });
+
+    const [extra, setExtra] = React.useState(() => {
+        const initialValue = getValues("ubicacionAlmacen") || "";
+        if (initialValue.includes("/")) {
+            return initialValue.split("/")[3] || "";
+        }
+        return initialValue;
+    });
 
     // Synchronize individual inputs with the form's location string
     React.useEffect(() => {

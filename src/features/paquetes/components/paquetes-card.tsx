@@ -61,7 +61,6 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
             }
         } catch (error: any) {
             toast.error(error.message || "Error al conectar con el servidor.");
-        } finally {
             setIsSubmitting(false);
         }
     };
@@ -77,9 +76,8 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
             } else {
                 toast.error(result.error || "Ocurrió un error al eliminar el paquete.");
             }
-        } catch (error: any) {
-            toast.error(error.message || "Error al conectar con el servidor.");
-        } finally {
+        } catch (error) {
+            toast.error("Error al anular paquete");
             setIsDeleting(false);
         }
     };

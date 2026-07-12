@@ -8,8 +8,12 @@ import {
     getInventarioCriticoService
 } from "../services/reportes.service";
 
+import { requirePermission } from "@/shared/lib/auth-utils";
+import { PERMISSIONS } from "@/shared/config/permisos.constants";
+
 export async function getDashboardReportesAction(fechaInicioISO: string, fechaFinISO: string) {
     try {
+        await requirePermission(PERMISSIONS.VER_REPORTES);
         const fechaInicio = new Date(fechaInicioISO);
         const fechaFin = new Date(fechaFinISO);
         

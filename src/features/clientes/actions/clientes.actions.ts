@@ -33,6 +33,7 @@ export async function createClienteAction(
   formData: FormData
 ): Promise<ActionState> {
   try {
+    await requirePermission(PERMISSIONS.GESTIONAR_CLIENTES);
     const parsed = clienteFormSchema.safeParse({
       nombre_completo: formData.get("nombre_completo"),
       empresa: formData.get("empresa"),
