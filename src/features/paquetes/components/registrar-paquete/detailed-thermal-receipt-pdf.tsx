@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 import React from "react";
 import QRCode from "qrcode";
 import { formatBoliviaDateOnly } from "@/shared/lib/timezone";
+import { toast } from "sonner";
 
 // ─── Utilidad: Retraso para el envío por Bluetooth ──────────────────────────
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -266,173 +267,8 @@ async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<
     return result;
 }
 
-// ─── Vista Previa para Bluetooth (DISEÑO CLARO/BLANCO) ───
-function showPreviewModal(data: {
-    ubic: string; dest: string; cel: string; costo: string;
-    qrUrl: string; packageId: string; trackingUrl: string;
-    ofertaText: string; remitente: string; remitenteCel: string; remitenteEmpresa: string; fecha: string; tipoPaquete: string;
-}): Promise<boolean> {
-    return new Promise((resolve) => {
-        const overlay = document.createElement('div');
-        Object.assign(overlay.style, {
-            position: 'fixed', inset: '0',
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            zIndex: '99999', display: 'flex', justifyContent: 'center',
-            alignItems: 'center', backdropFilter: 'blur(2px)',
-            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-        });
 
-        const modal = document.createElement('div');
-        Object.assign(modal.style, {
-            backgroundColor: '#ffffff', borderRadius: '12px',
-            padding: '24px', width: '420px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.2)', color: '#111827',
-            display: 'flex', flexDirection: 'column', gap: '20px',
-            alignItems: 'center',
-        });
-
-        const title = document.createElement('div');
-        Object.assign(title.style, {
-            fontSize: '16px', fontWeight: '700', textAlign: 'center',
-            color: '#111827'
-        });
-        title.innerText = '📦 Vista Previa de Impresión';
-
-        // ── ETIQUETA ESCALADA 1:1 PROFESIONAL (50x30mm) ──
-        const label = document.createElement('div');
-        Object.assign(label.style, {
-            width: '400px', height: '240px',
-            backgroundColor: '#ffffff', color: '#000000',
-            position: 'relative', overflow: 'hidden',
-            fontFamily: 'monospace', border: '1px solid #e5e7eb',
-        });
-
-        const addDiv = (style: any) => {
-            const el = document.createElement('div');
-            Object.assign(el.style, { position: 'absolute', backgroundColor: '#000', ...style });
-            label.appendChild(el);
-        };
-
-        // Líneas sólidas
-        addDiv({ top: '65px', left: '0px', right: '0px', height: '2px' });
-        addDiv({ top: '180px', left: '0px', right: '0px', height: '2px' });
-        addDiv({ top: '10px', left: '150px', width: '2px', height: '45px' });
-
-        // Se han quitado las líneas punteadas interiores para dar más espacio
-
-        const addText = (text: string, x: number, y: number, size: number, bold: boolean = false, maxWidth?: number, wrapLines?: boolean) => {
-            const el = document.createElement('div');
-            Object.assign(el.style, {
-                position: 'absolute', left: `${x}px`, top: `${y}px`,
-                fontSize: `${size}px`, fontWeight: bold ? '900' : 'bold',
-                lineHeight: '1.2',
-                whiteSpace: wrapLines ? 'normal' : 'nowrap',
-                overflow: 'hidden',
-                wordBreak: wrapLines ? 'break-word' : 'normal'
-            });
-            if (maxWidth) el.style.maxWidth = `${maxWidth}px`;
-            el.innerText = text;
-            label.appendChild(el);
-        };
-
-        const logoImg = document.createElement('img');
-        logoImg.src = '/primt-img.png';
-        Object.assign(logoImg.style, {
-            position: 'absolute', left: '0px', top: '8px',
-            width: '120px', height: '56px', objectFit: 'contain'
-        });
-        label.appendChild(logoImg);
-
-        addText("UBIC:", 160, 25, 14, false);
-        addText(data.ubic.substring(0, 40), 205, 21, 27, true, 190);
-
-        let remY = 70;
-        if (data.remitente) {
-            addText("DE:", 0, remY, 12, true);
-            addText(data.remitente.substring(0, 40), 30, remY, 16, false, 215);
-            remY += 22;
-        }
-        if (data.remitenteEmpresa) {
-            addText("EMP:", 0, remY, 12, true);
-            addText(data.remitenteEmpresa.substring(0, 40), 40, remY, 16, true, 205);
-            remY += 22;
-        }
-        if (data.remitenteCel) {
-            addText("CI/CEL:", 0, remY, 12, true);
-            addText(data.remitenteCel, 65, remY, 16, false, 180);
-            remY += 22;
-        }
-
-        let destY = 140;
-        if (data.dest) {
-            addText("PARA:", 0, destY, 12, true);
-            addText(data.dest.substring(0, 40), 55, destY, 18, false, 190);
-            destY += 22;
-        }
-        if (data.cel) {
-            addText("CI/CEL:", 0, destY, 12, true);
-            addText(data.cel, 70, destY, 18, false, 175);
-            destY += 22;
-        }
-
-        const qrImg = document.createElement('img');
-        qrImg.src = data.qrUrl;
-        Object.assign(qrImg.style, {
-            position: 'absolute', left: '252px', top: '75px',
-            width: '104px', height: '104px', imageRendering: 'pixelated'
-        });
-        label.appendChild(qrImg);
-
-        addText("REGISTRO:", 0, 188, 14, true);
-        addText(data.fecha, 0, 210, 18, false, 85);
-
-        addText("COSTO:", 90, 188, 14, true);
-        addText(data.costo, 90, 210, 18, false, 75);
-
-        if (data.ofertaText) {
-            addText("GRATIS:", 170, 188, 14, true);
-            addText(data.ofertaText, 170, 210, 18, false, 70);
-        }
-
-        addText("TIPO DE PAQUETE:", 245, 188, 12, true, 150, true);
-        addText(data.tipoPaquete || "-", 245, 210, 18, false, 150, true);
-
-        // Actions
-        const btnRow = document.createElement('div');
-        Object.assign(btnRow.style, { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%' });
-
-        const mkBtn = (text: string, primary: boolean) => {
-            const btn = document.createElement('button');
-            btn.innerHTML = text;
-            Object.assign(btn.style, {
-                padding: '10px 0', border: primary ? 'none' : '1px solid #d1d5db',
-                borderRadius: '6px', backgroundColor: primary ? '#2563eb' : '#ffffff',
-                color: primary ? '#ffffff' : '#374151', fontWeight: '600', fontSize: '14px',
-                cursor: 'pointer', width: '100%'
-            });
-            return btn;
-        };
-
-        const btnCancel = mkBtn('Cancelar', false);
-        const btnPrint = mkBtn('Imprimir', true);
-        btnCancel.onclick = () => { document.body.removeChild(overlay); resolve(false); };
-        btnPrint.onclick = () => {
-            btnPrint.innerHTML = 'Imprimiendo...';
-            setTimeout(() => { document.body.removeChild(overlay); resolve(true); }, 100);
-        };
-
-        btnRow.appendChild(btnCancel);
-        btnRow.appendChild(btnPrint);
-
-        modal.appendChild(title);
-        modal.appendChild(label);
-        modal.appendChild(btnRow);
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
-    });
-}
-
-async function printViaBLE(data: Uint8Array) {
+async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
     const SERVICE_UUID = "49535343-fe7d-4ae5-8fa9-9fafd205e455";
     const nav: any = navigator;
     let hasBluetooth = !!nav.bluetooth;
@@ -441,10 +277,25 @@ async function printViaBLE(data: Uint8Array) {
     }
     if (!hasBluetooth) throw new Error("Bluetooth no disponible.");
 
-    const device = await nav.bluetooth.requestDevice({
-        filters: [{ namePrefix: "T-IM" }], optionalServices: [SERVICE_UUID],
-    });
+    if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
+
+    // Algunas implementaciones de Web Bluetooth soportan signal en requestDevice.
+    const reqOptions: any = {
+        filters: [{ namePrefix: "T-IM" }], optionalServices: [SERVICE_UUID]
+    };
+    // if (signal) reqOptions.signal = signal; // Descomentar si tu navegador soporta signal en requestDevice.
+    
+    // Si el usuario cancela, el promise rejecteará si el navegador soporta abortar,
+    // o simplemente verificamos justo después.
+    const device = await nav.bluetooth.requestDevice(reqOptions);
+    if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
+
     const server = await device.gatt.connect();
+    if (signal?.aborted) {
+        server.disconnect();
+        throw new DOMException("Abortado por el usuario", "AbortError");
+    }
+
     const service = await server.getPrimaryService(SERVICE_UUID);
     const chars = await service.getCharacteristics();
     let bleWrite: any = null;
@@ -457,6 +308,10 @@ async function printViaBLE(data: Uint8Array) {
 
     // Trozos pequeños (20 bytes) para no saturar memoria BLE
     for (let i = 0; i < data.length; i += 20) {
+        if (signal?.aborted) {
+            server.disconnect();
+            throw new DOMException("Abortado por el usuario", "AbortError");
+        }
         const bloque = data.slice(i, i + 20);
         if (bleWrite.properties.write) await bleWrite.writeValue(bloque);
         else await bleWrite.writeValueWithoutResponse(bloque);
@@ -464,9 +319,13 @@ async function printViaBLE(data: Uint8Array) {
     }
 }
 
-async function printViaUSB(data: Uint8Array) {
+async function printViaUSB(data: Uint8Array, signal?: AbortSignal) {
     const nav: any = navigator;
+    if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
+
     const usbDevice = await nav.usb.requestDevice({ filters: [] });
+    if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
+
     await usbDevice.open();
     if (usbDevice.configuration === null) await usbDevice.selectConfiguration(1);
     await usbDevice.claimInterface(0);
@@ -474,13 +333,15 @@ async function printViaUSB(data: Uint8Array) {
     const eps = usbDevice.configuration.interfaces[0].alternate.endpoints;
     const out = eps.find((e: any) => e.direction === "out");
     if (!out) throw new Error("Endpoint de salida no encontrado");
+    
+    if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
     await usbDevice.transferOut(out.endpointNumber, data);
 }
 
 // ============================================================================
 // FUNCIÓN PRINCIPAL
 // ============================================================================
-export async function generateAndOpenDetailedReceiptPdf(pkg: any) {
+export async function generateAndOpenDetailedReceiptPdf(pkg: any, signal?: AbortSignal) {
     const ubicacion = String(pkg?.ubicacionAlmacen || "").toUpperCase();
     const destNombre = String(pkg?.destinatario?.nombre_completo || "").toUpperCase();
     const destCel = String(pkg?.destinatario?.ci_o_cel || pkg?.destinatario?.celular || "").toUpperCase();
@@ -532,18 +393,14 @@ export async function generateAndOpenDetailedReceiptPdf(pkg: any) {
         });
     } catch (e) { }
 
-    const confirmed = await showPreviewModal({
-        ubic: ubicacion, dest: destNombre, cel: destCel,
-        costo: costoDisplay, qrUrl: qrTsplUrl, packageId, trackingUrl, ofertaText,
-        remitente, remitenteCel, remitenteEmpresa, fecha: fechaRegistro, tipoPaquete
-    });
-
-    if (!confirmed) return;
+    if (signal?.aborted) return;
 
     // Generar la etiqueta con el bloque de "Mini-Bitmaps" optimizados
     const bufferData = await generarEtiquetaBuffer({
         ubicacion, destNombre, destCel, costoDisplay, trackingUrl, packageId, remitente, remitenteCel, remitenteEmpresa, fechaRegistro, tipoPaquete
     }, ofertaText);
+
+    if (signal?.aborted) return;
 
     try {
         const nav: any = navigator;
@@ -553,14 +410,27 @@ export async function generateAndOpenDetailedReceiptPdf(pkg: any) {
         }
 
         if (hasBluetooth) {
-            await printViaBLE(bufferData);
+            await printViaBLE(bufferData, signal);
         } else if (nav.usb) {
-            await printViaUSB(bufferData);
+            await printViaUSB(bufferData, signal);
         } else {
-            alert("Este navegador no soporta Web Bluetooth ni Web USB.");
+            toast.warning("Este navegador no soporta Web Bluetooth ni Web USB. Usa Chrome o Edge para imprimir.");
         }
     } catch (e: any) {
+        if (e.name === 'AbortError') {
+            toast.info("Impresión cancelada.");
+            return;
+        }
+        
+        // Si el usuario simplemente canceló el diálogo de selección de dispositivo, no mostramos un error ruidoso
+        if (e.name === 'NotFoundError' || e.message?.includes('No device selected') || e.message?.includes('User cancelled')) {
+            toast.info("Selección de impresora cancelada.");
+            return;
+        }
+        
+        // Solo hacemos console.error si es un error real, para evitar que Next.js levante el overlay rojo
         console.error("PRINT ERROR:", e);
-        if (e.message) alert("Error de impresión TSPL: " + e.message);
+        
+        toast.error(e.message ? "Error al imprimir: " + e.message : "Error desconocido al imprimir.");
     }
 }

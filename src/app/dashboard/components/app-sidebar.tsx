@@ -147,19 +147,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   )
 
   // Buscar el mejor match para la ruta activa (el que tenga la URL más larga que coincida con el pathname)
-  const matches = navigationGroups.flatMap((g) =>
-    g.items.filter((item) => pathname === item.url || pathname.startsWith(`${item.url}/`))
-  );
+  const matches = navigationGroups.reduce<typeof navigationGroups[0]['items']>((acc, g) => {
+    for (const item of g.items) {
+      if (pathname === item.url || pathname.startsWith(`${item.url}/`)) {
+        acc.push(item);
+      }
+    }
+    return acc;
+  }, []);
 
   matches.sort((a, b) => b.url.length - a.url.length);
   const bestMatchUrl = matches[0]?.url;
 
-  const filteredGroups = navigationGroups.flatMap((group) => {
+  const filteredGroups = navigationGroups.reduce<typeof navigationGroups>((acc, group) => {
     const filteredItems = group.items.filter(
       (item) => !item.permission || (isMounted && hasPermission(item.permission))
     );
-    return filteredItems.length > 0 ? [{ ...group, items: filteredItems }] : [];
-  });
+    if (filteredItems.length > 0) {
+      acc.push({ ...group, items: filteredItems });
+    }
+    return acc;
+  }, []);
 
   return (
     <Sidebar className="border-r bg-gradient-to-b from-yellow-500/20 to-background dark:from-yellow-500/10 dark:to-background backdrop-blur-lg" {...props}>

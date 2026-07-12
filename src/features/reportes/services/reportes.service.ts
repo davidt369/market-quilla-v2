@@ -195,7 +195,8 @@ export const getInventarioCriticoService = auditable(
         let totalMultasAcumuladas = 0;
         let cantidadEstancados = 0;
 
-        const estancados = paquetesEnAlmacen.flatMap(p => {
+        const estancados = [];
+        for (const p of paquetesEnAlmacen) {
             const { 
                 saldoPendiente, 
                 semanasPasadas, 
@@ -219,20 +220,20 @@ export const getInventarioCriticoService = auditable(
                 cantidadEstancados++;
             }
 
-            if (semanasPasadas < 1) {
-                return [];
+            if (semanasPasadas >= 1) {
+                estancados.push({
+                    id: p.id,
+                    ubicacion: p.ubicacion,
+                    fechaRegistro: p.fechaRegistro,
+                    remitente: p.remitente,
+                    saldoPendiente,
+                    semanasPasadas,
+                    recargoAplicado
+                });
             }
-
-            return [{
-                id: p.id,
-                ubicacion: p.ubicacion,
-                fechaRegistro: p.fechaRegistro,
-                remitente: p.remitente,
-                saldoPendiente,
-                semanasPasadas,
-                recargoAplicado
-            }];
-        }).sort((a, b) => b.semanasPasadas - a.semanasPasadas);
+        }
+        
+        estancados.sort((a, b) => b.semanasPasadas - a.semanasPasadas);
 
         return {
             resumen: {
