@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React from "react";
 import QRCode from "qrcode";
 import { formatBoliviaDateOnly } from "@/shared/lib/timezone";
@@ -186,14 +186,14 @@ async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<
         lblFecha: { x: -1, y: 188, size: 14, bold: true, text: "REG:" },
         valFecha: { x: -1, y: 210, size: 18, bold: false, maxWidth: 85 },
 
-        lblCosto: { x: 90, y: 188, size: 14, bold: true, text: "COSTO:" },
-        valCosto: { x: 90, y: 210, size: 18, bold: false, maxWidth: 75 },
+        lblCosto: { x: 80, y: 188, size: 14, bold: true, text: "COSTO:" },
+        valCosto: { x: 80, y: 210, size: 18, bold: false, maxWidth: 75 },
 
-        lblVence: { x: 170, y: 188, size: 14, bold: true, text: "GRATIS:" },
-        valVence: { x: 170, y: 210, size: 18, bold: false, maxWidth: 70 },
+        lblVence: { x: 160, y: 188, size: 14, bold: true, text: "GRATIS:" },
+        valVence: { x: 160, y: 210, size: 15, bold: false, maxWidth: 70 },
 
-        lblTipo: { x: 245, y: 188, size: 12, bold: true, text: "TIPO DE PAQUETE:", maxWidth: 150, wrapLines: true },
-        valTipo: { x: 245, y: 207, size: 15, bold: false, maxWidth: 150, wrapLines: true }
+        lblTipo: { x: 238, y: 188, size: 12, bold: true, text: "TIPO DE PAQUETE:", maxWidth: 150, wrapLines: true },
+        valTipo: { x: 238, y: 207, size: 15, bold: false, maxWidth: 150, wrapLines: true }
     };
 
     // Dibujamos las líneas de separación. (Usamos líneas continuas en TSPL para mayor fidelidad en térmico)
@@ -284,7 +284,7 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
         filters: [{ namePrefix: "T-IM" }], optionalServices: [SERVICE_UUID]
     };
     // if (signal) reqOptions.signal = signal; // Descomentar si tu navegador soporta signal en requestDevice.
-    
+
     // Si el usuario cancela, el promise rejecteará si el navegador soporta abortar,
     // o simplemente verificamos justo después.
     const device = await nav.bluetooth.requestDevice(reqOptions);
@@ -333,7 +333,7 @@ async function printViaUSB(data: Uint8Array, signal?: AbortSignal) {
     const eps = usbDevice.configuration.interfaces[0].alternate.endpoints;
     const out = eps.find((e: any) => e.direction === "out");
     if (!out) throw new Error("Endpoint de salida no encontrado");
-    
+
     if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
     await usbDevice.transferOut(out.endpointNumber, data);
 }
@@ -421,16 +421,16 @@ export async function generateAndOpenDetailedReceiptPdf(pkg: any, signal?: Abort
             toast.info("Impresión cancelada.");
             return;
         }
-        
+
         // Si el usuario simplemente canceló el diálogo de selección de dispositivo, no mostramos un error ruidoso
         if (e.name === 'NotFoundError' || e.message?.includes('No device selected') || e.message?.includes('User cancelled')) {
             toast.info("Selección de impresora cancelada.");
             return;
         }
-        
+
         // Solo hacemos console.error si es un error real, para evitar que Next.js levante el overlay rojo
         console.error("PRINT ERROR:", e);
-        
+
         toast.error(e.message ? "Error al imprimir: " + e.message : "Error desconocido al imprimir.");
     }
 }
