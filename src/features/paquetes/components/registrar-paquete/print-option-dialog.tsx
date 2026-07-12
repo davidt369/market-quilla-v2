@@ -36,6 +36,8 @@ export function PrintOptionDialog({ isOpen, onClose, pkg }: PrintOptionDialogPro
             toast.dismiss(toastId);
             toast.success("Impresión finalizada.");
             onClose();
+            setIsPrinting(false);
+            abortControllerRef.current = null;
         } catch (err: any) {
             console.error(`[PrintOptionDialog]`, err);
             toast.dismiss(toastId);
@@ -43,7 +45,6 @@ export function PrintOptionDialog({ isOpen, onClose, pkg }: PrintOptionDialogPro
             if (err.name !== "AbortError") {
                 toast.error("Ocurrió un error al intentar imprimir.");
             }
-        } finally {
             setIsPrinting(false);
             abortControllerRef.current = null;
         }

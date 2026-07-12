@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import AppUser from "./app-user"
 import { SidebarTrigger } from "@/shared/components/ui/sidebar"
 import { BtnTheme } from "@/shared/components/btn-theme"
+import { QrReaderDialog } from "./qr-reader-dialog"
 import { cn } from "@/shared/lib/utils"
 import {
   Breadcrumb,
@@ -90,6 +91,7 @@ export default function AppHeader() {
 
         {/* Right Section */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          <QrReaderDialog />
           <BtnTheme />
           <div className="h-6 w-px bg-border hidden sm:block" />
           <AppUser />
