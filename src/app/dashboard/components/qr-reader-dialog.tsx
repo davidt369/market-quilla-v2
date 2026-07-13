@@ -17,57 +17,68 @@ export function QrReaderDialog() {
 
   useEffect(() => {
     let mounted = true
+    let html5QrCode: Html5Qrcode | null = null
 
     if (isOpen) {
-      // Validar si hay cámaras disponibles
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setError("Cámara no disponible. Asegúrate de usar HTTPS o localhost.")
         return
       }
 
-      // Dar tiempo a que el Dialog monte el div con id=qrcodeRegionId en el DOM
       const timer = setTimeout(() => {
         if (!mounted) return
 
-        const html5QrCode = new Html5Qrcode(qrcodeRegionId)
-        scannerRef.current = html5QrCode
+        try {
+          html5QrCode = new Html5Qrcode(qrcodeRegionId)
+          scannerRef.current = html5QrCode
 
-        // Iniciamos la cámara trasera
-        html5QrCode.start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }, // Dibuja automáticamente un área de escaneo
-            aspectRatio: 1.0,
-          },
-          (decodedText) => {
+          html5QrCode.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0,
+            },
+            (decodedText) => {
+              if (mounted) setResult(decodedText)
+            },
+            () => {} // Ignorar advertencias de frames sin QR
+          ).catch((err) => {
             if (mounted) {
-              setResult(decodedText)
-              // Opcional: si quisieras que pare al encontrar uno, descomenta lo siguiente:
-              // html5QrCode.stop().catch(console.error)
+              // Usamos console.warn en lugar de console.error para que Next.js no 
+              // muestre la pantalla roja en desarrollo cuando el usuario simplemente deniega el permiso.
+              console.warn("Scanner start error:", err)
+              
+              // Mostrar un error amigable si el permiso es denegado explícitamente
+              if (err?.name === 'NotAllowedError' || err?.toString().includes('NotAllowedError') || err?.toString().includes('Permission denied')) {
+                setError("El dispositivo denegó el acceso a la cámara. Revisa los permisos de la app.")
+              } else {
+                setError("No se pudo acceder a la cámara.")
+              }
             }
-          },
-          (errorMessage) => {
-            // Ignorar los errores de "no se encontró código" que ocurren en cada frame
-          }
-        ).catch((err) => {
-          if (mounted) {
-            console.error("Scanner start error:", err)
-            setError("No se pudo acceder a la cámara. Revisa los permisos.")
-          }
-        })
-      }, 150) // Ligero delay para asegurar el montaje del modal
+          })
+        } catch (error) {
+          console.warn("Error inicializando QR:", error)
+        }
+      }, 150)
       
       return () => {
         mounted = false
         clearTimeout(timer)
-        if (scannerRef.current) {
-          // Es vital detener el escáner al desmontar para apagar la cámara y liberar recursos
-          scannerRef.current.stop().then(() => {
-            scannerRef.current?.clear()
-          }).catch((err) => {
-            console.warn("Error deteniendo el escáner", err)
-          })
+        
+        if (html5QrCode) {
+          try {
+            // getState() === 2 significa que el escáner está actualmente SCANNING
+            if (html5QrCode.getState() === 2) {
+              html5QrCode.stop().then(() => {
+                html5QrCode?.clear()
+              }).catch((e) => console.warn("Error deteniendo el escáner", e))
+            } else {
+              html5QrCode.clear()
+            }
+          } catch (e) {
+            console.warn("Cleanup error", e)
+          }
         }
       }
     }
@@ -94,11 +105,16 @@ export function QrReaderDialog() {
           <DialogTitle>Escanear Código QR</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="w-full max-w-sm rounded-lg overflow-hidden bg-black/5">
-            {/* El contenedor donde html5-qrcode inyectará el video automáticamente */}
-            <div id={qrcodeRegionId} className="w-full min-h-[300px] flex items-center justify-center">
-              {!error && !result && <span className="text-muted-foreground animate-pulse text-sm">Cargando cámara...</span>}
-            </div>
+          <div className="relative w-full max-w-sm rounded-lg overflow-hidden bg-black/5 min-h-[300px]">
+            {/* Mensaje de carga flotando encima. No debe estar DENTRO del div de html5-qrcode */}
+            {!error && !result && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <span className="text-muted-foreground animate-pulse text-sm">Cargando cámara...</span>
+              </div>
+            )}
+            
+            {/* El contenedor 100% vacío donde html5-qrcode inyectará el video. React NO DEBE poner hijos aquí. */}
+            <div id={qrcodeRegionId} className="w-full h-full" />
           </div>
           
           {error && (
