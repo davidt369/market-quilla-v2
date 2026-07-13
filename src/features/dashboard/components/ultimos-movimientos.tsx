@@ -1,6 +1,7 @@
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { ArrowDownRight, ArrowUpRight, Activity, Banknote, CreditCard } from "lucide-react"
+import { formatBoliviaDateTime } from "@/shared/lib/timezone"
 
 interface UltimosMovimientosProps {
     movimientos: any[]
@@ -17,8 +18,8 @@ export function UltimosMovimientos({ movimientos }: UltimosMovimientosProps) {
     return (
         <Card className="col-span-1 lg:col-span-3 flex flex-col">
             <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
-                <CardTitle className="text-lg sm:text-xl">Últimos Movimientos</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">Actividad reciente en caja</CardDescription>
+                <CardTitle className="text-lg sm:text-xl">Últimos Movimientos del Día</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Actividad de caja registrada hoy</CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-0 flex-1">
                 <div className="space-y-3 sm:space-y-4">
@@ -34,7 +35,7 @@ export function UltimosMovimientos({ movimientos }: UltimosMovimientosProps) {
                                         {mov.metodo === 'efectivo' ? <Banknote className="h-2.5 w-2.5 shrink-0" /> : <CreditCard className="h-2.5 w-2.5 shrink-0" />}
                                         <span className="capitalize">{mov.metodo}</span>
                                         <span className="mx-0.5 sm:mx-1">•</span>
-                                        <span>{new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit' }).format(new Date(mov.fecha))}</span>
+                                        <span>{formatBoliviaDateTime(mov.fecha)}</span>
                                     </p>
                                 </div>
                             </div>

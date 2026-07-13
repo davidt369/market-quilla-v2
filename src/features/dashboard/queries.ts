@@ -124,10 +124,13 @@ export async function getDashboardMetrics(userId: string) {
     .from(tbcajaMovimientos)
     .leftJoin(tbpaquetes, eq(tbcajaMovimientos.fk_id_paquete, tbpaquetes.pk_id_paquete))
     .where(
-      sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`
+      and(
+        sql`${tbcajaMovimientos.fk_id_paquete} IS NULL OR ${tbpaquetes.deletedAt} IS NULL`,
+        gte(tbcajaMovimientos.fecha, todayStart),
+        lte(tbcajaMovimientos.fecha, todayEnd)
+      )
     )
-    .orderBy(desc(tbcajaMovimientos.fecha))
-    .limit(5);
+    .orderBy(desc(tbcajaMovimientos.fecha));
 
   return {
     paquetesHoy: paquetesHoy?.count || 0,
