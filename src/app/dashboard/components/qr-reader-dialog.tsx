@@ -14,12 +14,13 @@ export function QrReaderDialog() {
   // Un ID único para el contenedor donde se inyectará el video
   const qrcodeRegionId = "html5qr-code-full-region"
   const scannerRef = useRef<Html5Qrcode | null>(null)
+  const [qrcodeElement, setQrcodeElement] = useState<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let mounted = true
     let html5QrCode: Html5Qrcode | null = null
 
-    if (isOpen) {
+    if (isOpen && qrcodeElement) {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setError("Cámara no disponible. Asegúrate de usar HTTPS o localhost.")
         return
@@ -27,80 +28,54 @@ export function QrReaderDialog() {
 
       const initCamera = async () => {
         try {
-          // 1. SOLICITAR PERMISO EXPLÍCITO PRIMERO
-          // Esto fuerza a la PWA/Navegador a mostrar el cuadro de diálogo de permisos
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-          // Detenemos el stream de prueba inmediatamente para liberar la cámara
-          stream.getTracks().forEach(track => track.stop())
+          // Solicitar las cámaras (esto gatilla el permiso del navegador si no está otorgado)
+          const cameras = await Html5Qrcode.getCameras()
+          if (!mounted) return
+
+          if (!cameras || cameras.length === 0) {
+            setError("No se detectó ninguna cámara en este dispositivo.")
+            return
+          }
+
+          // Crear la instancia
+          html5QrCode = new Html5Qrcode(qrcodeRegionId)
+          scannerRef.current = html5QrCode
+
+          await html5QrCode.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0,
+            },
+            (decodedText) => {
+              if (mounted) setResult(decodedText)
+            },
+            () => {} // Ignorar frames sin QR
+          )
         } catch (err: any) {
           if (!mounted) return
-          console.warn("Error explícito al solicitar cámara:", err)
+          console.error("Error al inicializar la cámara:", err)
           
-          if (err?.name === 'NotAllowedError' || err?.toString().includes('NotAllowedError')) {
-            setError("Permiso denegado. Autoriza el uso de la cámara en la configuración de tu navegador/dispositivo.")
-            return
-          } else if (err?.name === 'NotFoundError') {
-            setError("No se encontró ninguna cámara conectada en este dispositivo.")
-            return
-          } else if (err?.name === 'NotReadableError') {
-            setError("La cámara está siendo usada por otra pestaña o aplicación.")
-            return
+          const errMsg = err?.message || err?.toString() || ""
+          if (errMsg.includes("NotAllowedError") || errMsg.includes("Permission denied") || errMsg.includes("PermissionDeniedError")) {
+            setError("Permiso denegado. Autoriza el uso de la cámara en tu navegador o dispositivo.")
+          } else if (errMsg.includes("NotFoundError") || errMsg.includes("DevicesNotFoundError")) {
+            setError("No se encontró ninguna cámara en este dispositivo.")
+          } else if (errMsg.includes("NotReadableError") || errMsg.includes("TrackStartError") || errMsg.includes("Could not start video source")) {
+            setError("La cámara está ocupada por otra aplicación o pestaña.")
+          } else {
+            setError(`Error de cámara: ${errMsg}`)
           }
-          
-          // Si es un error desconocido, lo mostramos para saber qué pasa exactamente
-          setError(`Error de cámara: ${err?.message || err?.name || 'Desconocido'}`)
-          return
         }
-
-        if (!mounted) return
-
-        // 2. Si nos dieron permiso, esperamos un instante para que el modal se termine de montar en el DOM
-        const timerId = window.setTimeout(() => {
-          if (!mounted) return
-
-          try {
-            html5QrCode = new Html5Qrcode(qrcodeRegionId)
-            scannerRef.current = html5QrCode
-
-            html5QrCode.start(
-              { facingMode: "environment" },
-              {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
-              },
-              (decodedText) => {
-                if (mounted) setResult(decodedText)
-              },
-              () => {} // Ignorar advertencias de frames sin QR
-            ).catch((err) => {
-              if (mounted) {
-                console.warn("Scanner start error:", err)
-                if (err?.name === 'NotAllowedError' || err?.toString().includes('NotAllowedError') || err?.toString().includes('Permission denied')) {
-                  setError("El dispositivo denegó el acceso a la cámara. Revisa los permisos de la app.")
-                } else {
-                  setError("No se pudo iniciar la lectura de la cámara.")
-                }
-              }
-            })
-          } catch (error) {
-            console.warn("Error inicializando QR:", error)
-          }
-        }, 150)
-
-        // Guardamos el timer de inicio por si se desmonta rápido
-        ;(scannerRef as any)._timer = timerId;
       }
 
       initCamera()
       
       return () => {
         mounted = false
-        if ((scannerRef as any)._timer) clearTimeout((scannerRef as any)._timer)
-        
         if (html5QrCode) {
           try {
-            // getState() === 2 significa que el escáner está actualmente SCANNING
             if (html5QrCode.getState() === 2) {
               html5QrCode.stop().then(() => {
                 html5QrCode?.clear()
@@ -114,7 +89,7 @@ export function QrReaderDialog() {
         }
       }
     }
-  }, [isOpen])
+  }, [isOpen, qrcodeElement])
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -146,7 +121,7 @@ export function QrReaderDialog() {
             )}
             
             {/* El contenedor 100% vacío donde html5-qrcode inyectará el video. React NO DEBE poner hijos aquí. */}
-            <div id={qrcodeRegionId} className="w-full h-full" />
+            <div ref={setQrcodeElement} id={qrcodeRegionId} className="w-full h-full" />
           </div>
           
           {error && (
