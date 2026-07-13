@@ -34,9 +34,22 @@ export function QrReaderDialog() {
           stream.getTracks().forEach(track => track.stop())
         } catch (err: any) {
           if (!mounted) return
-          console.warn("Permiso de cámara denegado al solicitar:", err)
-          setError("Permiso denegado. Debes autorizar el uso de la cámara en este dispositivo/navegador.")
-          return // Salimos y no intentamos iniciar html5-qrcode
+          console.warn("Error explícito al solicitar cámara:", err)
+          
+          if (err?.name === 'NotAllowedError' || err?.toString().includes('NotAllowedError')) {
+            setError("Permiso denegado. Autoriza el uso de la cámara en la configuración de tu navegador/dispositivo.")
+            return
+          } else if (err?.name === 'NotFoundError') {
+            setError("No se encontró ninguna cámara conectada en este dispositivo.")
+            return
+          } else if (err?.name === 'NotReadableError') {
+            setError("La cámara está siendo usada por otra pestaña o aplicación.")
+            return
+          }
+          
+          // Si es un error desconocido, lo mostramos para saber qué pasa exactamente
+          setError(`Error de cámara: ${err?.message || err?.name || 'Desconocido'}`)
+          return
         }
 
         if (!mounted) return
