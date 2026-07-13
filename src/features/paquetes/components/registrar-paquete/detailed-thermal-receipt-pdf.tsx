@@ -309,7 +309,6 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
         let device = null;
 
         // 1. Intentar reconectar automáticamente (Si el navegador soporta getDevices)
-        // Esto evita que aparezca el molesto popup en cada recarga si el usuario ya le dio permiso antes.
         if (typeof nav.bluetooth.getDevices === 'function') {
             try {
                 const devices = await nav.bluetooth.getDevices();
@@ -338,6 +337,10 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
             server.disconnect();
             throw new DOMException("Abortado por el usuario", "AbortError");
         }
+        
+        // PAUSA CRÍTICA: Las impresoras chinas suelen ignorar los primeros bytes si se envían 
+        // inmediatamente después de conectar. Esperamos medio segundo para que despierte.
+        await sleep(500);
 
         const service = await server.getPrimaryService(SERVICE_UUID);
         const chars = await service.getCharacteristics();
@@ -356,25 +359,23 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
         bleWrite = foundWrite;
     }
 
-    // 3. Envío súper rápido inteligente:
-    // Si la impresora soporta "write" (con respuesta), no hace falta esperar con "sleep",
-    // la impresora nos avisará cuando haya procesado el bloque. Podemos enviar trozos grandes.
-    const supportsWriteWithResponse = bleWrite.properties.write;
-    const chunkSize = supportsWriteWithResponse ? 256 : 100;
-    const delayMs = supportsWriteWithResponse ? 0 : 20;
-
-    for (let i = 0; i < data.length; i += chunkSize) {
+    // Volvemos a los trozos de 20 bytes de forma ESTRICTA. 
+    // Enviar bloques grandes (100 o 256) satura la memoria (buffer) de la impresora, 
+    // corrompe los comandos TSPL y provoca que imprima infinito o se vuelva loca.
+    for (let i = 0; i < data.length; i += 20) {
         if (signal?.aborted) {
             throw new DOMException("Abortado por el usuario", "AbortError");
         }
-        const bloque = data.slice(i, i + chunkSize);
+        const bloque = data.slice(i, i + 20);
         
-        if (supportsWriteWithResponse) {
-            await bleWrite.writeValue(bloque); // Rápido y sin pausas
+        if (bleWrite.properties.write) {
+            await bleWrite.writeValue(bloque);
         } else {
             await bleWrite.writeValueWithoutResponse(bloque);
-            if (delayMs > 0) await sleep(delayMs);
         }
+        
+        // Pausa segura para evitar saturar el hardware
+        await sleep(30);
     }
 }
 
