@@ -25,46 +25,65 @@ export function QrReaderDialog() {
         return
       }
 
-      const timer = setTimeout(() => {
+      const initCamera = async () => {
+        try {
+          // 1. SOLICITAR PERMISO EXPLÍCITO PRIMERO
+          // Esto fuerza a la PWA/Navegador a mostrar el cuadro de diálogo de permisos
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+          // Detenemos el stream de prueba inmediatamente para liberar la cámara
+          stream.getTracks().forEach(track => track.stop())
+        } catch (err: any) {
+          if (!mounted) return
+          console.warn("Permiso de cámara denegado al solicitar:", err)
+          setError("Permiso denegado. Debes autorizar el uso de la cámara en este dispositivo/navegador.")
+          return // Salimos y no intentamos iniciar html5-qrcode
+        }
+
         if (!mounted) return
 
-        try {
-          html5QrCode = new Html5Qrcode(qrcodeRegionId)
-          scannerRef.current = html5QrCode
+        // 2. Si nos dieron permiso, esperamos un instante para que el modal se termine de montar en el DOM
+        const timerId = window.setTimeout(() => {
+          if (!mounted) return
 
-          html5QrCode.start(
-            { facingMode: "environment" },
-            {
-              fps: 10,
-              qrbox: { width: 250, height: 250 },
-              aspectRatio: 1.0,
-            },
-            (decodedText) => {
-              if (mounted) setResult(decodedText)
-            },
-            () => {} // Ignorar advertencias de frames sin QR
-          ).catch((err) => {
-            if (mounted) {
-              // Usamos console.warn en lugar de console.error para que Next.js no 
-              // muestre la pantalla roja en desarrollo cuando el usuario simplemente deniega el permiso.
-              console.warn("Scanner start error:", err)
-              
-              // Mostrar un error amigable si el permiso es denegado explícitamente
-              if (err?.name === 'NotAllowedError' || err?.toString().includes('NotAllowedError') || err?.toString().includes('Permission denied')) {
-                setError("El dispositivo denegó el acceso a la cámara. Revisa los permisos de la app.")
-              } else {
-                setError("No se pudo acceder a la cámara.")
+          try {
+            html5QrCode = new Html5Qrcode(qrcodeRegionId)
+            scannerRef.current = html5QrCode
+
+            html5QrCode.start(
+              { facingMode: "environment" },
+              {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+              },
+              (decodedText) => {
+                if (mounted) setResult(decodedText)
+              },
+              () => {} // Ignorar advertencias de frames sin QR
+            ).catch((err) => {
+              if (mounted) {
+                console.warn("Scanner start error:", err)
+                if (err?.name === 'NotAllowedError' || err?.toString().includes('NotAllowedError') || err?.toString().includes('Permission denied')) {
+                  setError("El dispositivo denegó el acceso a la cámara. Revisa los permisos de la app.")
+                } else {
+                  setError("No se pudo iniciar la lectura de la cámara.")
+                }
               }
-            }
-          })
-        } catch (error) {
-          console.warn("Error inicializando QR:", error)
-        }
-      }, 150)
+            })
+          } catch (error) {
+            console.warn("Error inicializando QR:", error)
+          }
+        }, 150)
+
+        // Guardamos el timer de inicio por si se desmonta rápido
+        ;(scannerRef as any)._timer = timerId;
+      }
+
+      initCamera()
       
       return () => {
         mounted = false
-        clearTimeout(timer)
+        if ((scannerRef as any)._timer) clearTimeout((scannerRef as any)._timer)
         
         if (html5QrCode) {
           try {
