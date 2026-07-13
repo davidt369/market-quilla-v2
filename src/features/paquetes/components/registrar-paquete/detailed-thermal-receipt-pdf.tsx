@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React from "react";
 import QRCode from "qrcode";
 import { formatBoliviaDateOnly } from "@/shared/lib/timezone";
@@ -276,6 +276,18 @@ async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<
 }
 
 
+// Variables para mantener la conexión Bluetooth activa (caché)
+let cachedBleDevice: any = null;
+let cachedBleServer: any = null;
+let cachedBleWrite: any = null;
+
+function onBleDisconnected() {
+    console.log("Impresora Bluetooth desconectada");
+    cachedBleDevice = null;
+    cachedBleServer = null;
+    cachedBleWrite = null;
+}
+
 async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
     const SERVICE_UUID = "49535343-fe7d-4ae5-8fa9-9fafd205e455";
     const nav: any = navigator;
@@ -287,37 +299,46 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
 
     if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
 
-    // Algunas implementaciones de Web Bluetooth soportan signal en requestDevice.
-    const reqOptions: any = {
-        filters: [{ namePrefix: "T-IM" }], optionalServices: [SERVICE_UUID]
-    };
-    // if (signal) reqOptions.signal = signal; // Descomentar si tu navegador soporta signal en requestDevice.
+    let bleWrite = cachedBleWrite;
 
-    // Si el usuario cancela, el promise rejecteará si el navegador soporta abortar,
-    // o simplemente verificamos justo después.
-    const device = await nav.bluetooth.requestDevice(reqOptions);
-    if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
+    if (!cachedBleDevice || !cachedBleDevice.gatt || !cachedBleDevice.gatt.connected || !bleWrite) {
+        const reqOptions: any = {
+            filters: [{ namePrefix: "T-IM" }], optionalServices: [SERVICE_UUID]
+        };
 
-    const server = await device.gatt.connect();
-    if (signal?.aborted) {
-        server.disconnect();
-        throw new DOMException("Abortado por el usuario", "AbortError");
-    }
+        // Solicitar el dispositivo al usuario (esto abrirá el popup nativo)
+        const device = await nav.bluetooth.requestDevice(reqOptions);
+        if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
 
-    const service = await server.getPrimaryService(SERVICE_UUID);
-    const chars = await service.getCharacteristics();
-    let bleWrite: any = null;
-    for (const c of chars) {
-        if ((c as any).properties.write || (c as any).properties.writeWithoutResponse) {
-            bleWrite = c; break;
+        device.addEventListener('gattserverdisconnected', onBleDisconnected);
+
+        const server = await device.gatt.connect();
+        if (signal?.aborted) {
+            server.disconnect();
+            throw new DOMException("Abortado por el usuario", "AbortError");
         }
+
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        const chars = await service.getCharacteristics();
+        
+        let foundWrite: any = null;
+        for (const c of chars) {
+            if ((c as any).properties.write || (c as any).properties.writeWithoutResponse) {
+                foundWrite = c; break;
+            }
+        }
+        if (!foundWrite) throw new Error("No existe una característica WRITE");
+
+        cachedBleDevice = device;
+        cachedBleServer = server;
+        cachedBleWrite = foundWrite;
+        bleWrite = foundWrite;
     }
-    if (!bleWrite) throw new Error("No existe una característica WRITE");
 
     // Trozos pequeños (20 bytes) para no saturar memoria BLE
     for (let i = 0; i < data.length; i += 20) {
         if (signal?.aborted) {
-            server.disconnect();
+            // No desconectamos el server aquí para no perder la caché
             throw new DOMException("Abortado por el usuario", "AbortError");
         }
         const bloque = data.slice(i, i + 20);
