@@ -13,8 +13,8 @@ export default function GlobalNotFound() {
       <div className="flex max-w-md flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
 
         {/* Icono visualmente atractivo en lugar de solo texto */}
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-          <FileQuestion className="h-10 w-10 text-muted-foreground" strokeWidth={1.5} />
+        <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-muted">
+          <FileQuestion className="size-10 text-muted-foreground" strokeWidth={1.5} />
         </div>
 
         {/* Tipografía alineada con los estándares de shadcn */}
@@ -37,16 +37,14 @@ export default function GlobalNotFound() {
             className="w-full sm:w-auto"
             onClick={() => router.back()}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft data-icon="inline-start" />
             Volver atrás
           </Button>
 
-          {/* Uso correcto de asChild con next/link */}
-          <Button variant="default" className="w-full sm:w-auto">
-            <Link href="/dashboard">
-              <Home className="mr-2 h-4 w-4" />
-              Ir al Panel
-            </Link>
+          {/* Uso correcto de render con next/link (Base UI) y nativeButton=false para enlaces */}
+          <Button variant="default" className="w-full sm:w-auto" render={<Link href="/dashboard" />} nativeButton={false}>
+            <Home data-icon="inline-start" />
+            Ir al Panel
           </Button>
         </div>
 
