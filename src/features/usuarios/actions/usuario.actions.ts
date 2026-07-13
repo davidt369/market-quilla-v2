@@ -64,12 +64,18 @@ export async function createUsuarioAction(
             message: "Usuario creado correctamente",
         };
     } catch (error) {
+        let message = "Error interno del servidor";
+        if (error instanceof Error) {
+            message = error.message;
+            if ((error as any).code === '23505') {
+                message = "El nombre de usuario ya existe.";
+            } else if ((error as any).code === 'ECONNREFUSED' || (error as any).message.includes("terminating connection")) {
+                message = "Error de conexión a la base de datos.";
+            }
+        }
         return {
             success: false,
-            message:
-                error instanceof Error
-                    ? error.message
-                    : "Error interno del servidor",
+            message,
         };
     }
 }
@@ -116,13 +122,18 @@ export async function updateUsuarioAction(
             message: "Usuario actualizado correctamente",
         };
     } catch (error) {
-
+        let message = "Error interno del servidor";
+        if (error instanceof Error) {
+            message = error.message;
+            if ((error as any).code === '23505') {
+                message = "El nombre de usuario ya existe.";
+            } else if ((error as any).code === 'ECONNREFUSED' || (error as any).message.includes("terminating connection")) {
+                message = "Error de conexión a la base de datos.";
+            }
+        }
         return {
             success: false,
-            message:
-                error instanceof Error
-                    ? error.message
-                    : "Error interno del servidor",
+            message,
         };
     }
 }
