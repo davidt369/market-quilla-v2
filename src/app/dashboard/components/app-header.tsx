@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import AppUser from "./app-user"
 import { SidebarTrigger } from "@/shared/components/ui/sidebar"
 import { BtnTheme } from "@/shared/components/btn-theme"
-import { QrReaderDialog } from "./qr-reader-dialog"
+
 import { cn } from "@/shared/lib/utils"
 import {
   Breadcrumb,
@@ -30,7 +30,7 @@ const routeTitles: Record<string, string> = {
 
 export default function AppHeader() {
   const pathname = usePathname()
-  
+
   // Generar items dinámicos del breadcrumb basado en los segmentos de la URL
   const segments = pathname.split("/").filter(Boolean)
   const breadcrumbItems = segments.map((segment, index) => {
@@ -70,13 +70,13 @@ export default function AppHeader() {
                           <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>
                         )}
                       </BreadcrumbItem>
-                      
+
                       {/* En móviles solo mostramos el último elemento */}
                       <BreadcrumbItem className="sm:hidden">
                         {isLast && (
-                           <BreadcrumbPage className="font-semibold text-foreground text-sm truncate max-w-[150px]">
-                              {item.title}
-                           </BreadcrumbPage>
+                          <BreadcrumbPage className="font-semibold text-foreground text-sm truncate max-w-[150px]">
+                            {item.title}
+                          </BreadcrumbPage>
                         )}
                       </BreadcrumbItem>
 
@@ -91,7 +91,7 @@ export default function AppHeader() {
 
         {/* Right Section */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
-          <QrReaderDialog />
+
           <BtnTheme />
           <div className="h-6 w-px bg-border hidden sm:block" />
           <AppUser />
