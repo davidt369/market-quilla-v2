@@ -66,6 +66,13 @@ export async function createUsuarioAction(
     } catch (error) {
         let message = "Error interno del servidor";
         if (error instanceof Error) {
+            if (error.name === "AuthenticationError") {
+                return { success: false, message: "Tu sesión ha expirado o es inválida. Por favor, recarga e inicia sesión nuevamente." };
+            }
+            if (error.name === "UnauthorizedError") {
+                return { success: false, message: error.message };
+            }
+            
             message = error.message;
             if ((error as any).code === '23505') {
                 message = "El nombre de usuario ya existe.";
@@ -124,6 +131,13 @@ export async function updateUsuarioAction(
     } catch (error) {
         let message = "Error interno del servidor";
         if (error instanceof Error) {
+            if (error.name === "AuthenticationError") {
+                return { success: false, message: "Tu sesión ha expirado o es inválida. Por favor, recarga e inicia sesión nuevamente." };
+            }
+            if (error.name === "UnauthorizedError") {
+                return { success: false, message: error.message };
+            }
+
             message = error.message;
             if ((error as any).code === '23505') {
                 message = "El nombre de usuario ya existe.";
@@ -148,12 +162,23 @@ export async function deleteUsuarioAction(id_usuario: number): Promise<ActionSta
             message: "Usuario eliminado exitosamente",
         };
     } catch (error) {
+        let message = "Error interno al eliminar usuario";
+        if (error instanceof Error) {
+            if (error.name === "AuthenticationError") {
+                return { success: false, message: "Tu sesión ha expirado o es inválida. Por favor, recarga e inicia sesión nuevamente." };
+            }
+            if (error.name === "UnauthorizedError") {
+                return { success: false, message: error.message };
+            }
+
+            message = error.message;
+            if ((error as any).code === 'ECONNREFUSED' || (error as any).message.includes("terminating connection")) {
+                message = "Error de conexión a la base de datos.";
+            }
+        }
         return {
             success: false,
-            message:
-                error instanceof Error
-                    ? error.message
-                    : "Error interno al eliminar usuario",
+            message,
         };
     }
 }
