@@ -306,8 +306,29 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
             filters: [{ namePrefix: "T-IM" }], optionalServices: [SERVICE_UUID]
         };
 
-        // Solicitar el dispositivo al usuario (esto abrirá el popup nativo)
-        const device = await nav.bluetooth.requestDevice(reqOptions);
+        let device = null;
+
+        // 1. Intentar reconectar automáticamente (Si el navegador soporta getDevices)
+        // Esto evita que aparezca el molesto popup en cada recarga si el usuario ya le dio permiso antes.
+        if (typeof nav.bluetooth.getDevices === 'function') {
+            try {
+                const devices = await nav.bluetooth.getDevices();
+                for (const d of devices) {
+                    if (d.name && d.name.startsWith("T-IM")) {
+                        device = d;
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.warn("Autoconexión falló:", e);
+            }
+        }
+
+        // 2. Si es la primera vez, mostrar el popup al usuario
+        if (!device) {
+            device = await nav.bluetooth.requestDevice(reqOptions);
+        }
+
         if (signal?.aborted) throw new DOMException("Abortado por el usuario", "AbortError");
 
         device.addEventListener('gattserverdisconnected', onBleDisconnected);
@@ -335,16 +356,25 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
         bleWrite = foundWrite;
     }
 
-    // Trozos pequeños (20 bytes) para no saturar memoria BLE
-    for (let i = 0; i < data.length; i += 20) {
+    // 3. Envío súper rápido inteligente:
+    // Si la impresora soporta "write" (con respuesta), no hace falta esperar con "sleep",
+    // la impresora nos avisará cuando haya procesado el bloque. Podemos enviar trozos grandes.
+    const supportsWriteWithResponse = bleWrite.properties.write;
+    const chunkSize = supportsWriteWithResponse ? 256 : 100;
+    const delayMs = supportsWriteWithResponse ? 0 : 20;
+
+    for (let i = 0; i < data.length; i += chunkSize) {
         if (signal?.aborted) {
-            // No desconectamos el server aquí para no perder la caché
             throw new DOMException("Abortado por el usuario", "AbortError");
         }
-        const bloque = data.slice(i, i + 20);
-        if (bleWrite.properties.write) await bleWrite.writeValue(bloque);
-        else await bleWrite.writeValueWithoutResponse(bloque);
-        await sleep(30);
+        const bloque = data.slice(i, i + chunkSize);
+        
+        if (supportsWriteWithResponse) {
+            await bleWrite.writeValue(bloque); // Rápido y sin pausas
+        } else {
+            await bleWrite.writeValueWithoutResponse(bloque);
+            if (delayMs > 0) await sleep(delayMs);
+        }
     }
 }
 
