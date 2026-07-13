@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { QrCode } from "lucide-react"
-import { BrowserMultiFormatReader } from "@zxing/browser"
+import { Html5Qrcode } from "html5-qrcode"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog"
 import { Button } from "@/shared/components/ui/button"
 
@@ -10,52 +10,65 @@ export function QrReaderDialog() {
   const [isOpen, setIsOpen] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const controlsRef = useRef<any>(null)
+  
+  // Un ID único para el contenedor donde se inyectará el video
+  const qrcodeRegionId = "html5qr-code-full-region"
+  const scannerRef = useRef<Html5Qrcode | null>(null)
 
   useEffect(() => {
-    let active = true
+    let mounted = true
 
-    if (isOpen && videoRef.current) {
-      const codeReader = new BrowserMultiFormatReader()
-
+    if (isOpen) {
+      // Validar si hay cámaras disponibles
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setError("Cámara no disponible. Asegúrate de usar HTTPS o localhost.")
         return
       }
 
-      const constraints = {
-        video: { facingMode: "environment" }
-      }
+      // Dar tiempo a que el Dialog monte el div con id=qrcodeRegionId en el DOM
+      const timer = setTimeout(() => {
+        if (!mounted) return
 
-      codeReader.decodeFromConstraints(constraints, videoRef.current, (res: any, err: any, controls: any) => {
-        if (!active && controls) {
-          controls.stop()
-          return
-        }
-        
-        controlsRef.current = controls
+        const html5QrCode = new Html5Qrcode(qrcodeRegionId)
+        scannerRef.current = html5QrCode
 
-        if (res) {
-          setResult(res.getText())
+        // Iniciamos la cámara trasera
+        html5QrCode.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }, // Dibuja automáticamente un área de escaneo
+            aspectRatio: 1.0,
+          },
+          (decodedText) => {
+            if (mounted) {
+              setResult(decodedText)
+              // Opcional: si quisieras que pare al encontrar uno, descomenta lo siguiente:
+              // html5QrCode.stop().catch(console.error)
+            }
+          },
+          (errorMessage) => {
+            // Ignorar los errores de "no se encontró código" que ocurren en cada frame
+          }
+        ).catch((err) => {
+          if (mounted) {
+            console.error("Scanner start error:", err)
+            setError("No se pudo acceder a la cámara. Revisa los permisos.")
+          }
+        })
+      }, 150) // Ligero delay para asegurar el montaje del modal
+      
+      return () => {
+        mounted = false
+        clearTimeout(timer)
+        if (scannerRef.current) {
+          // Es vital detener el escáner al desmontar para apagar la cámara y liberar recursos
+          scannerRef.current.stop().then(() => {
+            scannerRef.current?.clear()
+          }).catch((err) => {
+            console.warn("Error deteniendo el escáner", err)
+          })
         }
-        
-        if (err && err.name !== 'NotFoundException') {
-          // ignorar errores constantes de "no QR found"
-        }
-      }).catch((err: any) => {
-        if (active) {
-          setError("Error o permiso denegado para usar la cámara.")
-          console.error("Scanner error:", err)
-        }
-      })
-    }
-
-    return () => {
-      active = false
-      if (controlsRef.current) {
-        controlsRef.current.stop()
-        controlsRef.current = null
       }
     }
   }, [isOpen])
@@ -81,23 +94,15 @@ export function QrReaderDialog() {
           <DialogTitle>Escanear Código QR</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="relative w-full max-w-sm aspect-square overflow-hidden rounded-lg bg-black">
-            <video ref={videoRef} className="h-full w-full object-cover" playsInline muted autoPlay />
-            
-            {/* Overlay visual para apuntar */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="w-48 h-48 sm:w-64 sm:h-64 border-2 border-primary/60 rounded-xl relative">
-                {/* Esquinas destacadas */}
-                <div className="absolute -top-[2px] -left-[2px] w-4 h-4 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
-                <div className="absolute -top-[2px] -right-[2px] w-4 h-4 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
-                <div className="absolute -bottom-[2px] -left-[2px] w-4 h-4 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
-                <div className="absolute -bottom-[2px] -right-[2px] w-4 h-4 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
-              </div>
+          <div className="w-full max-w-sm rounded-lg overflow-hidden bg-black/5">
+            {/* El contenedor donde html5-qrcode inyectará el video automáticamente */}
+            <div id={qrcodeRegionId} className="w-full min-h-[300px] flex items-center justify-center">
+              {!error && !result && <span className="text-muted-foreground animate-pulse text-sm">Cargando cámara...</span>}
             </div>
           </div>
           
           {error && (
-            <p className="text-sm font-medium text-destructive text-center">{error}</p>
+            <p className="text-sm font-medium text-destructive text-center px-4">{error}</p>
           )}
           
           {result ? (
