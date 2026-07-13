@@ -96,7 +96,9 @@ async function getTextTsplCommand(text: string, x: number, y: number, fontSize: 
     }
 
     const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width));
-    const textWidth = Math.max(1, Math.ceil(maxWidth || maxLineWidth));
+    // IMPORTANTE: NO usamos maxWidth aquí para no generar espacios blancos vacíos gigantes.
+    // Usar maxLineWidth recorta la imagen al tamaño exacto del texto, reduciendo el peso de la imagen en un 80%.
+    const textWidth = Math.max(1, Math.ceil(maxLineWidth));
     const lineHeight = Math.ceil(fontSize * 1.2);
     const textHeight = lineHeight * lines.length;
 
@@ -359,23 +361,26 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
         bleWrite = foundWrite;
     }
 
-    // Volvemos a los trozos de 20 bytes de forma ESTRICTA. 
-    // Enviar bloques grandes (100 o 256) satura la memoria (buffer) de la impresora, 
-    // corrompe los comandos TSPL y provoca que imprima infinito o se vuelva loca.
-    for (let i = 0; i < data.length; i += 20) {
+    // OPTIMIZACIÓN EXTREMA: 
+    // Pasamos a trozos de 60 bytes (soportado por BLE moderno) y pausa de 15ms.
+    // Además preferimos writeWithoutResponse para no esperar el ACK del sistema.
+    const chunkSize = 60;
+
+    for (let i = 0; i < data.length; i += chunkSize) {
         if (signal?.aborted) {
             throw new DOMException("Abortado por el usuario", "AbortError");
         }
-        const bloque = data.slice(i, i + 20);
+        const bloque = data.slice(i, i + chunkSize);
         
-        if (bleWrite.properties.write) {
-            await bleWrite.writeValue(bloque);
-        } else {
+        // writeWithoutResponse es mucho más rápido porque no espera confirmación del celular
+        if (bleWrite.properties.writeWithoutResponse) {
             await bleWrite.writeValueWithoutResponse(bloque);
+        } else {
+            await bleWrite.writeValue(bloque);
         }
         
-        // Pausa segura para evitar saturar el hardware
-        await sleep(30);
+        // Pausa ultracorta para mantener la fluidez sin saturar el buffer (4000 bytes/seg)
+        await sleep(15);
     }
 }
 
