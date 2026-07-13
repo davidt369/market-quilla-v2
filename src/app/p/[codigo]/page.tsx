@@ -287,7 +287,7 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
 
           {/* COLUMNA DERECHA: Datos Financieros, Ofertas, Recargos y Políticas */}
           <div className="flex flex-col gap-4">
-            {/* Detalles Financieros del Servicio */}
+            {/* Detalles Financieros del Servicio - Comentado para simplificar vista pública y evitar confusión
             <Card className="border-primary/10 shadow-md">
               <CardHeader className="pb-2 pt-3">
                 <CardTitle className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
@@ -309,7 +309,6 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                   </Alert>
                 ) : (
                   <div className="flex flex-col gap-2.5">
-                    {/* Tarjeta de Saldo a Pagar */}
                     {saldoPendiente > 0 && (
                       <div className="p-3 rounded-xl border flex justify-between items-center bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-400">
                         <div className="flex flex-col">
@@ -331,7 +330,6 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                       </div>
                     )}
 
-                    {/* Alerta de Oferta Vigente */}
                     {ofertaVigente && (
                       <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-950 dark:text-emerald-400">
                         <Zap className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -376,7 +374,6 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                       </Alert>
                     )}
 
-                    {/* Alerta de Recargo Aplicado */}
                     {recargoAplicado && semanasPasadas > 0 && (
                       <Alert className="bg-destructive/10 border-destructive/20 text-destructive dark:text-red-400">
                         <AlertTriangle className="h-4 w-4" />
@@ -398,8 +395,9 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                 )}
               </CardContent>
             </Card>
+            */}
 
-            {/* Políticas de Almacenamiento */}
+            {/* Políticas de Almacenamiento - Comentado para simplificar vista pública y evitar confusión
             {!isEntregado && (
               <Card className="border-border/60 shadow-md">
                 <CardHeader className="pb-2 pt-3">
@@ -409,7 +407,6 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pb-3.5 pt-1 flex flex-col gap-3 text-xs text-muted-foreground">
-                  {/* Regla 1: Recargo */}
                   <div className="flex gap-2.5 items-start">
                     <div className="p-1 rounded-md bg-amber-500/10 text-amber-500 shrink-0">
                       <AlertTriangle className="h-3.5 w-3.5" />
@@ -428,7 +425,6 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                     </p>
                   </div>
 
-                  {/* Regla 2: Oferta */}
                   {paquete.diasOferta &&
                     paquete.diasOferta > 0 &&
                     ofertaVigente && (
@@ -452,7 +448,6 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                       </div>
                     )}
 
-                  {/* Regla 3: Requisitos */}
                   <div className="flex gap-2.5 items-start border-t border-border/40 pt-2.5">
                     <div className="p-1 rounded-md bg-primary/10 text-primary shrink-0">
                       <Lock className="h-3.5 w-3.5" />
@@ -472,6 +467,7 @@ export default async function TrackingPage({ params }: TrackingPageProps) {
                 </CardContent>
               </Card>
             )}
+            */}
 
             {/* Evidencia Fotográfica (solo si entregado) */}
             {isEntregado && paquete.fotoEntregadoUrl && (
