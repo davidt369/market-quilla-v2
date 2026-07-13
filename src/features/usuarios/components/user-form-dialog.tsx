@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { saveUsuarioAction } from "../actions/usuario.actions";
@@ -52,6 +52,7 @@ export function UserFormDialog({
     );
 
   const isEditing = !!user;
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!state.message) return;
@@ -120,14 +121,32 @@ export function UserFormDialog({
               {isEditing ? "Nueva Contraseña (Opcional)" : "Contraseña"}
             </Label>
 
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder={isEditing ? "Déjalo en blanco para no cambiar" : ""}
-              required={!isEditing}
-              minLength={8}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder={isEditing ? "Déjalo en blanco para no cambiar" : ""}
+                required={!isEditing}
+                minLength={8}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                  {showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2">
