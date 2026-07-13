@@ -41,8 +41,8 @@ export function decodeId(encoded: string): number | null {
             num = num * BigInt(base) + BigInt(index);
         }
         
-        // El inverso multiplicativo modular de 982451653 mod 2^32 es 108398285
-        let id = (num * BigInt(108398285)) % BigInt(4294967296);
+        // El inverso multiplicativo modular de 982451653 mod 2^32 es 2017079565
+        let id = (num * BigInt(2017079565)) % BigInt(4294967296);
         
         return Number(id);
     } catch (e) {

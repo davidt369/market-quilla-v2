@@ -19,10 +19,10 @@ if (!connectionString) {
   throw new Error("DATABASE_URL no está definido en el entorno.");
 }
 
-// Detectar si estamos en entorno local o producción
-const isLocalhost =
-  connectionString.includes("localhost") ||
-  connectionString.includes("127.0.0.1");
+// Determinar si se requiere SSL de forma dinámica
+const isNeon = connectionString.includes("neon.tech");
+const hasSslRequire = connectionString.includes("sslmode=require") || connectionString.includes("sslmode=prefer") || connectionString.includes("ssl=true");
+const useSsl = isNeon || hasSslRequire || process.env.DB_SSL === "true";
 
 // Configuración del Pool optimizada para producción y serverless
 const poolConfig = {
@@ -34,10 +34,11 @@ const poolConfig = {
   connectionTimeoutMillis: 10_000, // 10 segundos para timeout de conexión
   acquireTimeoutMillis: 30_000, // 30 segundos para obtener una conexión del pool
   statementTimeout: 60_000, // 60 segundos de timeout por query
-  // SSL: Validar certificados en producción (CRUCIAL para seguridad)
-  ssl: isLocalhost
-    ? undefined
-    : true,
+  // SSL: Habilitar solo si es requerido por el proveedor de BD.
+  // Usar false explícito deshabilita el intento de SSL por parte del cliente pg.
+  ssl: useSsl
+    ? { rejectUnauthorized: false }
+    : false,
 };
 
 const pool = global.__pgPool ?? new Pool(poolConfig);
