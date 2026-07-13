@@ -18,31 +18,70 @@ export function QrReaderDialog() {
 
     if (isOpen && videoRef.current) {
       const codeReader = new BrowserMultiFormatReader()
-      
-      codeReader.decodeFromVideoDevice(undefined, videoRef.current, (res: any, err: any, controls: any) => {
-        if (!active && controls) {
-          controls.stop()
-          return
-        }
-        
-        controlsRef.current = controls
 
-        if (res) {
-          setResult(res.getText())
-          // Opcional: Detener tras leer. Descomentar si se desea:
-          // if (controls) controls.stop()
-        }
-        
-        // Ignoramos NotFoundException que se emite constantemente cuando no hay QR
-        if (err && err.name !== 'NotFoundException') {
-          console.warn("QR Error:", err)
-        }
-      }).catch((err: any) => {
-        if (active) {
-          setError("Error al acceder a la cámara. Verifica los permisos.")
-          console.error("Camera access error:", err)
-        }
-      })
+      // 1. Validar que el navegador soporta acceso a medios (requiere HTTPS o localhost)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError("Cámara no disponible. Asegúrate de usar HTTPS o localhost.")
+        return
+      }
+
+      // 2. Pedir permiso explícito al usuario (forza el prompt del navegador)
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then((stream) => {
+          // Detenemos este stream porque ZXing abrirá el suyo propio
+          stream.getTracks().forEach(track => track.stop())
+
+          if (!active) return
+
+          // 3. Listar dispositivos y buscar la cámara trasera
+          BrowserMultiFormatReader.listVideoInputDevices().then((videoInputDevices: MediaDeviceInfo[]) => {
+            if (videoInputDevices.length === 0) {
+              if (active) setError("No se encontraron cámaras en el dispositivo.")
+              return
+            }
+
+            // Seleccionar por defecto la primera, pero preferir la trasera si existe
+            let selectedDeviceId = videoInputDevices[0].deviceId
+            const backCamera = videoInputDevices.find((device: MediaDeviceInfo) => 
+              device.label.toLowerCase().includes('back') || 
+              device.label.toLowerCase().includes('trasera') || 
+              device.label.toLowerCase().includes('environment')
+            )
+            
+            if (backCamera) {
+              selectedDeviceId = backCamera.deviceId
+            }
+
+            // 4. Iniciar el escaneo con el dispositivo seleccionado
+            codeReader.decodeFromVideoDevice(selectedDeviceId, videoRef.current!, (res: any, err: any, controls: any) => {
+              if (!active && controls) {
+                controls.stop()
+                return
+              }
+              
+              controlsRef.current = controls
+
+              if (res) {
+                setResult(res.getText())
+              }
+              
+              if (err && err.name !== 'NotFoundException') {
+                // ignorar errores constantes de "no QR found"
+              }
+            }).catch((err: any) => {
+              if (active) {
+                setError("Error al iniciar el escáner.")
+                console.error("Scanner error:", err)
+              }
+            })
+          })
+        })
+        .catch((err) => {
+          if (active) {
+            setError("Permiso denegado para usar la cámara.")
+            console.error("Camera permission error:", err)
+          }
+        })
     }
 
     return () => {
