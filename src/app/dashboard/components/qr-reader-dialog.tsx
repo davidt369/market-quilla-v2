@@ -19,69 +19,36 @@ export function QrReaderDialog() {
     if (isOpen && videoRef.current) {
       const codeReader = new BrowserMultiFormatReader()
 
-      // 1. Validar que el navegador soporta acceso a medios (requiere HTTPS o localhost)
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setError("Cámara no disponible. Asegúrate de usar HTTPS o localhost.")
         return
       }
 
-      // 2. Pedir permiso explícito al usuario (forza el prompt del navegador)
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then((stream) => {
-          // Detenemos este stream porque ZXing abrirá el suyo propio
-          stream.getTracks().forEach(track => track.stop())
+      const constraints = {
+        video: { facingMode: "environment" }
+      }
 
-          if (!active) return
+      codeReader.decodeFromConstraints(constraints, videoRef.current, (res: any, err: any, controls: any) => {
+        if (!active && controls) {
+          controls.stop()
+          return
+        }
+        
+        controlsRef.current = controls
 
-          // 3. Listar dispositivos y buscar la cámara trasera
-          BrowserMultiFormatReader.listVideoInputDevices().then((videoInputDevices: MediaDeviceInfo[]) => {
-            if (videoInputDevices.length === 0) {
-              if (active) setError("No se encontraron cámaras en el dispositivo.")
-              return
-            }
-
-            // Seleccionar por defecto la primera, pero preferir la trasera si existe
-            let selectedDeviceId = videoInputDevices[0].deviceId
-            const backCamera = videoInputDevices.find((device: MediaDeviceInfo) => 
-              device.label.toLowerCase().includes('back') || 
-              device.label.toLowerCase().includes('trasera') || 
-              device.label.toLowerCase().includes('environment')
-            )
-            
-            if (backCamera) {
-              selectedDeviceId = backCamera.deviceId
-            }
-
-            // 4. Iniciar el escaneo con el dispositivo seleccionado
-            codeReader.decodeFromVideoDevice(selectedDeviceId, videoRef.current!, (res: any, err: any, controls: any) => {
-              if (!active && controls) {
-                controls.stop()
-                return
-              }
-              
-              controlsRef.current = controls
-
-              if (res) {
-                setResult(res.getText())
-              }
-              
-              if (err && err.name !== 'NotFoundException') {
-                // ignorar errores constantes de "no QR found"
-              }
-            }).catch((err: any) => {
-              if (active) {
-                setError("Error al iniciar el escáner.")
-                console.error("Scanner error:", err)
-              }
-            })
-          })
-        })
-        .catch((err) => {
-          if (active) {
-            setError("Permiso denegado para usar la cámara.")
-            console.error("Camera permission error:", err)
-          }
-        })
+        if (res) {
+          setResult(res.getText())
+        }
+        
+        if (err && err.name !== 'NotFoundException') {
+          // ignorar errores constantes de "no QR found"
+        }
+      }).catch((err: any) => {
+        if (active) {
+          setError("Error o permiso denegado para usar la cámara.")
+          console.error("Scanner error:", err)
+        }
+      })
     }
 
     return () => {
@@ -115,7 +82,7 @@ export function QrReaderDialog() {
         </DialogHeader>
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="relative w-full max-w-sm aspect-square overflow-hidden rounded-lg bg-black">
-            <video ref={videoRef} className="h-full w-full object-cover" />
+            <video ref={videoRef} className="h-full w-full object-cover" playsInline muted autoPlay />
             
             {/* Overlay visual para apuntar */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
