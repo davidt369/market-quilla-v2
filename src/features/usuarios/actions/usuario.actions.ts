@@ -16,11 +16,25 @@ export async function saveUsuarioAction(
     prevState: ActionState,
     formData: FormData
 ): Promise<ActionState> {
-    await requirePermission(PERMISSIONS.GESTIONAR_USUARIOS);
-    if (formData.get("id_usuario")) {
-        return updateUsuarioAction(prevState, formData);
+    try {
+        await requirePermission(PERMISSIONS.GESTIONAR_USUARIOS);
+        if (formData.get("id_usuario")) {
+            return await updateUsuarioAction(prevState, formData);
+        }
+        return await createUsuarioAction(prevState, formData);
+    } catch (error) {
+        let message = "Error interno del servidor";
+        if (error instanceof Error) {
+            if (error.name === "AuthenticationError") {
+                return { success: false, message: "Tu sesión ha expirado o es inválida. Por favor, recarga e inicia sesión nuevamente." };
+            }
+            if (error.name === "UnauthorizedError") {
+                return { success: false, message: error.message };
+            }
+            message = error.message;
+        }
+        return { success: false, message };
     }
-    return createUsuarioAction(prevState, formData);
 }
 
 export async function createUsuarioAction(
