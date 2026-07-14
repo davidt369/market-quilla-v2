@@ -313,21 +313,44 @@ export const updatePaqueteCompletoTransaction = auditable(
         fk_id_destinatario: destinatarioId,
         ubicacionAlmacen: data.ubicacionAlmacen,
         tipoPaquete: data.tipoPaquete,
+        momentoPago: data.momentoPago as "al_registrar" | "al_entregar",
+        precioBase: data.precioBase?.toString() || "3.00",
       };
 
-      // Solo permitir editar precio y momento de pago si NO está pagado
-      if (!isPagado) {
-        updateData.momentoPago = data.momentoPago as
-          | "al_registrar"
-          | "al_entregar";
-        updateData.precioBase = data.precioBase?.toString() || "3.00";
-        // Si cambian el momento a "al_registrar" en la edición (y no estaba pagado),
-        // esto significa que se requeriría pago en caja. Como no manejamos caja en edición aún,
-        // forzamos que se quede pendiente o no permitimos este cambio, pero por consistencia:
-        updateData.estadoPago =
-          data.momentoPago === "al_registrar" ? "pagado" : "pendiente";
-        // NOTA: Cambiar a pagado sin un registro de caja es arriesgado,
-        // por lo que si es "al_registrar", idealmente debería crear un tbcajaMovimientos.
+      if (isPagado && data.momentoPago === "al_entregar") {
+        // El usuario está revirtiendo un paquete pagado por error
+        updateData.estadoPago = "pendiente";
+        
+        // Eliminar el movimiento de caja asociado a este cobro inicial
+        await tx.delete(tbcajaMovimientos)
+          .where(
+             and(
+               eq(tbcajaMovimientos.fk_id_paquete, id),
+               eq(tbcajaMovimientos.tipoMovimiento, "ingreso")
+             )
+          );
+      } else if (!isPagado && data.momentoPago === "al_registrar") {
+        // Si quisieran pasarlo a pagado desde edición... no tenemos el metodoPago.
+        throw new Error("No se puede cambiar a 'Al registrar' durante la edición porque requiere un método de pago. Si el cliente va a pagar ahora, use la opción de 'Cobrar' desde la lista principal.");
+      } else if (isPagado && data.momentoPago === "al_registrar") {
+        // Se mantiene pagado
+        updateData.estadoPago = "pagado";
+        
+        // Si el precio base cambió, actualizamos también el ingreso de caja para que cuadre
+        const nuevoPrecio = data.precioBase?.toString() || "3.00";
+        if (nuevoPrecio !== current.precioBase?.toString()) {
+            await tx.update(tbcajaMovimientos)
+              .set({ monto: nuevoPrecio })
+              .where(
+                and(
+                  eq(tbcajaMovimientos.fk_id_paquete, id),
+                  eq(tbcajaMovimientos.tipoMovimiento, "ingreso")
+                )
+              );
+        }
+      } else {
+        // Se mantiene pendiente
+        updateData.estadoPago = "pendiente";
       }
 
       // 5. Update Paquete

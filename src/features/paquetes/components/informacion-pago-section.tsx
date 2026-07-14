@@ -48,13 +48,13 @@ export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolea
                         <FieldLabel htmlFor={field.name} className="mb-2 block">
                             Momento de Pago
                         </FieldLabel>
-                        <Select
-                            name={field.name}
-                            value={field.value ?? ""}
-                            onValueChange={field.onChange}
-                            disabled={isPagado || Boolean(hasOferta)}
-                        >
-                            <SelectTrigger id={field.name} aria-invalid={fieldState.invalid} className="w-full">
+                            <Select
+                                name={field.name}
+                                value={field.value ?? ""}
+                                onValueChange={field.onChange}
+                                disabled={Boolean(hasOferta)}
+                            >
+                                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid} className="w-full">
                                 <SelectValue placeholder="Seleccione cuándo pagará" />
                             </SelectTrigger>
                             <SelectContent>
