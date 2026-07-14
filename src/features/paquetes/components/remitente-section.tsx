@@ -83,25 +83,10 @@ export function RemitenteSection({ clientes, handleClientSelected }: RemitenteSe
             return;
         }
 
-        // Buscar coincidencia exacta
-        const clienteEncontrado = clientes.find(
-            (c) => c.nombre_completo.toLowerCase() === value.toLowerCase().trim()
-        );
-
-        if (clienteEncontrado) {
-            // Match exacto - autocompletar
-            setValue("remitente.pk_id_cliente", clienteEncontrado.pk_id_cliente, { shouldValidate: true });
-            setValue("remitente.ci_o_cel", clienteEncontrado.ci_o_cel, { shouldValidate: true });
-            setValue("remitente.empresa", clienteEncontrado.empresa || "", { shouldValidate: true });
-            handleClientSelected("remitente", clienteEncontrado.pk_id_cliente);
-            clearErrors(["remitente.ci_o_cel", "remitente.nombre_completo"]);
-            setShowDropdown(false);
-        } else {
-            // Si está escribiendo alguien nuevo, limpiar ID solo si había uno seleccionado
-            if (isClientSelected) {
-                setValue("remitente.pk_id_cliente", undefined as any);
-                handleClientSelected("remitente", undefined);
-            }
+        // Si está escribiendo alguien nuevo, limpiar ID solo si había uno seleccionado
+        if (isClientSelected) {
+            setValue("remitente.pk_id_cliente", undefined as any);
+            handleClientSelected("remitente", undefined);
         }
     };
 

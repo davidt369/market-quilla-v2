@@ -79,25 +79,10 @@ export function DestinatarioSection({ clientes, handleClientSelected }: Destinat
             return;
         }
 
-        // Buscar coincidencia exacta
-        const clienteEncontrado = clientes.find(
-            (c) => c.nombre_completo.toLowerCase() === value.toLowerCase().trim()
-        );
-
-        if (clienteEncontrado) {
-            // Match exacto - autocompletar
-            setValue("destinatario.pk_id_cliente", clienteEncontrado.pk_id_cliente, { shouldValidate: true });
-            setValue("destinatario.ci_o_cel", clienteEncontrado.ci_o_cel, { shouldValidate: true });
-            setValue("destinatario.empresa", clienteEncontrado.empresa || "", { shouldValidate: true });
-            handleClientSelected("destinatario", clienteEncontrado.pk_id_cliente);
-            clearErrors(["destinatario.ci_o_cel", "destinatario.nombre_completo"]);
-            setShowDropdown(false);
-        } else {
-            // Si está escribiendo alguien nuevo, limpiar ID solo si había uno seleccionado
-            if (isClientSelected) {
-                setValue("destinatario.pk_id_cliente", undefined as any);
-                handleClientSelected("destinatario", undefined);
-            }
+        // Si está escribiendo alguien nuevo o editando, limpiar ID solo si había uno seleccionado
+        if (isClientSelected) {
+            setValue("destinatario.pk_id_cliente", undefined as any);
+            handleClientSelected("destinatario", undefined);
         }
     };
 
