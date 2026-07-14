@@ -149,11 +149,12 @@ export const paqueteCompletoFormSchema = z.object({
         "al_entregar",
     ]),
 
-    precioBase: z.coerce
-        .number("El precio debe ser un número válido")
-        .min(0, "El precio no puede ser negativo")
-        .max(10000, "Precio demasiado alto")
-        .default(3.00),
+    precioBase: z.union([z.number(), z.literal(""), z.string()])
+        .refine(val => val !== "" && val !== undefined && val !== null, { message: "El precio base es requerido" })
+        .transform(val => Number(val))
+        .refine(val => !isNaN(val), { message: "El precio debe ser un número válido" })
+        .refine(val => val >= 0, { message: "El precio no puede ser negativo" })
+        .refine(val => val <= 10000, { message: "Precio demasiado alto" }),
 
     precioOferta: z.coerce.number().min(0).optional(),
     diasOferta: z.coerce.number().int().min(0).optional(),

@@ -62,7 +62,7 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
             ubicacionAlmacen: "",
             tipoPaquete: "",
             momentoPago: "al_entregar",
-            precioBase: 3.00,
+            precioBase: "" as any,
         },
     });
 

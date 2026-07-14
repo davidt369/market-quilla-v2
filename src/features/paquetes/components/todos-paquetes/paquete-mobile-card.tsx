@@ -13,7 +13,8 @@ import {
     ArrowRight,
     Printer,
     UserCheck,
-    PenLine
+    PenLine,
+    MoveRight
 } from "lucide-react"
 import { formatBoliviaDateTime } from "@/shared/lib/timezone"
 import { EstadoBadge, PagoBadge, ActionsMenu } from "./paquete-shared"
@@ -27,7 +28,6 @@ interface PaqueteMobileCardProps {
     onDeliver?: () => void
     onPrint?: () => void
 }
-
 
 export function PaqueteMobileCard({
     paquete,
@@ -45,164 +45,164 @@ export function PaqueteMobileCard({
     );
 
     return (
-        <Card className="group relative hover:shadow-md transition-all duration-200 active:scale-[0.98] isolate overflow-hidden flex flex-col p-0">
+        <Card className="group relative hover:shadow-md transition-all duration-200 isolate overflow-hidden flex flex-col p-0 border-border/50">
             {/* Header: Identificador y Acciones */}
-            <CardHeader className="flex flex-row items-center justify-between gap-3 px-4 py-3 bg-muted/40 border-b space-y-0">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Badge variant="default" className="bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 shadow-sm font-mono text-sm font-black tracking-widest cursor-default shrink-0" title="ID del Paquete">
+            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 bg-muted/40 border-b">
+                <div className="flex items-center gap-2 min-w-0">
+                    <Badge variant="default" className="bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 font-mono text-xs font-bold px-1.5 py-0 rounded-sm cursor-default shrink-0">
                         #{paquete.pk_id_paquete}
                     </Badge>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-md shadow-sm border border-dashed cursor-default min-w-0" title="Ubicación en el almacén">
-                        <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-xs font-bold text-foreground tracking-wide uppercase truncate block">
-                            {paquete.ubicacionAlmacen ? paquete.ubicacionAlmacen : "SIN UBICACIÓN"}
+                    <div className="flex items-center gap-1 min-w-0" title="Ubicación en el almacén">
+                        <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
+                        <span className="text-[11px] font-bold text-muted-foreground tracking-wide uppercase truncate max-w-[100px]">
+                            {paquete.ubicacionAlmacen ? paquete.ubicacionAlmacen : "N/A"}
                         </span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                     <EstadoBadge estado={paquete.estadoPaquete} />
                     {onPrint && (
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={onPrint}
-                            className="h-8 w-8 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                            title="Imprimir Ticket"
+                            className="h-7 w-7 rounded-full text-muted-foreground hover:bg-muted"
                         >
-                            <Printer className="h-4 w-4" />
+                            <Printer className="h-3.5 w-3.5" />
                         </Button>
                     )}
-                    <ActionsMenu
-                        estadoPaquete={paquete.estadoPaquete}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        onDeliver={onDeliver}
-                        onPrint={onPrint}
-                    />
+                    <div className="-mr-1">
+                        <ActionsMenu
+                            estadoPaquete={paquete.estadoPaquete}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            onDeliver={onDeliver}
+                            onPrint={onPrint}
+                        />
+                    </div>
                 </div>
-            </CardHeader>
+            </div>
 
-            <CardContent className="p-4 space-y-4">
-                {/* Body: Origen y Destino */}
-                <div className="relative flex items-stretch gap-3">
-                    {/* Línea conectora visual (Opcional, mejora la UX logística) */}
-                    <div className="absolute left-[15px] top-6 bottom-6 w-[2px] bg-border/50 rounded-full hidden sm:block" />
-
-                    <div className="grid grid-cols-2 gap-3 w-full">
-                        {/* Remitente */}
-                        <div className="flex flex-col space-y-1 p-2.5 rounded-lg bg-muted/20 border border-transparent hover:border-border/50 transition-colors">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-500 flex items-center gap-1.5 mb-1">
-                                <User className="h-3 w-3" /> Remitente
-                            </p>
-                            <p className="text-sm font-semibold leading-tight line-clamp-1" title={paquete.remitente?.nombre_completo}>
-                                {paquete.remitente?.nombre_completo || "—"}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                                {paquete.remitente?.ci_o_cel || "Sin documento/celular"}
+            <CardContent className="p-3 space-y-3">
+                {/* Body: Origen y Destino - Lado a Lado usando el ancho completo */}
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-start w-full">
+                    {/* Remitente (Izquierda) */}
+                    <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1 mb-0.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-500 leading-none">
+                                Remitente
                             </p>
                         </div>
+                        <p className="text-sm font-bold text-foreground leading-snug break-words">
+                            {paquete.remitente?.nombre_completo || "—"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                            {paquete.remitente?.ci_o_cel || "Sin DOC"}
+                        </p>
+                    </div>
 
-                        {/* Destinatario */}
-                        <div className="flex flex-col space-y-1 p-2.5 rounded-lg bg-muted/20 border border-transparent hover:border-border/50 transition-colors">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-500 flex items-center gap-1.5 mb-1">
-                                <MapPin className="h-3 w-3" /> Destino
+                    {/* Flecha (Centro) */}
+                    <div className="flex flex-col items-center justify-center pt-3 text-muted-foreground/40">
+                        <MoveRight className="h-5 w-5" />
+                    </div>
+
+                    {/* Destinatario (Derecha) */}
+                    <div className="flex flex-col text-right min-w-0">
+                        <div className="flex items-center justify-end gap-1 mb-0.5">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-500 leading-none">
+                                Destino
                             </p>
-                            <p className="text-sm font-semibold leading-tight line-clamp-1" title={paquete.destinatario?.nombre_completo}>
-                                {paquete.destinatario?.nombre_completo || "—"}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                                {paquete.destinatario?.ci_o_cel || "Sin documento/celular"}
-                            </p>
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                         </div>
+                        <p className="text-sm font-bold text-foreground leading-snug break-words">
+                            {paquete.destinatario?.nombre_completo || "—"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                            {paquete.destinatario?.ci_o_cel || "Sin DOC"}
+                        </p>
                     </div>
                 </div>
 
-                {/* Usuarios involucrados (Registrado por y Recibido por) */}
-                <div className="grid grid-cols-2 gap-3 w-full pt-1">
-                    {paquete.usuarioRegistro && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <PenLine className="h-3.5 w-3.5 shrink-0" />
-                            <span className="truncate" title={`Registrado por: ${paquete.usuarioRegistro.nombre_completo}`}>
-                                Reg: <span className="font-medium text-foreground">{paquete.usuarioRegistro.nombre_completo}</span>
+                {/* Detalles del Paquete y Finanzas */}
+                <div className="bg-muted/40 rounded-lg p-2.5 border border-border/50 flex flex-row items-center justify-between gap-2">
+                    {/* Contenido y Fecha */}
+                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                        <div className="flex items-start gap-1.5">
+                            <Package className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                            <span className="text-xs font-semibold text-foreground leading-tight break-words line-clamp-2">
+                                {paquete.tipoPaquete || "Paquete sin especificar"}
                             </span>
                         </div>
-                    )}
-                    {paquete.estadoPaquete === "entregado" && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <UserCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
-                            <span className="truncate" title={`Marcado como entregado por: ${paquete.usuarioEntrega?.nombre_completo || "Sistema"}`}>
-                                Rec: <span className="font-medium text-foreground">{paquete.usuarioEntrega?.nombre_completo || "Sistema"}</span>
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer Data: Finanzas y Metadatos */}
-                <Card className="bg-muted/10 border p-3 space-y-3 shadow-none">
-                    {/* Pagos y Precio */}
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <PagoBadge estado={estadoPagoCalculado} />
-                            {estadoPagoCalculado !== "pendiente" && (
-                                <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground bg-background">
-                                    Pago: {paquete.momentoPago === "al_registrar" ? "Remitente" : "Destinatario"}
-                                </Badge>
-                            )}
-                            {ofertaVigente && (
-                                <Badge variant="default" className="text-[10px] font-bold tracking-wide bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15">
-                                    OFERTA
-                                </Badge>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-1 text-foreground font-bold text-base shrink-0">
-                            <span className="text-sm text-muted-foreground font-semibold">Bs.</span>
-                            {precioFinal.toFixed(2)}
-                        </div>
-                    </div>
-
-                    {ofertaVigente && (
-                        <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-500 flex justify-between items-center bg-emerald-50 dark:bg-emerald-950/30 p-1.5 rounded-md border border-emerald-100 dark:border-emerald-900/50">
-                            <span>Vence el {fechaExpiracionOferta?.toLocaleDateString("es-ES")}</span>
-                            <span>En {diasRestantesOferta} {diasRestantesOferta === 1 ? 'día' : 'días'}</span>
-                        </div>
-                    )}
-
-                    <Separator className="bg-border/50" />
-
-                    {/* Fechas y Contenido */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5 font-medium text-foreground">
-                            <Package className="h-3.5 w-3.5 shrink-0" />
-                            <span className="truncate max-w-[150px] sm:max-w-[200px]" title={paquete.tipoPaquete || "Contenido no especificado"}>
-                                {paquete.tipoPaquete || "Sin especificar"}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
+                            <Calendar className="h-3 w-3 shrink-0" />
                             <span>{formatBoliviaDateTime(paquete.fechaHoraRegistro)}</span>
                         </div>
                     </div>
-                </Card>
+
+                    {/* Precio y Pago */}
+                    <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2 border-l border-border/60">
+                        <div className="flex items-baseline gap-1 text-foreground">
+                            <span className="text-[10px] text-muted-foreground font-bold uppercase">Bs.</span>
+                            <span className="text-lg font-black tracking-tighter">{precioFinal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {estadoPagoCalculado !== "pendiente" && (
+                                <span className="text-[9px] font-bold text-muted-foreground uppercase px-1">
+                                    {paquete.momentoPago === "al_registrar" ? "Pagó Rem" : "Paga Dest"}
+                                </span>
+                            )}
+                            <PagoBadge estado={estadoPagoCalculado} />
+                        </div>
+                    </div>
+                </div>
+
+                {ofertaVigente && (
+                    <div className="text-[10px] font-medium text-emerald-600 dark:text-emerald-500 flex justify-between items-center bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 mt-1">
+                        <span>Oferta válida hasta el {fechaExpiracionOferta?.toLocaleDateString("es-ES")}</span>
+                        <span className="font-bold uppercase">Vence en {diasRestantesOferta}d</span>
+                    </div>
+                )}
+
+                {/* Usuarios involucrados */}
+                <div className="flex flex-row justify-between items-center px-1">
+                    {paquete.usuarioRegistro && (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                            <PenLine className="h-3 w-3 shrink-0 opacity-70" />
+                            <span className="truncate max-w-[120px]">
+                                Reg: {paquete.usuarioRegistro.nombre_completo}
+                            </span>
+                        </div>
+                    )}
+                    {paquete.estadoPaquete === "entregado" && paquete.usuarioEntrega && (
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-500 font-medium">
+                            <UserCheck className="h-3 w-3 shrink-0 opacity-70" />
+                            <span className="truncate max-w-[120px]">
+                                Rec: {paquete.usuarioEntrega.nombre_completo}
+                            </span>
+                        </div>
+                    )}
+                </div>
             </CardContent>
 
             {/* Estado de Entrega (Condicional) en el CardFooter */}
             {(paquete.estadoPaquete === "entregado" || onDeliver) && (
-                <CardFooter className="px-4 pb-4 pt-0 bg-transparent border-t-0 flex-col gap-2 w-full items-stretch">
+                <div className="px-3 pb-3 mt-auto">
                     {paquete.estadoPaquete === "entregado" ? (
-                        <div className="flex items-center justify-between gap-2 text-xs bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 p-2.5 rounded-lg border border-emerald-100 dark:border-emerald-900 w-full">
-                            <div className="flex items-center gap-1.5">
-                                <Truck className="h-4 w-4 shrink-0" />
-                                <span className="font-medium">
-                                    Entregado: {paquete.fechaHoraEntrega ? formatBoliviaDateTime(paquete.fechaHoraEntrega) : "Sí"}
+                        <div className="flex items-center justify-between gap-2 text-[11px] bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 p-2 rounded-md border border-emerald-100 dark:border-emerald-900 w-full">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <Truck className="h-3.5 w-3.5 shrink-0" />
+                                <span className="font-bold truncate">
+                                    Entregado el {paquete.fechaHoraEntrega ? formatBoliviaDateTime(paquete.fechaHoraEntrega) : ""}
                                 </span>
                             </div>
                             {paquete.fotoEntregadoUrl && (
                                 <ViewEvidenciaModal url={paquete.fotoEntregadoUrl}>
                                     <div
-                                        className="flex items-center gap-1.5 bg-background border shadow-sm px-2.5 py-1 rounded-md text-foreground hover:bg-muted transition-colors font-medium cursor-pointer"
+                                        className="flex items-center gap-1 bg-background border shadow-sm px-1.5 py-0.5 rounded text-foreground hover:bg-muted transition-colors font-medium cursor-pointer shrink-0"
                                     >
-                                        <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                        Ver foto
+                                        <ImageIcon className="h-3 w-3 text-muted-foreground" />
+                                        <span>Evidencia</span>
                                     </div>
                                 </ViewEvidenciaModal>
                             )}
@@ -212,15 +212,15 @@ export function PaqueteMobileCard({
                             <Button
                                 onClick={onDeliver}
                                 variant={recargoAplicado ? "destructive" : "default"}
-                                className={`w-full py-5 text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm flex items-center justify-center gap-2
+                                className={`w-full h-10 text-[11px] font-black uppercase tracking-wider rounded-md shadow-sm
                                     ${!recargoAplicado ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200" : ""}`}
                             >
-                                <Truck className="h-4 w-4" />
-                                {recargoAplicado ? "Entregar con Recargo" : "Entregar Paquete"}
+                                <Truck className="h-4 w-4 mr-2" />
+                                {recargoAplicado ? "ENTREGAR CON RECARGO" : "ENTREGAR PAQUETE"}
                             </Button>
                         )
                     )}
-                </CardFooter>
+                </div>
             )}
         </Card>
     )

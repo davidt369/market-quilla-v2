@@ -99,6 +99,7 @@ export function InformacionPagoSection({ isPagado = false }: { isPagado?: boolea
                                 </span>
                                 <Input
                                     {...field}
+                                    value={field.value ?? ""}
                                     id={field.name}
                                     type="number"
                                     inputMode="decimal"

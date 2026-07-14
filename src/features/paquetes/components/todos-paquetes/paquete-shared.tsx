@@ -73,27 +73,17 @@ export function ActionsMenu({
             <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuGroup>
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones</DropdownMenuLabel>
-                    {/* <DropdownMenuSeparator />
-                    
-                    {onPrint && (
-                        <DropdownMenuItem onClick={onPrint}>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Imprimir Ticket
-                        </DropdownMenuItem>
-                    )}
 
                     {estadoPaquete !== "entregado" && onEdit && (
-                        <DropdownMenuItem onClick={onEdit}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                        </DropdownMenuItem>
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={onEdit}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar
+                            </DropdownMenuItem>
+                        </>
                     )}
-                    {estadoPaquete !== "entregado" && onDeliver && (
-                        <DropdownMenuItem onClick={onDeliver} className="text-emerald-600 focus:text-emerald-600">
-                            <Truck className="mr-2 h-4 w-4" />
-                            Entregar
-                        </DropdownMenuItem>
-                    )} */}
+
 
                     {onDelete && (
                         <>
