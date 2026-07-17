@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, PackageCheck, Wallet } from "lucide-react";
+import { Plus, PackageCheck, Wallet, Archive } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
 import PaquetesCard from "@/features/paquetes/components/paquetes-card";
@@ -8,6 +8,8 @@ import PaquetesSearchBar from "@/features/paquetes/components/paquetes-search-ba
 import { getEstadoCajaAction } from "@/features/caja/actions/caja.actions";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 import { CajaCerradaAlert } from "@/features/caja/components/caja-cerrada-alert";
+import { getCajasOcupacion } from "@/features/paquetes/services/cajas.service";
+import { CajasAlertWidget } from "@/features/paquetes/components/cajas-alert-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +24,12 @@ export default async function PaquetesPage({
     const limit = Number(resolvedSearchParams.limit) || 1000; // Un limite alto
     const q = resolvedSearchParams.q || "";
 
-    const data = await getPaquetesSinEntregar({ page, limit, q });
+    const [data, todasCajas] = await Promise.all([
+        getPaquetesSinEntregar({ page, limit, q }),
+        getCajasOcupacion(),
+    ]);
     const paquetes = data?.data || [];
+    const cajasCriticas = todasCajas.filter((c) => c.total >= 6);
 
     // Validar estado de la caja
     const estadoCaja = await getEstadoCajaAction();
@@ -45,6 +51,12 @@ export default async function PaquetesPage({
                     <div className="w-full sm:w-80">
                         <PaquetesSearchBar />
                     </div>
+                    <Link href="/dashboard/paquetes/cajas" className="w-full sm:w-auto">
+                        <Button variant="outline" className="h-10 rounded-xl font-medium w-full sm:w-auto gap-2">
+                            <Archive className="w-4 h-4" />
+                            Ver Cajas
+                        </Button>
+                    </Link>
                     <Link href="/dashboard/paquetes/nuevo" className="w-full sm:w-auto">
                         <Button className="h-10 rounded-xl font-medium w-full sm:w-auto">
                             <Plus className="w-4 h-4 mr-2" />
@@ -54,6 +66,10 @@ export default async function PaquetesPage({
                 </div>
             </div>
 
+            {/* Cajas con sobrecarga */}
+            {cajasCriticas.length > 0 && (
+                <CajasAlertWidget cajasCriticas={cajasCriticas} />
+            )}
 
             {/* Cards Grid - Mobile First, 3 Columnas en monitores grandes para tarjetas más anchas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-max gap-5 items-start mt-6">
