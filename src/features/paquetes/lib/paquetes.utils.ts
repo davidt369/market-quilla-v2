@@ -5,7 +5,9 @@ export function calcularPrecioFinal(
     fechaHoraRegistro: string | Date | null,
     estadoPago: string | null,
     precioOferta?: number | string | null,
-    diasOferta?: number | null
+    diasOferta?: number | null,
+    momentoPago?: string | null,
+    updatedAt?: string | Date | null,
 ): { 
     precioOriginal: number; 
     precioFinal: number; 
@@ -16,6 +18,8 @@ export function calcularPrecioFinal(
     diasRestantesOferta: number;
     fechaExpiracionOferta: Date | null;
     estadoPagoCalculado: string;
+    gracePeriodVigente: boolean;
+    diasRestantesGrace: number;
 } {
     const precio = Number(precioBase) || 0;
     
@@ -30,6 +34,8 @@ export function calcularPrecioFinal(
             diasRestantesOferta: 0,
             fechaExpiracionOferta: null,
             estadoPagoCalculado: estadoPago?.toLowerCase() === "pagado" ? "pagado" : "pendiente",
+            gracePeriodVigente: false,
+            diasRestantesGrace: 0,
         };
     }
 
@@ -48,10 +54,13 @@ export function calcularPrecioFinal(
     let diasRestantesOferta = 0;
     let fechaExpiracionOferta: Date | null = null;
     let ignorarPagoOriginal = false;
+    let gracePeriodVigente = false;
+    let diasRestantesGrace = 0;
 
     const pagoInicialPagado = estadoPago?.toLowerCase() === "pagado";
+    const pagoAlRegistrar = momentoPago === "al_registrar";
 
-    // Verificar si aplica la oferta (SOLO es válida si se pagó al registrar)
+    // ── CASO A: Tiene oferta configurada (precioOferta + diasOferta) y pagó al registrar ──
     if (diasOferta && diasOferta > 0 && precioOferta != null && pagoInicialPagado) {
         // Obtenemos la fecha exacta (sin hora) para mostrar
         fechaExpiracionOferta = new Date(fechaRegistroBolivia.getTime() + (diasOferta * msEnUnDia));
@@ -71,8 +80,42 @@ export function calcularPrecioFinal(
             recargoAplicado = true;
             ignorarPagoOriginal = true; // El pago inicial ya no cuenta contra esta nueva deuda
         }
+    // ── CASO B: Pagó al registrar (sin oferta especial) → 1 semana de gracia antes del recargo ──
+    // Si el pago fue configurado al EDITAR (updatedAt > fechaHoraRegistro), la semana de gracia
+    // corre desde la fecha de edición (updatedAt), no desde el registro original.
+    } else if (pagoInicialPagado && pagoAlRegistrar) {
+        // Determinar desde qué fecha corre la gracia:
+        // Si hay updatedAt y es posterior a fechaHoraRegistro, significa que el pago "al_registrar"
+        // fue configurado en una edición posterior → gracia desde updatedAt.
+        let fechaInicioGracia = fechaRegistroBolivia;
+        if (updatedAt) {
+            const updatedAtBolivia = startOfDayBolivia(updatedAt);
+            if (updatedAtBolivia.getTime() > fechaRegistroBolivia.getTime()) {
+                fechaInicioGracia = updatedAtBolivia;
+            }
+        }
+
+        const msDesdePago = ahoraBolivia.getTime() - fechaInicioGracia.getTime();
+        const diasDesdePago = Math.floor(msDesdePago / msEnUnDia);
+        fechaExpiracionOferta = new Date(fechaInicioGracia.getTime() + msEnUnaSemana);
+
+        // Dentro de la primera semana: paquete pagado, sin recargo
+        if (diasDesdePago < 7) {
+            precioFinal = precio;
+            gracePeriodVigente = true;
+            diasRestantesGrace = 7 - diasDesdePago;
+        } else {
+            // Pasó la semana de gracia: el pago original ya no cuenta, empieza a correr el recargo
+            const diasDesdeVencimiento = diasDesdePago - 7;
+            const semanasDesdeVencimiento = Math.max(1, Math.floor(diasDesdeVencimiento / 7) + 1);
+
+            semanasPasadas = semanasDesdeVencimiento;
+            precioFinal = precio * Math.pow(2, semanasDesdeVencimiento);
+            recargoAplicado = true;
+            ignorarPagoOriginal = true;
+        }
+    // ── CASO C: No pagó al registrar (paga al entregar) → recargo por semana desde el día 7 ──
     } else {
-        // No hay oferta, o NO pagó al registrar (lo que anula la oferta instantáneamente)
         if (semanasPasadas >= 1) {
             precioFinal = precio * Math.pow(2, semanasPasadas);
             recargoAplicado = true;
@@ -100,6 +143,8 @@ export function calcularPrecioFinal(
         ofertaVigente,
         diasRestantesOferta,
         fechaExpiracionOferta,
-        estadoPagoCalculado
+        estadoPagoCalculado,
+        gracePeriodVigente,
+        diasRestantesGrace,
     };
 }

@@ -53,7 +53,9 @@ export const entregarPaquete = auditable(async (
             paquete.fechaHoraRegistro,
             paquete.estadoPago,
             paquete.precioOferta,
-            paquete.diasOferta
+            paquete.diasOferta,
+            paquete.momentoPago,
+            paquete.updatedAt
         );
 
         // 2. Si hay saldo pendiente (ya sea porque no pagó nada, o por la multa de demora)
