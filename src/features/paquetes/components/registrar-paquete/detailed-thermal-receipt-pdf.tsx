@@ -170,7 +170,7 @@ async function generarEtiquetaBuffer(pkgData: any, ofertaText: string): Promise<
     // ─── CONFIGURACIÓN DE DISEÑO APLICANDO EL NUEVO LAYOUT (FOTO) ───
     const DESIGN = {
         // lblUbic: { x: 160, y: 25, size: 15, bold: false, text: "UBIC:" },
-        valUbic: { x: 153, y: 21, size: 27, bold: true, maxWidth: 190 },
+        valUbic: { x: 153, y: 21, size: 21, bold: true, maxWidth: 248 },
 
         lblDe: { x: 0, y: 70, size: 12, bold: true, text: "DE:" },
         valDe: { x: 30, y: 70, size: 16, bold: false, maxWidth: 215 },
@@ -339,14 +339,14 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
             server.disconnect();
             throw new DOMException("Abortado por el usuario", "AbortError");
         }
-        
+
         // PAUSA CRÍTICA: Las impresoras chinas suelen ignorar los primeros bytes si se envían 
         // inmediatamente después de conectar. Esperamos medio segundo para que despierte.
         await sleep(500);
 
         const service = await server.getPrimaryService(SERVICE_UUID);
         const chars = await service.getCharacteristics();
-        
+
         let foundWrite: any = null;
         for (const c of chars) {
             if ((c as any).properties.write || (c as any).properties.writeWithoutResponse) {
@@ -371,14 +371,14 @@ async function printViaBLE(data: Uint8Array, signal?: AbortSignal) {
             throw new DOMException("Abortado por el usuario", "AbortError");
         }
         const bloque = data.slice(i, i + chunkSize);
-        
+
         // writeWithoutResponse es mucho más rápido porque no espera confirmación del celular
         if (bleWrite.properties.writeWithoutResponse) {
             await bleWrite.writeValueWithoutResponse(bloque);
         } else {
             await bleWrite.writeValue(bloque);
         }
-        
+
         // Pausa ultracorta para mantener la fluidez sin saturar el buffer (4000 bytes/seg)
         await sleep(15);
     }

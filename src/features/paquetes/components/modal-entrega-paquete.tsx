@@ -31,7 +31,7 @@ export default function ModalEntregaPaquete({ isOpen, setIsOpen, pkg, isPendient
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const cameraInputRef = React.useRef<HTMLInputElement>(null);
 
-    const pricing = calcularPrecioFinal(pkg?.precioBase, pkg?.fechaHoraRegistro, pkg?.estadoPago, pkg?.precioOferta, pkg?.diasOferta);
+    const pricing = calcularPrecioFinal(pkg?.precioBase, pkg?.fechaHoraRegistro, pkg?.estadoPago, pkg?.precioOferta, pkg?.diasOferta, pkg?.momentoPago, pkg?.updatedAt);
     const tieneDeuda = pricing.saldoPendiente > 0;
 
     React.useEffect(() => {

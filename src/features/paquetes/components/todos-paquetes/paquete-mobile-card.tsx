@@ -36,12 +36,14 @@ export function PaqueteMobileCard({
     onDeliver,
     onPrint,
 }: PaqueteMobileCardProps) {
-    const { precioOriginal, precioFinal, recargoAplicado, semanasPasadas, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta, estadoPagoCalculado } = calcularPrecioFinal(
+    const { precioOriginal, precioFinal, recargoAplicado, semanasPasadas, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta, estadoPagoCalculado, gracePeriodVigente, diasRestantesGrace } = calcularPrecioFinal(
         paquete.precioBase,
         paquete.fechaHoraRegistro,
         paquete.estadoPago,
         paquete.precioOferta,
-        paquete.diasOferta
+        paquete.diasOferta,
+        paquete.momentoPago,
+        paquete.updatedAt
     );
 
     return (
@@ -177,6 +179,17 @@ export function PaqueteMobileCard({
                         <span className="font-bold uppercase">Vence en {diasRestantesOferta}d</span>
                     </div>
                 )}
+
+                {gracePeriodVigente && (
+                    <div className="text-[10px] font-medium text-blue-600 dark:text-blue-400 flex justify-between items-center bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 mt-1">
+                        <span>Sin recargo hasta el</span>
+                        <span className="font-bold">
+                            {fechaExpiracionOferta?.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                        </span>
+                    </div>
+                )}
+
+
 
                 {/* Usuarios involucrados */}
                 <div className="flex flex-row justify-between items-center px-1">

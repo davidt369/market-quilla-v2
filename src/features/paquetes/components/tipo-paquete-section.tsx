@@ -2,15 +2,19 @@
 
 import * as React from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { Warehouse } from "lucide-react";
+import { Warehouse, AlertTriangle } from "lucide-react";
 
 import { PaqueteCompletoFormData } from "@/features/paquetes/schemas/paquetes.schema";
 import { Field, FieldLabel, FieldError } from "@/shared/components/ui/field";
 import { Input } from "@/shared/components/ui/input";
 import { SectionCard, SectionTitle } from "./form-layout";
+import { useCajaOcupacion } from "@/features/paquetes/hooks/use-caja-ocupacion";
+
+const LIMITE_CRITICO = 6;
 
 export function TipoPaqueteSection() {
     const { control, setValue, getValues } = useFormContext<PaqueteCompletoFormData>();
+    const { obtenerOcupacion, esCritica, cargando } = useCajaOcupacion();
 
     const dias = React.useMemo(() => ["D", "L", "M", "MI", "J", "V", "S"], []);
     const diaActual = React.useMemo(() => dias[new Date().getDay()], [dias]);
@@ -57,6 +61,10 @@ export function TipoPaqueteSection() {
         }
     }, [dia, nCaja, nPaquete, extra, setValue]);
 
+    // Estado de advertencia de la caja
+    const cajaCritica = !cargando && nCaja.trim() !== "" && esCritica(nCaja.trim());
+    const ocupacionCaja = nCaja.trim() !== "" ? obtenerOcupacion(nCaja.trim()) : 0;
+
     return (
         <SectionCard step={3}>
             <SectionTitle icon={Warehouse} accent="blue">Detalles del Paquete</SectionTitle>
@@ -80,14 +88,24 @@ export function TipoPaqueteSection() {
 
                             <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
 
-                            {/* N° Caja */}
-                            <Input
-                                value={nCaja}
-                                onChange={(e) => setNCaja(e.target.value)}
-                                placeholder="N°Caja"
-                                maxLength={5}
-                                className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
-                            />
+                            {/* N° Caja — con indicador de advertencia */}
+                            <div className="flex-1 min-w-[80px] sm:max-w-[100px] relative">
+                                <Input
+                                    value={nCaja}
+                                    onChange={(e) => setNCaja(e.target.value)}
+                                    placeholder="N°Caja"
+                                    maxLength={5}
+                                    className={`text-center font-medium w-full ${cajaCritica
+                                        ? "border-amber-500 focus-visible:ring-amber-500/30 bg-amber-50 dark:bg-amber-950/20"
+                                        : ""
+                                        }`}
+                                />
+                                {cajaCritica && (
+                                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm">
+                                        <AlertTriangle className="h-2.5 w-2.5" />
+                                    </span>
+                                )}
+                            </div>
 
                             <span className="text-muted-foreground font-medium hidden sm:inline">/</span>
 
@@ -111,6 +129,19 @@ export function TipoPaqueteSection() {
                                 className="flex-1 min-w-[80px] sm:max-w-[100px] text-center font-medium"
                             />
                         </div>
+
+                        {/* Banner de advertencia de caja llena */}
+                        {cajaCritica && (
+                            <div className="mt-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2">
+                                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                <p className="text-xs text-amber-700 dark:text-amber-400 leading-snug">
+                                    <span className="font-bold">Caja {nCaja} llena:</span>{" "}
+                                    ya tiene <span className="font-bold">{ocupacionCaja} paquetes</span> sin entregar
+                                    (límite recomendado: {LIMITE_CRITICO}).
+                                    Considera usar otra caja.
+                                </p>
+                            </div>
+                        )}
 
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>

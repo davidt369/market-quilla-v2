@@ -22,6 +22,7 @@ import { DestinatarioSection } from "./destinatario-section";
 import { TipoPaqueteSection } from "./tipo-paquete-section";
 import { InformacionPagoSection } from "./informacion-pago-section";
 import { PrintOptionDialog } from "./registrar-paquete/print-option-dialog";
+import { useCajaOcupacion } from "@/features/paquetes/hooks/use-caja-ocupacion";
 
 interface PaqueteFormProps {
     initialClientes: ClienteBase[];
@@ -40,6 +41,9 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
     // Modal states
     const [confirmModalOpen, setConfirmModalOpen] = React.useState(false);
     const [pendingData, setPendingData] = React.useState<PaqueteCompletoFormData | null>(null);
+    const [cajaWarning, setCajaWarning] = React.useState({ critica: false, total: 0 });
+
+    const { obtenerOcupacion, esCritica } = useCajaOcupacion();
 
     // Print states
     const [isPrintDialogOpen, setIsPrintDialogOpen] = React.useState(false);
@@ -73,6 +77,12 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
     }, [initialData, form]);
 
     const onSubmit = async (data: PaqueteCompletoFormData) => {
+        const ubicacion = data.ubicacionAlmacen;
+        const nCaja = ubicacion ? ubicacion.split("/")[1] : "";
+        setCajaWarning({
+            critica: nCaja ? esCritica(nCaja) : false,
+            total: nCaja ? obtenerOcupacion(nCaja) : 0,
+        });
         setPendingData(data);
         setConfirmModalOpen(true);
     };
@@ -206,6 +216,9 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                     isSubmitting={isSubmitting}
                     onConfirm={submitData}
                     isPagado={isPagado}
+                    isEditing={!!packageId}
+                    cajaCritica={cajaWarning.critica}
+                    cajaOcupacionTotal={cajaWarning.total}
                 />
 
                 {/* ── Print Selection Modal ── */}

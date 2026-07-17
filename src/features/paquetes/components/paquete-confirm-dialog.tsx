@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Loader2, Banknote, QrCode } from "lucide-react";
+import { Loader2, Banknote, QrCode, AlertTriangle } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -20,6 +20,9 @@ interface PaqueteConfirmDialogProps {
     isSubmitting: boolean;
     onConfirm: (data: PaqueteCompletoFormData) => void;
     isPagado?: boolean;
+    isEditing?: boolean;
+    cajaCritica?: boolean;
+    cajaOcupacionTotal?: number;
 }
 
 export function PaqueteConfirmDialog({
@@ -29,6 +32,9 @@ export function PaqueteConfirmDialog({
     isSubmitting,
     onConfirm,
     isPagado = false,
+    isEditing = false,
+    cajaCritica = false,
+    cajaOcupacionTotal = 0,
 }: PaqueteConfirmDialogProps) {
     const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr">("efectivo");
     const [prevOpen, setPrevOpen] = React.useState(open);
@@ -55,6 +61,22 @@ export function PaqueteConfirmDialog({
                 </div>
 
                 <div className="px-6 py-6 space-y-6">
+
+                    {/* Advertencia de Caja Llena */}
+                    {cajaCritica && (
+                        <div className="flex gap-3 items-start p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 mb-4 animate-in slide-in-from-top-2">
+                            <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                                    Atención: Caja sin capacidad recomendada
+                                </h4>
+                                <p className="text-xs text-amber-700/90 dark:text-amber-400/90 leading-snug">
+                                    La caja que seleccionaste ya tiene <strong>{cajaOcupacionTotal} paquetes</strong> sin entregar (límite recomendado: 6). 
+                                    Asegúrate de verificar físicamente que haya espacio antes de confirmar.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Tarjeta de Resumen - Estilo Etiqueta Market Quilla */}
                     <CardConfirmarDatos pendingData={pendingData} />
@@ -94,7 +116,6 @@ export function PaqueteConfirmDialog({
                 <div className="px-6 py-4 bg-muted/30 border-t flex gap-3 justify-end items-center">
                     
 
-
                     <Button
                         variant="ghost"
                         onClick={() => onOpenChange(false)}
@@ -107,10 +128,10 @@ export function PaqueteConfirmDialog({
                         className="min-w-[140px] bg-amber-500 font-semibold text-amber-950 hover:bg-amber-600"
                         onClick={() => {
                             if (pendingData) {
+                                const needsMetodoPago = pendingData.momentoPago === "al_registrar" && !isPagado;
                                 onConfirm({
                                     ...pendingData,
-                                    // @ts-ignore - Dependerá de si "metodoPago" existe en tu PaqueteCompletoFormData
-                                    metodoPago: pendingData.momentoPago === "al_registrar" ? metodoPago : undefined
+                                    metodoPago: needsMetodoPago ? metodoPago : undefined
                                 });
                             }
                         }}
@@ -121,7 +142,9 @@ export function PaqueteConfirmDialog({
                                 Procesando
                             </>
                         ) : (
-                            (pendingData?.momentoPago === "al_registrar" && !isPagado) ? "Confirmar Pago" : "Confirmar Registro"
+                            (pendingData?.momentoPago === "al_registrar" && !isPagado) 
+                                ? (isEditing ? "Confirmar y Cobrar" : "Confirmar Pago")
+                                : "Confirmar Registro"
                         )}
                     </Button>
                 </div>

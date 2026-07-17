@@ -191,7 +191,7 @@ export const getPaquetesColumns = ({
                 const pkg = row.original;
                 
                 if (pkg.estadoPaquete === "registrado") {
-                    const pricing = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago, pkg.precioOferta, pkg.diasOferta);
+                    const pricing = calcularPrecioFinal(pkg.precioBase, pkg.fechaHoraRegistro, pkg.estadoPago, pkg.precioOferta, pkg.diasOferta, pkg.momentoPago, pkg.updatedAt);
                     return (
                         <div className="flex flex-col items-center justify-center w-full gap-1">
                             <div className="flex items-center gap-1.5">

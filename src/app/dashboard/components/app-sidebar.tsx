@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Settings,
   ShieldCheck,
-  BarChart3
+  BarChart3,
+  Archive
 } from "lucide-react"
 
 import {
@@ -100,6 +101,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Paquetes Sin Entregar",
           url: "/dashboard/paquetes",
           icon: Package,
+          permission: PERMISSIONS.VER_PAQUETES_SIN_ENTREGAR,
+        },
+        {
+          title: "Cajas (Almacén)",
+          url: "/dashboard/paquetes/cajas",
+          icon: Archive,
           permission: PERMISSIONS.VER_PAQUETES_SIN_ENTREGAR,
         },
         {
