@@ -15,7 +15,9 @@ async function setupAuditTriggers() {
     // 1. Crear la función del trigger
     await db.execute(sql`
       CREATE OR REPLACE FUNCTION log_audit_event()
-      RETURNS TRIGGER AS $$
+      RETURNS TRIGGER 
+      SECURITY DEFINER 
+      AS $$
       DECLARE
         v_user_id INTEGER;
         v_entity_name VARCHAR;

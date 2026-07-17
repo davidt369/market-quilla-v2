@@ -32,7 +32,7 @@ export async function registrarPaqueteAction(
 
         const paquete = await createPaqueteCompletoTransaction(parsed.data, usuarioId);
 
-        revalidatePath("/dashboard/paquetes"); // Revalida la tabla/lista donde se muestren
+        revalidatePath("/dashboard", "layout"); // Revalida la tabla/lista donde se muestren
 
         return {
             success: true,
@@ -63,7 +63,7 @@ export async function actualizarPaqueteCompletoAction(
 
         const paquete = await updatePaqueteCompletoTransaction(id, parsed.data, usuarioId);
 
-        revalidatePath("/dashboard/paquetes");
+        revalidatePath("/dashboard", "layout");
 
         return {
             success: true,
@@ -103,7 +103,7 @@ export async function entregarPaqueteAction(
 
         const paquete = await entregarPaquete(paqueteId, usuarioId, metodoPago, finalUrl);
 
-        revalidatePath("/dashboard/paquetes");
+        revalidatePath("/dashboard", "layout");
 
         return {
             success: true,
@@ -120,7 +120,7 @@ export async function deletePaqueteAction(id: number): Promise<ActionState> {
     try {
         await requirePermission(PERMISSIONS.ELIMINAR_PAQUETE);
         const result = await deletePaquete(id);
-        revalidatePath("/dashboard/paquetes");
+        revalidatePath("/dashboard", "layout");
 
         return {
             success: true,
@@ -146,7 +146,7 @@ export async function updatePaqueteAction(id: number, data: PaqueteUpdate): Prom
         }
 
         const paquete = await updatePaquete(id, parsed.data);
-        revalidatePath("/dashboard/paquetes");
+        revalidatePath("/dashboard", "layout");
 
         return {
             success: true,

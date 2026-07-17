@@ -36,7 +36,7 @@ export function PaqueteMobileCard({
     onDeliver,
     onPrint,
 }: PaqueteMobileCardProps) {
-    const { precioFinal, recargoAplicado, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta, estadoPagoCalculado } = calcularPrecioFinal(
+    const { precioOriginal, precioFinal, recargoAplicado, semanasPasadas, ofertaVigente, diasRestantesOferta, fechaExpiracionOferta, estadoPagoCalculado } = calcularPrecioFinal(
         paquete.precioBase,
         paquete.fechaHoraRegistro,
         paquete.estadoPago,
@@ -142,9 +142,23 @@ export function PaqueteMobileCard({
 
                     {/* Precio y Pago */}
                     <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2 border-l border-border/60">
-                        <div className="flex items-baseline gap-1 text-foreground">
-                            <span className="text-[10px] text-muted-foreground font-bold uppercase">Bs.</span>
-                            <span className="text-lg font-black tracking-tighter">{precioFinal.toFixed(2)}</span>
+                        {recargoAplicado && (
+                            <div className="flex items-center gap-1 bg-destructive/10 px-1.5 py-0.5 rounded">
+                                <span className="text-[9px] font-bold text-destructive uppercase">
+                                    + Recargo ({semanasPasadas} sem)
+                                </span>
+                            </div>
+                        )}
+                        <div className="flex flex-col items-end leading-none">
+                            {recargoAplicado && (
+                                <span className="text-[10px] text-muted-foreground line-through decoration-destructive/50 decoration-2">
+                                    Bs. {precioOriginal.toFixed(2)}
+                                </span>
+                            )}
+                            <div className="flex items-baseline gap-1 text-foreground">
+                                <span className="text-[10px] text-muted-foreground font-bold uppercase">Bs.</span>
+                                <span className="text-lg font-black tracking-tighter text-destructive">{precioFinal.toFixed(2)}</span>
+                            </div>
                         </div>
                         <div className="flex items-center gap-1">
                             {estadoPagoCalculado !== "pendiente" && (

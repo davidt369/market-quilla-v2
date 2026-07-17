@@ -205,6 +205,7 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
                     pendingData={pendingData}
                     isSubmitting={isSubmitting}
                     onConfirm={submitData}
+                    isPagado={isPagado}
                 />
 
                 {/* ── Print Selection Modal ── */}

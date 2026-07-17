@@ -12,15 +12,25 @@ import type {
   PaqueteUpdate,
 } from "../schemas/paquetes.schema";
 
-// Función de utilidad auxiliar para parsear errores DB
 export function handleDbErrorPaquete(error: any): never {
+  // LOG EXTENDIDO PARA DEPURACIÓN
+  // console.error("=== ERROR DB DETALLADO ===");
+  // console.error("Message:", error.message);
+  // console.error("Code:", error.code);
+  // console.error("Detail:", error.detail);
+  // console.error("Constraint:", error.constraint);
+  // console.error("Stack:", error.stack);
+  // console.error("JSON:", JSON.stringify(error, null, 2));
+  // console.error("==========================");
+
   // Si ya es un mensaje custom (lanzado manualmente) lo dejamos pasar
   if (error.message && !error.code) {
     throw error;
   }
   if (error.code === "23505") {
+    const detailMsg = error.detail ? ` (${error.detail})` : "";
     throw new Error(
-      "Ya existe un paquete registrado con datos únicos duplicados (ej. ubicación).",
+      `Ya existe un registro con datos únicos duplicados (ej. ubicación o ci/celular).${detailMsg}`
     );
   }
   if (error.code === "23503") {
@@ -308,6 +318,10 @@ export const updatePaqueteCompletoTransaction = auditable(
       }
 
       // 4. Determinar campos financieros a actualizar
+      console.log("DEBUG: current.estadoPago =", current.estadoPago);
+      console.log("DEBUG: isPagado =", isPagado);
+      console.log("DEBUG: data.momentoPago =", data.momentoPago);
+
       const updateData: any = {
         fk_id_remitente: remitenteId,
         fk_id_destinatario: destinatarioId,
@@ -319,39 +333,66 @@ export const updatePaqueteCompletoTransaction = auditable(
 
       if (isPagado && data.momentoPago === "al_entregar") {
         // El usuario está revirtiendo un paquete pagado por error
+        console.log("DEBUG: Branch isPagado && al_entregar");
         updateData.estadoPago = "pendiente";
-        
+
         // Eliminar el movimiento de caja asociado a este cobro inicial
         await tx.delete(tbcajaMovimientos)
           .where(
-             and(
-               eq(tbcajaMovimientos.fk_id_paquete, id),
-               eq(tbcajaMovimientos.tipoMovimiento, "ingreso")
-             )
+            and(
+              eq(tbcajaMovimientos.fk_id_paquete, id),
+              eq(tbcajaMovimientos.tipoMovimiento, "ingreso")
+            )
           );
       } else if (!isPagado && data.momentoPago === "al_registrar") {
-        // Si quisieran pasarlo a pagado desde edición... no tenemos el metodoPago.
-        throw new Error("No se puede cambiar a 'Al registrar' durante la edición porque requiere un método de pago. Si el cliente va a pagar ahora, use la opción de 'Cobrar' desde la lista principal.");
+        console.log("DEBUG: Branch !isPagado && al_registrar (debe cobrar)");
+        if (!data.metodoPago) {
+          data.metodoPago = "efectivo"; // Por defecto efectivo si no llega de la UI
+        }
+
+        const turnoActivo = await tx.query.tbcajaTurnos.findFirst({
+          where: (ct, { eq }) => eq(ct.cerrada, false),
+        });
+
+        if (!turnoActivo) {
+          throw new Error("Debe tener una caja abierta para poder registrar el cobro.");
+        }
+
+        updateData.estadoPago = "pagado";
+
+        await tx.insert(tbcajaMovimientos).values({
+          fk_id_cajaTurno: turnoActivo.pk_id_cajaTurno,
+          fk_id_usuario: usuarioId,
+          fk_id_paquete: id,
+          tipoMovimiento: "ingreso",
+          metodoPago: data.metodoPago,
+          monto: data.precioBase?.toString() || "3.00",
+          descripcion: `Cobro por actualización de paquete TRK-${id.toString().padStart(4, "0")}`,
+        });
       } else if (isPagado && data.momentoPago === "al_registrar") {
         // Se mantiene pagado
+        console.log("DEBUG: Branch isPagado && al_registrar (se mantiene pagado)");
         updateData.estadoPago = "pagado";
-        
+
         // Si el precio base cambió, actualizamos también el ingreso de caja para que cuadre
         const nuevoPrecio = data.precioBase?.toString() || "3.00";
         if (nuevoPrecio !== current.precioBase?.toString()) {
-            await tx.update(tbcajaMovimientos)
-              .set({ monto: nuevoPrecio })
-              .where(
-                and(
-                  eq(tbcajaMovimientos.fk_id_paquete, id),
-                  eq(tbcajaMovimientos.tipoMovimiento, "ingreso")
-                )
-              );
+          await tx.update(tbcajaMovimientos)
+            .set({ monto: nuevoPrecio })
+            .where(
+              and(
+                eq(tbcajaMovimientos.fk_id_paquete, id),
+                eq(tbcajaMovimientos.tipoMovimiento, "ingreso")
+              )
+            );
         }
       } else {
         // Se mantiene pendiente
+        console.log("DEBUG: Branch ELSE (se mantiene pendiente)");
         updateData.estadoPago = "pendiente";
       }
+
+      console.log("DEBUG: Final updateData =", updateData);
 
       // 5. Update Paquete
       const [paquete] = await tx

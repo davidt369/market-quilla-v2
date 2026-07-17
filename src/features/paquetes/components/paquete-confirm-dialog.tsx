@@ -19,6 +19,7 @@ interface PaqueteConfirmDialogProps {
     pendingData: PaqueteCompletoFormData | null;
     isSubmitting: boolean;
     onConfirm: (data: PaqueteCompletoFormData) => void;
+    isPagado?: boolean;
 }
 
 export function PaqueteConfirmDialog({
@@ -27,6 +28,7 @@ export function PaqueteConfirmDialog({
     pendingData,
     isSubmitting,
     onConfirm,
+    isPagado = false,
 }: PaqueteConfirmDialogProps) {
     const [metodoPago, setMetodoPago] = React.useState<"efectivo" | "qr">("efectivo");
     const [prevOpen, setPrevOpen] = React.useState(open);
@@ -57,7 +59,7 @@ export function PaqueteConfirmDialog({
                     {/* Tarjeta de Resumen - Estilo Etiqueta Market Quilla */}
                     <CardConfirmarDatos pendingData={pendingData} />
                     {/* Selector de Método de Pago copiado de ModalEntregaPaquete */}
-                    {pendingData?.momentoPago === "al_registrar" && (
+                    {pendingData?.momentoPago === "al_registrar" && !isPagado && (
                         <div className="space-y-3 animate-in slide-in-from-bottom-2">
                             <span className="text-sm font-semibold text-foreground block mb-2 flex items-center gap-1.5">
                                 Método de Pago <span className="text-destructive">*</span>
@@ -119,7 +121,7 @@ export function PaqueteConfirmDialog({
                                 Procesando
                             </>
                         ) : (
-                            pendingData?.momentoPago === "al_registrar" ? "Confirmar Pago" : "Confirmar Registro"
+                            (pendingData?.momentoPago === "al_registrar" && !isPagado) ? "Confirmar Pago" : "Confirmar Registro"
                         )}
                     </Button>
                 </div>
