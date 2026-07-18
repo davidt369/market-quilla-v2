@@ -1,5 +1,6 @@
 import { db } from "@/database";
 import { tbpaquetes } from "@/database/schema/schema";
+import { parseUbicacion } from "@/features/paquetes/utils/ubicacion.util";
 
 export interface CajaOcupacion {
     caja: string;          // e.g. "33"
@@ -24,10 +25,9 @@ export async function getCajasOcupacion(): Promise<CajaOcupacion[]> {
 
     for (const pkg of paquetes) {
         const ubicacion = pkg.ubicacionAlmacen || "";
-        const partes = ubicacion.split("/");
-        // Formato: DIA/CAJA/CODIGO/EXTRA → el 2° segmento es la caja
-        const caja = partes[1] || "";
-        if (!caja.trim()) continue;
+        const ubicacionInfo = parseUbicacion(ubicacion);
+        const caja = ubicacionInfo.caja;
+        if (!caja) continue;
 
         if (!map.has(caja)) map.set(caja, []);
         map.get(caja)!.push(ubicacion);
@@ -55,7 +55,7 @@ export async function contarPaquetesEnCaja(numeroCaja: string): Promise<number> 
     });
 
     return paquetes.filter((p) => {
-        const partes = (p.ubicacionAlmacen || "").split("/");
-        return partes[1] === numeroCaja;
+        const ubicacionInfo = parseUbicacion(p.ubicacionAlmacen);
+        return ubicacionInfo.caja === numeroCaja;
     }).length;
 }
