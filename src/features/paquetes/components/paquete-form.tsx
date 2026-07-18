@@ -23,6 +23,7 @@ import { TipoPaqueteSection } from "./tipo-paquete-section";
 import { InformacionPagoSection } from "./informacion-pago-section";
 import { PrintOptionDialog } from "./registrar-paquete/print-option-dialog";
 import { useCajaOcupacion } from "@/features/paquetes/hooks/use-caja-ocupacion";
+import { parseUbicacion } from "@/features/paquetes/utils/ubicacion.util";
 
 interface PaqueteFormProps {
     initialClientes: ClienteBase[];
@@ -77,11 +78,11 @@ export function PaqueteForm({ initialClientes, initialData, packageId, isPagado 
     }, [initialData, form]);
 
     const onSubmit = async (data: PaqueteCompletoFormData) => {
-        const ubicacion = data.ubicacionAlmacen;
-        const nCaja = ubicacion ? ubicacion.split("/")[1] : "";
+        const ubicacionInfo = parseUbicacion(data.ubicacionAlmacen);
+        const caja = ubicacionInfo.caja;
         setCajaWarning({
-            critica: nCaja ? esCritica(nCaja) : false,
-            total: nCaja ? obtenerOcupacion(nCaja) : 0,
+            critica: caja ? esCritica(caja) : false,
+            total: caja ? obtenerOcupacion(caja) : 0,
         });
         setPendingData(data);
         setConfirmModalOpen(true);

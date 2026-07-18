@@ -9,6 +9,7 @@ import { Field, FieldLabel, FieldError } from "@/shared/components/ui/field";
 import { Input } from "@/shared/components/ui/input";
 import { SectionCard, SectionTitle } from "./form-layout";
 import { useCajaOcupacion } from "@/features/paquetes/hooks/use-caja-ocupacion";
+import { parseUbicacion } from "@/features/paquetes/utils/ubicacion.util";
 
 const LIMITE_CRITICO = 6;
 
@@ -21,33 +22,25 @@ export function TipoPaqueteSection() {
 
     const [dia, setDia] = React.useState(() => {
         const initialValue = getValues("ubicacionAlmacen") || "";
-        if (initialValue.includes("/")) {
-            return initialValue.split("/")[0] || diaActual;
-        }
+        if (initialValue.includes("/")) return parseUbicacion(initialValue).bloque || diaActual;
         return diaActual;
     });
 
     const [nCaja, setNCaja] = React.useState(() => {
         const initialValue = getValues("ubicacionAlmacen") || "";
-        if (initialValue.includes("/")) {
-            return initialValue.split("/")[1] || "";
-        }
+        if (initialValue.includes("/")) return parseUbicacion(initialValue).numeroCaja || "";
         return "";
     });
 
     const [nPaquete, setNPaquete] = React.useState(() => {
         const initialValue = getValues("ubicacionAlmacen") || "";
-        if (initialValue.includes("/")) {
-            return initialValue.split("/")[2] || "";
-        }
+        if (initialValue.includes("/")) return parseUbicacion(initialValue).posicion || "";
         return initialValue ? "" : "AUTO";
     });
 
     const [extra, setExtra] = React.useState(() => {
         const initialValue = getValues("ubicacionAlmacen") || "";
-        if (initialValue.includes("/")) {
-            return initialValue.split("/")[3] || "";
-        }
+        if (initialValue.includes("/")) return parseUbicacion(initialValue).extra || "";
         return initialValue;
     });
 
@@ -62,8 +55,9 @@ export function TipoPaqueteSection() {
     }, [dia, nCaja, nPaquete, extra, setValue]);
 
     // Estado de advertencia de la caja
-    const cajaCritica = !cargando && nCaja.trim() !== "" && esCritica(nCaja.trim());
-    const ocupacionCaja = nCaja.trim() !== "" ? obtenerOcupacion(nCaja.trim()) : 0;
+    const fullCajaId = (dia && nCaja) ? `${dia.trim()}/${nCaja.trim()}` : "";
+    const cajaCritica = !cargando && fullCajaId !== "" && esCritica(fullCajaId);
+    const ocupacionCaja = fullCajaId !== "" ? obtenerOcupacion(fullCajaId) : 0;
 
     return (
         <SectionCard step={3}>

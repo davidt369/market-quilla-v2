@@ -46,8 +46,8 @@ export function PaqueteConfirmDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background">
-                <div className="p-6 pb-0">
+            <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background flex flex-col max-h-[95vh] sm:max-h-[85vh]">
+                <div className="p-6 pb-0 shrink-0">
                     <DialogHeader>
                         <DialogTitle className="text-xl">
                             {pendingData?.momentoPago === "al_registrar" ? "Confirmar y Cobrar" : "Resumen de Registro"}
@@ -60,7 +60,7 @@ export function PaqueteConfirmDialog({
                     </DialogHeader>
                 </div>
 
-                <div className="px-6 py-6 space-y-6">
+                <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
 
                     {/* Advertencia de Caja Llena */}
                     {cajaCritica && (
@@ -113,7 +113,7 @@ export function PaqueteConfirmDialog({
                     )}
                 </div>
 
-                <div className="px-6 py-4 bg-muted/30 border-t flex gap-3 justify-end items-center">
+                <div className="px-6 py-4 bg-muted/30 border-t flex gap-3 justify-end items-center shrink-0">
                     
 
                     <Button

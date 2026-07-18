@@ -3,6 +3,7 @@
 import { tbpaquetes } from "@/database/schema/schema";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { parseUbicacion } from "@/features/paquetes/utils/ubicacion.util";
 
 // =====================
 // ENTITY (DB)
@@ -104,7 +105,8 @@ export const paqueteFormSchema = z.object({
         .string()
         .trim()
         .min(1, "La ubicación es requerida")
-        .max(50),
+        .max(50)
+        .refine((val) => parseUbicacion(val).isValid, "Formato inválido (Día/Caja/Código)"),
 
     tipoPaquete: z
         .string()
@@ -136,7 +138,8 @@ export const paqueteCompletoFormSchema = z.object({
         .string()
         .trim()
         .min(1, "La ubicación es requerida")
-        .max(50),
+        .max(50)
+        .refine((val) => parseUbicacion(val).isValid, "Formato inválido (Día/Caja/Código)"),
 
     tipoPaquete: z
         .string()

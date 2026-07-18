@@ -75,13 +75,12 @@ export function CajasAlertWidget({ cajasCriticas, fixed = false }: CajasAlertWid
                                 </span>
                             </div>
                             <span
-                                className={`text-xs font-black tabular-nums shrink-0 ${
-                                    caja.total >= 10
-                                        ? "text-red-600 dark:text-red-400"
-                                        : "text-amber-700 dark:text-amber-400"
-                                }`}
+                                className={`text-xs font-black tabular-nums shrink-0 ${caja.total >= 10
+                                    ? "text-red-600 dark:text-red-400"
+                                    : "text-amber-700 dark:text-amber-400"
+                                    }`}
                             >
-                                {caja.total} pkgs
+                                {caja.total} Paque.
                             </span>
                         </div>
                     ))}
