@@ -175,7 +175,7 @@ export function PaqueteMobileCard({
 
                 {ofertaVigente && (
                     <div className="text-[10px] font-medium text-emerald-600 dark:text-emerald-500 flex justify-between items-center bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 mt-1">
-                        <span>Oferta válida hasta el {fechaExpiracionOferta?.toLocaleDateString("es-ES")}</span>
+                        <span suppressHydrationWarning>Oferta válida hasta el {fechaExpiracionOferta?.toLocaleDateString("es-ES")}</span>
                         <span className="font-bold uppercase">Vence en {diasRestantesOferta}d</span>
                     </div>
                 )}
@@ -183,7 +183,7 @@ export function PaqueteMobileCard({
                 {gracePeriodVigente && (
                     <div className="text-[10px] font-medium text-blue-600 dark:text-blue-400 flex justify-between items-center bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 mt-1">
                         <span>Sin recargo hasta el</span>
-                        <span className="font-bold">
+                        <span className="font-bold" suppressHydrationWarning>
                             {fechaExpiracionOferta?.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit" })}
                         </span>
                     </div>

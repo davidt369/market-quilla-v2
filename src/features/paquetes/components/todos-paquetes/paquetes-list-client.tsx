@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/shared/store/useAuthStore";
 import { PERMISSIONS } from "@/shared/config/permisos.constants";
 import ModalEntregaPaquete from "@/features/paquetes/components/modal-entrega-paquete";
-import PaquetesSearchBar from "../paquetes-search-bar";
 import { PaquetesPagination } from "./paquetes-pagination";
 
 type PaquetesListClientProps = {
@@ -29,10 +28,15 @@ export function PaquetesListClient({ data, meta }: PaquetesListClientProps) {
     const router = useRouter();
     const actions = usePaquetesActions();
 
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const hasPermission = useAuthStore((s) => s.hasPermission);
-    const canEdit = hasPermission(PERMISSIONS.EDITAR_PAQUETE);
-    const canDelete = hasPermission(PERMISSIONS.ELIMINAR_PAQUETE);
-    const canDeliver = hasPermission(PERMISSIONS.ENTREGAR_PAQUETE);
+    const canEdit = isMounted && hasPermission(PERMISSIONS.EDITAR_PAQUETE);
+    const canDelete = isMounted && hasPermission(PERMISSIONS.ELIMINAR_PAQUETE);
+    const canDeliver = isMounted && hasPermission(PERMISSIONS.ENTREGAR_PAQUETE);
 
     // Si hay un estado de paquete desde los searchParams u otro componente, aquí lo usamos.
     // Por ahora renderizamos la data que viene del servidor (paginada).
@@ -48,10 +52,6 @@ export function PaquetesListClient({ data, meta }: PaquetesListClientProps) {
                     <p className="text-sm text-muted-foreground hidden sm:block">
                         Mostrando {data.length} de {meta.total} registros
                     </p>
-                </div>
-
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <PaquetesSearchBar basePath="/dashboard/paquetes/todos" />
                 </div>
             </div>
 

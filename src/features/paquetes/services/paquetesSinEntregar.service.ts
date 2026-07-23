@@ -6,7 +6,7 @@ import {
   tbclientes,
   tbpaquetes,
 } from "@/database/schema/schema";
-import { extractPackageIdFromQuery } from "@/shared/lib/id-encoder";
+import { encodeId, extractPackageIdFromQuery } from "@/shared/lib/id-encoder";
 import {
   PaqueteCompletoFormData,
   PaqueteInsert,
@@ -57,7 +57,7 @@ export async function getPaquetesSinEntregar({
       },
     });
 
-    // Búsqueda en memoria para filtrar por relaciones (clientes) de forma rápida
+    // Búsqueda en memoria para filtrar por relaciones (clientes) e ID de paquete de forma rápida
     let filteredData = data;
     if (q) {
       const query = q.toLowerCase().trim();
@@ -67,7 +67,13 @@ export async function getPaquetesSinEntregar({
         if (searchId !== null && pkg.pk_id_paquete === searchId) {
           return true;
         }
+        const encodedCode = encodeId(pkg.pk_id_paquete).toLowerCase();
+        const pkgIdStr = String(pkg.pk_id_paquete);
+
         return (
+          pkgIdStr === query ||
+          pkgIdStr.includes(query) ||
+          encodedCode.includes(query) ||
           pkg.ubicacionAlmacen?.toLowerCase().includes(query) ||
           pkg.tipoPaquete?.toLowerCase().includes(query) ||
           pkg.remitente?.nombre_completo.toLowerCase().includes(query) ||

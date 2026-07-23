@@ -27,12 +27,17 @@ export default function PaquetesCard({ pkg }: { pkg: any }) {
     const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
     const [isDeleting, setIsDeleting] = React.useState(false);
 
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const isPendiente = pkg.estadoPago?.toLowerCase() === "pendiente";
 
     const hasPermission = useAuthStore((s) => s.hasPermission);
-    const canEdit = hasPermission(PERMISSIONS.EDITAR_PAQUETE);
-    const canDelete = hasPermission(PERMISSIONS.ELIMINAR_PAQUETE);
-    const canDeliver = hasPermission(PERMISSIONS.ENTREGAR_PAQUETE);
+    const canEdit = isMounted && hasPermission(PERMISSIONS.EDITAR_PAQUETE);
+    const canDelete = isMounted && hasPermission(PERMISSIONS.ELIMINAR_PAQUETE);
+    const canDeliver = isMounted && hasPermission(PERMISSIONS.ENTREGAR_PAQUETE);
 
     const handlePrint = () => {
         setIsPrintOpen(true);

@@ -15,6 +15,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb"
+import { GlobalBarcodeScanner } from "./global-barcode-scanner"
 
 const routeTitles: Record<string, string> = {
   "/dashboard": "Panel de Control",
@@ -43,13 +44,13 @@ export default function AppHeader() {
     <div className="sticky top-0 z-50 w-full px-4 pt-4 pb-2 md:px-6">
       <header
         className={cn(
-          "mx-auto flex h-16 w-full items-center justify-between rounded-2xl",
+          "mx-auto flex h-16 w-full items-center justify-between rounded-2xl gap-4",
           // Mejora UI: Glassmorphism y colores semánticos
           "bg-background/80 backdrop-blur-md border border-border shadow-sm transition-all duration-300 px-4 md:px-5"
         )}
       >
         {/* Left Section */}
-        <div className="flex items-center gap-3 md:gap-4 min-w-0">
+        <div className="flex items-center gap-3 md:gap-4 min-w-0 shrink-0">
           <SidebarTrigger
             className="hidden md:inline-flex h-9 w-9 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
           />
@@ -87,6 +88,11 @@ export default function AppHeader() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+        </div>
+
+        {/* Center Section: Input Global de Escáner QR */}
+        <div className="flex flex-1 max-w-xs sm:max-w-md mx-2">
+          <GlobalBarcodeScanner />
         </div>
 
         {/* Right Section */}

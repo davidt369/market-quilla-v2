@@ -4,7 +4,6 @@ import { Plus, PackageCheck, Wallet, Archive } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import PaquetesCard from "@/features/paquetes/components/paquetes-card";
 import { getPaquetesSinEntregar } from "@/features/paquetes/services/paquetesSinEntregar.service";
-import PaquetesSearchBar from "@/features/paquetes/components/paquetes-search-bar";
 import { getEstadoCajaAction } from "@/features/caja/actions/caja.actions";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 import { CajaCerradaAlert } from "@/features/caja/components/caja-cerrada-alert";
@@ -48,9 +47,6 @@ export default async function PaquetesPage({
                     <p className="text-muted-foreground mt-1.5 text-sm max-w-md">Gestione y rastree los paquetes que estan pendientes por entregar.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-                    <div className="w-full sm:w-80">
-                        <PaquetesSearchBar />
-                    </div>
                     <Link href="/dashboard/paquetes/cajas" className="w-full sm:w-auto">
                         <Button variant="outline" className="h-10 rounded-xl font-medium w-full sm:w-auto gap-2">
                             <Archive className="w-4 h-4" />

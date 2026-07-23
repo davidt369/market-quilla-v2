@@ -33,8 +33,6 @@ export function decodeId(encoded: string): number | null {
         // Quitar prefijos comunes si los tiene (ej: "MQ-", "MQ_", "MQ/", "MQ")
         if (str.startsWith("MQ")) {
             str = str.replace(/^MQ[-_/\s]*/, "");
-        } else {
-            return null;
         }
 
         if (!str) return null;
@@ -61,40 +59,53 @@ export function decodeId(encoded: string): number | null {
 
 /**
  * Extrae y desencripta el ID numérico de un paquete desde cualquier tipo de entrada:
- * - ID numérico o con prefijo: "123", "trk-123", "#123"
- * - Código codificado: "MQ-2CAM5F1", "MQ2CAM5F1"
- * - URLs completas: "https://marketquilla.vercel.app/p/MQ2CAM5F1"
- * - URLs distorsionadas por lectores de QR físicos (layout de teclado ES/US): "]-marketquilla.vercel.app-p-MQ2CAM5F1"
+ * - ID numérico o con prefijo: "123", "trk-123", "#123", "id:123"
+ * - Código codificado: "MQ-2CAM5F1", "MQ2CAM5F1", "2CAM5F1"
+ * - URLs completas: "https://marketquilla.vercel.app/p/MQ2CAM5F1", "https://marketquilla.app/p/15"
+ * - URLs o códigos distorsionados por lectores de QR físicos en pistolas USB (layout de teclado ES/US)
  */
 export function extractPackageIdFromQuery(q: string): number | null {
     if (!q) return null;
-    const query = q.trim();
+    let query = q.trim();
 
-    // 1. Caso directo por ID numérico o prefijos numéricos: "123", "trk-123", "#123"
-    const numMatch = query.match(/^(?:trk-?|#)?0*([1-9]\d*)$/i);
+    // Corregir posibles distorsiones de teclado de pistolas escáner (ej: ']' por '/', '-' por '/')
+    query = query.replace(/^\]-/, "https://").replace(/-p-/, "/p/");
+
+    // 1. Coincidencia con URL o ruta /p/ID
+    const urlMatch = query.match(/\/p\/([A-Za-z0-9_-]+)/i);
+    if (urlMatch) {
+        const pVal = urlMatch[1];
+        const pNum = parseInt(pVal, 10);
+        if (!isNaN(pNum) && pNum > 0) return pNum;
+        const decodedFromUrl = decodeId(pVal);
+        if (decodedFromUrl !== null) return decodedFromUrl;
+    }
+
+    // 2. Caso directo por ID numérico o prefijos numéricos: "123", "trk-123", "#123", "id:123"
+    const numMatch = query.match(/(?:trk-?|pkg-?|id[:=]?|#|^)0*([1-9]\d*)$/i);
     if (numMatch) {
         return parseInt(numMatch[1], 10);
     }
 
-    // 2. Buscar cualquier coincidencia con el patrón MQ (código alfanumérico)
+    // 3. Buscar cualquier coincidencia con el patrón MQ (código alfanumérico)
     const mqMatch = query.match(/MQ[-_/\s]*([A-Z0-9]{5,8})/i);
     if (mqMatch) {
         const decoded = decodeId(`MQ-${mqMatch[1]}`);
         if (decoded !== null) return decoded;
     }
 
-    // 3. Fallback: Intentar desencriptar directamente todo el string limpia
+    // 4. Fallback: Intentar desencriptar directamente todo el string limpia
     return decodeId(query);
 }
 
 /**
- * Formatea un texto escaneado a una representación limpia del código del paquete (ej: "MQ-2CAM5F1").
+ * Formatea un texto escaneado a una representación limpia del código del paquete (ej: "MQ-2CAM5F1" o ID numérico).
  */
 export function formatScannedCode(input: string): string {
     if (!input) return "";
     const clean = input.trim();
 
-    if (/^(?:trk-?|#)?0*[1-9]\d*$/i.test(clean)) {
+    if (/^(?:trk-?|pkg-?|#)?0*[1-9]\d*$/i.test(clean)) {
         return clean.toUpperCase();
     }
 

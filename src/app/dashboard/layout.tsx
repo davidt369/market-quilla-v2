@@ -21,7 +21,6 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <GlobalBarcodeScanner />
       <AppSidebar />
       <SidebarInset>
         <AppHeader />
