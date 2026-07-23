@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/shared/components/ui/sidebar"
 import { AppSidebar } from "./components/app-sidebar"
 import AppHeader from "./components/app-header"
 import MobileTabBar from "./components/mobile-tabbar"
+import { GlobalBarcodeScanner } from "./components/global-barcode-scanner"
 
 export default async function DashboardLayout({
   children,
@@ -20,6 +21,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
+      <GlobalBarcodeScanner />
       <AppSidebar />
       <SidebarInset>
         <AppHeader />

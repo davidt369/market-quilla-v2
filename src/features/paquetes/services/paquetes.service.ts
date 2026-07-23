@@ -11,6 +11,7 @@ import type {
   PaqueteInsert,
   PaqueteUpdate,
 } from "../schemas/paquetes.schema";
+import { extractPackageIdFromQuery } from "@/shared/lib/id-encoder";
 
 export function handleDbErrorPaquete(error: any): never {
   // LOG EXTENDIDO PARA DEPURACIÓN
@@ -430,8 +431,7 @@ export async function getPaquetes({
 
     if (q) {
       const query = q.toLowerCase().trim();
-      const idMatch = query.match(/^(?:trk-)?0*([1-9]\d*)$/i);
-      const searchId = idMatch ? parseInt(idMatch[1], 10) : null;
+      const searchId = extractPackageIdFromQuery(q);
 
       const qFilters = [
         ilike(tbpaquetes.ubicacionAlmacen, `%${q}%`),

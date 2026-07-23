@@ -6,6 +6,7 @@ import {
   tbclientes,
   tbpaquetes,
 } from "@/database/schema/schema";
+import { extractPackageIdFromQuery } from "@/shared/lib/id-encoder";
 import {
   PaqueteCompletoFormData,
   PaqueteInsert,
@@ -60,8 +61,7 @@ export async function getPaquetesSinEntregar({
     let filteredData = data;
     if (q) {
       const query = q.toLowerCase().trim();
-      const idMatch = query.match(/^(?:trk-)?0*([1-9]\d*)$/i);
-      const searchId = idMatch ? parseInt(idMatch[1], 10) : null;
+      const searchId = extractPackageIdFromQuery(q);
 
       filteredData = data.filter((pkg) => {
         if (searchId !== null && pkg.pk_id_paquete === searchId) {
