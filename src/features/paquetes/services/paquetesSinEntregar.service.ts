@@ -60,28 +60,36 @@ export async function getPaquetesSinEntregar({
     // Búsqueda en memoria para filtrar por relaciones (clientes) e ID de paquete de forma rápida
     let filteredData = data;
     if (q) {
-      const query = q.toLowerCase().trim();
-      const searchId = extractPackageIdFromQuery(q);
+      try {
+        const query = q.toLowerCase().trim();
+        const searchId = extractPackageIdFromQuery(q);
 
-      filteredData = data.filter((pkg) => {
-        if (searchId !== null && pkg.pk_id_paquete === searchId) {
-          return true;
-        }
-        const encodedCode = encodeId(pkg.pk_id_paquete).toLowerCase();
-        const pkgIdStr = String(pkg.pk_id_paquete);
+        filteredData = data.filter((pkg) => {
+          if (searchId !== null && pkg.pk_id_paquete === searchId) {
+            return true;
+          }
+          let encodedCode = "";
+          try {
+            encodedCode = encodeId(pkg.pk_id_paquete).toLowerCase();
+          } catch {}
 
-        return (
-          pkgIdStr === query ||
-          pkgIdStr.includes(query) ||
-          encodedCode.includes(query) ||
-          pkg.ubicacionAlmacen?.toLowerCase().includes(query) ||
-          pkg.tipoPaquete?.toLowerCase().includes(query) ||
-          pkg.remitente?.nombre_completo.toLowerCase().includes(query) ||
-          pkg.remitente?.ci_o_cel.toLowerCase().includes(query) ||
-          pkg.destinatario?.nombre_completo.toLowerCase().includes(query) ||
-          pkg.destinatario?.ci_o_cel.toLowerCase().includes(query)
-        );
-      });
+          const pkgIdStr = String(pkg.pk_id_paquete);
+
+          return (
+            pkgIdStr === query ||
+            pkgIdStr.includes(query) ||
+            (encodedCode && encodedCode.includes(query)) ||
+            (pkg.ubicacionAlmacen && pkg.ubicacionAlmacen.toLowerCase().includes(query)) ||
+            (pkg.tipoPaquete && pkg.tipoPaquete.toLowerCase().includes(query)) ||
+            (pkg.remitente?.nombre_completo && pkg.remitente.nombre_completo.toLowerCase().includes(query)) ||
+            (pkg.remitente?.ci_o_cel && pkg.remitente.ci_o_cel.toLowerCase().includes(query)) ||
+            (pkg.destinatario?.nombre_completo && pkg.destinatario.nombre_completo.toLowerCase().includes(query)) ||
+            (pkg.destinatario?.ci_o_cel && pkg.destinatario.ci_o_cel.toLowerCase().includes(query))
+          );
+        });
+      } catch (err) {
+        console.error("Error al filtrar paquetes sin entregar por query:", err);
+      }
     }
 
     const allFiltered = filteredData.map((p) => ({

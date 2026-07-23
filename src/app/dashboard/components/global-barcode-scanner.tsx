@@ -135,22 +135,39 @@ export function GlobalBarcodeScanner({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setQuery(val);
-
+    
+    // Si se escaneó o pegó un enlace completo de paquete (ej: httpsñ--marketquilla.../p/MQ290H3PF)
     if (
       val.includes("http") ||
       val.includes("marketquilla") ||
+      val.includes("httpsñ") ||
       val.includes("]-") ||
       val.includes("/p/")
     ) {
-      executeSearch(val, true);
+      const cleanCode = formatScannedCode(val);
+      setQuery(cleanCode);
+      executeSearch(cleanCode, true);
+    } else {
+      setQuery(val);
     }
   };
 
   const handleKeyDownInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      executeSearch(query);
+      const clean = formatScannedCode(query);
+      setQuery(clean);
+      executeSearch(clean, true);
+    }
+  };
+
+  const handlePasteInput = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData("text");
+    if (pastedText && (pastedText.includes("http") || pastedText.includes("marketquilla") || pastedText.includes("/p/"))) {
+      e.preventDefault();
+      const clean = formatScannedCode(pastedText);
+      setQuery(clean);
+      executeSearch(clean, true);
     }
   };
 
