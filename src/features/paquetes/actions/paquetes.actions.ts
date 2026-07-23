@@ -133,6 +133,11 @@ export async function deletePaqueteAction(id: number): Promise<ActionState> {
     }
 }
 
+import { db } from "@/database";
+import { tbpaquetes } from "@/database/schema/schema";
+import { encodeId, extractPackageIdFromQuery, formatScannedCode } from "@/shared/lib/id-encoder";
+import { and, eq, isNull } from "drizzle-orm";
+
 export async function updatePaqueteAction(id: number, data: PaqueteUpdate): Promise<ActionState> {
     try {
         await requirePermission(PERMISSIONS.EDITAR_PAQUETE);
@@ -156,5 +161,45 @@ export async function updatePaqueteAction(id: number, data: PaqueteUpdate): Prom
         return {
             error: error.message || "Error inesperado al actualizar el paquete.",
         };
+    }
+}
+
+/**
+ * Consulta un paquete deshasheando el código o URL recibida y retorna su ubicación exacta de almacén (ej: M/8/517/).
+ */
+export async function lookupPaqueteUbicacionAction(
+    scannedText: string
+): Promise<{ success: boolean; ubicacionAlmacen?: string; packageId?: number; cleanCode?: string }> {
+    try {
+        if (!scannedText) return { success: false };
+        
+        const packageId = extractPackageIdFromQuery(scannedText);
+        if (packageId === null) return { success: false };
+
+        const paquete = await db.query.tbpaquetes.findFirst({
+            where: (p, { eq, and, isNull }) =>
+                and(
+                    eq(p.pk_id_paquete, packageId),
+                    isNull(p.deletedAt)
+                ),
+            columns: { pk_id_paquete: true, ubicacionAlmacen: true }
+        });
+
+        if (paquete && paquete.ubicacionAlmacen) {
+            return {
+                success: true,
+                packageId: paquete.pk_id_paquete,
+                ubicacionAlmacen: paquete.ubicacionAlmacen,
+                cleanCode: encodeId(paquete.pk_id_paquete),
+            };
+        }
+
+        return {
+            success: true,
+            packageId,
+            cleanCode: formatScannedCode(scannedText),
+        };
+    } catch (e) {
+        return { success: false };
     }
 }

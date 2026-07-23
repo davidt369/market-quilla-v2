@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { formatScannedCode, extractPackageIdFromQuery } from "@/shared/lib/id-encoder";
+import { lookupPaqueteUbicacionAction } from "@/features/paquetes/actions/paquetes.actions";
 import { Input } from "@/shared/components/ui/input";
 import { QrCode, X, Command } from "lucide-react";
 import { toast } from "sonner";
@@ -39,34 +40,49 @@ export function GlobalBarcodeScanner({
   };
 
   const executeSearch = useCallback(
-    (scannedOrTyped: string, isFromScanner = false) => {
-      const cleanCode = formatScannedCode(scannedOrTyped);
-      const currentQ = searchParams.get("q") || "";
+    async (scannedOrTyped: string, isFromScanner = false) => {
+      let targetQuery = formatScannedCode(scannedOrTyped);
+      let ubicacionEncontrada = "";
+      let packageIdFound: number | null = extractPackageIdFromQuery(scannedOrTyped);
 
       if (isFromScanner) {
         triggerScanFeedback();
       }
 
-      if (cleanCode === currentQ) return;
+      // Si es un QR con hash o ID, consultar la ubicación exacta de almacén (ej: M/8/517/)
+      if (packageIdFound !== null) {
+        try {
+          const res = await lookupPaqueteUbicacionAction(scannedOrTyped);
+          if (res.success && res.ubicacionAlmacen) {
+            ubicacionEncontrada = res.ubicacionAlmacen;
+            targetQuery = res.ubicacionAlmacen; // Ponemos el lugar/ubicación exacto en el input (ej: M/8/517/)
+          }
+        } catch {}
+      }
 
-      setQuery(cleanCode);
+      const currentQ = searchParams.get("q") || "";
+      if (targetQuery === currentQ) return;
+
+      setQuery(targetQuery);
       const targetPath = pathname.includes("/dashboard/paquetes")
         ? pathname
         : "/dashboard/paquetes";
 
-      if (cleanCode) {
-        router.push(`${targetPath}?q=${encodeURIComponent(cleanCode)}`);
+      if (targetQuery) {
+        router.push(`${targetPath}?q=${encodeURIComponent(targetQuery)}`);
       } else {
         router.push(targetPath);
       }
 
-      const packageId = extractPackageIdFromQuery(scannedOrTyped);
-      if (packageId !== null) {
-        toast.success(`Paquete detectado ID #${packageId}`, {
-          id: "qr-scan-toast",
-          duration: 2500,
-          description: `Código: ${cleanCode}`,
-        });
+      if (packageIdFound !== null) {
+        toast.success(
+          ubicacionEncontrada ? `📍 Ubicación: ${ubicacionEncontrada}` : `Paquete detectado ID #${packageIdFound}`,
+          {
+            id: "qr-scan-toast",
+            duration: 3000,
+            description: `ID Paquete #${packageIdFound} ${ubicacionEncontrada ? `| Lugar: ${ubicacionEncontrada}` : ''}`,
+          }
+        );
       }
     },
     [pathname, router, searchParams]
