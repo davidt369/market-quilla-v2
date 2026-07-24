@@ -150,22 +150,7 @@ export function GlobalBarcodeScanner({
   }, [executeSearch]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    
-    // Si se escaneó o pegó un enlace completo de paquete (ej: httpsñ--marketquilla.../p/MQ290H3PF)
-    if (
-      val.includes("http") ||
-      val.includes("marketquilla") ||
-      val.includes("httpsñ") ||
-      val.includes("]-") ||
-      val.includes("/p/")
-    ) {
-      const cleanCode = formatScannedCode(val);
-      setQuery(cleanCode);
-      executeSearch(cleanCode, true);
-    } else {
-      setQuery(val);
-    }
+    setQuery(e.target.value);
   };
 
   const handleKeyDownInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -222,6 +207,7 @@ export function GlobalBarcodeScanner({
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDownInput}
+          onPaste={handlePasteInput}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className="pl-9 pr-24 h-9 w-full rounded-lg bg-background border-input text-xs sm:text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring placeholder:text-muted-foreground/70"
