@@ -125,7 +125,8 @@ export function GlobalBarcodeScanner({
       const timeSinceLastKey = now - lastKeyTimeRef.current;
       lastKeyTimeRef.current = now;
 
-      if (timeSinceLastKey > 80 && bufferRef.current.length > 0) {
+      // Aumentado a 400ms para evitar que se limpie a mitad de lectura
+      if (timeSinceLastKey > 400 && bufferRef.current.length > 0) {
         bufferRef.current = "";
       }
 
@@ -153,13 +154,14 @@ export function GlobalBarcodeScanner({
     setQuery(e.target.value);
   };
 
-  const handleKeyDownInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const clean = formatScannedCode(query);
-      setQuery(clean);
-      executeSearch(clean, true);
-    }
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // En móviles (PWA) o escáneres rápidos de Android, tomar directo del DOM 
+    // asegura no perder caracteres por el ciclo de renderizado de React.
+    const currentValue = inputRef.current?.value || query;
+    const clean = formatScannedCode(currentValue);
+    setQuery(clean);
+    executeSearch(clean, true);
   };
 
   const handlePasteInput = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -181,7 +183,8 @@ export function GlobalBarcodeScanner({
   return (
     <div className={`relative flex items-center w-full ${className}`}>
       {/* Contenedor principal con efecto de escaneo estilizado estilo shadcn */}
-      <div
+      <form
+        onSubmit={handleSubmit}
         className={`relative flex items-center w-full rounded-lg transition-all duration-200 ${isScanningActive
             ? "ring-2 ring-emerald-500/80 bg-emerald-500/5 dark:bg-emerald-500/10"
             : ""
@@ -206,7 +209,6 @@ export function GlobalBarcodeScanner({
           placeholder={placeholder}
           value={query}
           onChange={handleInputChange}
-          onKeyDown={handleKeyDownInput}
           onPaste={handlePasteInput}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -244,7 +246,7 @@ export function GlobalBarcodeScanner({
             </div>
           )}
         </div>
-      </div>
+      </form>
     </div>
   );
 }
