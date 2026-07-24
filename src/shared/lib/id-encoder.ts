@@ -30,9 +30,9 @@ export function decodeId(encoded: string): number | null {
         if (!encoded) return null;
         let str = encoded.trim().toUpperCase();
         
-        // Quitar prefijos comunes si los tiene (ej: "MQ-", "MQ_", "MQ/", "MQ")
+        // Quitar prefijos comunes si los tiene (ej: "MQ-", "MQ_", "MQ/", "MQ", "MQ'")
         if (str.startsWith("MQ")) {
-            str = str.replace(/^MQ[-_/\s]*/, "");
+            str = str.replace(/^MQ[-_/\s']*/, "");
         }
 
         if (!str) return null;
@@ -70,20 +70,20 @@ export function extractPackageIdFromQuery(q: string): number | null {
 
     // Normalizar distorsiones comunes de teclado en español/inglés de pistolas USB
     query = query
-        .replace(/httpsñ--/i, "https://")
-        .replace(/https>--/i, "https://")
+        .replace(/https?ñ--/i, "https://")
+        .replace(/https?>--/i, "https://")
         .replace(/^\]-/, "https://")
         .replace(/-p-/, "/p/");
 
     // 1. Extraer patrón alfanumérico MQ de la URL o texto (ej: MQ290H3PF o MQ-290H3PF)
-    const mqMatch = query.match(/MQ[-_/\s]*([A-Z0-9]{5,8})/i);
+    const mqMatch = query.match(/MQ[-_/\s']*([A-Z0-9]{5,8})/i);
     if (mqMatch) {
         const decoded = decodeId(`MQ-${mqMatch[1]}`);
         if (decoded !== null) return decoded;
     }
 
     // 2. Coincidencia con el valor dentro de la ruta /p/HASH o /p/ID
-    const urlMatch = query.match(/(?:[/\-]p[/\-])([A-Za-z0-9_-]+)/i);
+    const urlMatch = query.match(/(?:[/\-]p[/\-])([A-Za-z0-9_\-']+)/i);
     if (urlMatch) {
         const pVal = urlMatch[1];
         const pNum = parseInt(pVal, 10);
@@ -111,13 +111,13 @@ export function formatScannedCode(input: string): string {
     let clean = input.trim();
 
     // 1. Extraer código MQ si está contenido en una URL o distorsión de teclado (ej: httpsñ--...-p-MQ290H3PF)
-    const mqMatch = clean.match(/MQ[-_/\s]*([A-Z0-9]{5,8})/i);
+    const mqMatch = clean.match(/MQ[-_/\s']*([A-Z0-9]{5,8})/i);
     if (mqMatch) {
         return `MQ-${mqMatch[1].toUpperCase()}`;
     }
 
     // 2. Extraer valor tras /p/ si es numérico u otro código
-    const urlMatch = clean.match(/(?:[/\-]p[/\-])([A-Za-z0-9_-]+)/i);
+    const urlMatch = clean.match(/(?:[/\-]p[/\-])([A-Za-z0-9_\-']+)/i);
     if (urlMatch) {
         const pVal = urlMatch[1].toUpperCase();
         return pVal.startsWith("MQ") ? pVal : (pVal.length >= 5 ? `MQ-${pVal}` : pVal);
