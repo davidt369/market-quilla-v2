@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { formatScannedCode, extractPackageIdFromQuery } from "@/shared/lib/id-encoder";
 import { lookupPaqueteUbicacionAction } from "@/features/paquetes/actions/paquetes.actions";
@@ -26,13 +26,17 @@ export function GlobalBarcodeScanner({
   const [query, setQuery] = useState(urlQ);
   const [isScanningActive, setIsScanningActive] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [, startTransition] = useTransition();
 
   const bufferRef = useRef<string>("");
   const lastKeyTimeRef = useRef<number>(0);
+  const searchIdRef = useRef<number>(0);
 
   useEffect(() => {
-    setQuery(urlQ);
-  }, [urlQ]);
+    if (!isFocused) {
+      setQuery(urlQ);
+    }
+  }, [urlQ, isFocused]);
 
   const triggerScanFeedback = () => {
     setIsScanningActive(true);
@@ -41,6 +45,7 @@ export function GlobalBarcodeScanner({
 
   const executeSearch = useCallback(
     async (scannedOrTyped: string, isFromScanner = false) => {
+      const currentSearchId = ++searchIdRef.current;
       let targetQuery = formatScannedCode(scannedOrTyped);
       let ubicacionEncontrada = "";
       let packageIdFound: number | null = extractPackageIdFromQuery(scannedOrTyped);
@@ -60,6 +65,9 @@ export function GlobalBarcodeScanner({
         } catch {}
       }
 
+      // Evitamos condiciones de carrera si el usuario sigue escribiendo rápido
+      if (currentSearchId !== searchIdRef.current) return;
+
       const currentQ = searchParams.get("q") || "";
       if (targetQuery === currentQ) return;
 
@@ -68,11 +76,13 @@ export function GlobalBarcodeScanner({
         ? pathname
         : "/dashboard/paquetes";
 
-      if (targetQuery) {
-        router.push(`${targetPath}?q=${encodeURIComponent(targetQuery)}`);
-      } else {
-        router.push(targetPath);
-      }
+      startTransition(() => {
+        if (targetQuery) {
+          router.push(`${targetPath}?q=${encodeURIComponent(targetQuery)}`);
+        } else {
+          router.push(targetPath);
+        }
+      });
 
       if (packageIdFound !== null) {
         toast.success(
@@ -88,17 +98,7 @@ export function GlobalBarcodeScanner({
     [pathname, router, searchParams]
   );
 
-  // Debounce para búsqueda manual
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      const currentQ = searchParams.get("q") || "";
-      if (query.trim() !== currentQ) {
-        executeSearch(query);
-      }
-    }, 350);
 
-    return () => clearTimeout(handler);
-  }, [query, searchParams, executeSearch]);
 
   // Listener global para atajos de teclado y pistola QR
   useEffect(() => {
